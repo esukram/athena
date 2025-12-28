@@ -9,5 +9,6 @@ export interface Chapter {
   id: string;
   lectureId: string;
   title: string;
+  body: string;
   order: number;
 }

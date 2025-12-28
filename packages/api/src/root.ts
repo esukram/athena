@@ -53,6 +53,7 @@ export const appRouter = router({
       z.object({
         lectureId: z.string(),
         title: z.string().min(1),
+        body: z.string().default(''),
         order: z.number().int().min(0),
       }),
     )
@@ -64,6 +65,7 @@ export const appRouter = router({
       z.object({
         id: z.string(),
         title: z.string().min(1).optional(),
+        body: z.string().optional(),
         order: z.number().int().min(0).optional(),
       }),
     )

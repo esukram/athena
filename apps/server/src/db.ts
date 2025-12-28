@@ -19,10 +19,18 @@ db.exec(`
     id TEXT PRIMARY KEY,
     lectureId TEXT NOT NULL,
     title TEXT NOT NULL,
+    body TEXT NOT NULL DEFAULT '',
     "order" INTEGER NOT NULL,
     FOREIGN KEY (lectureId) REFERENCES lectures(id) ON DELETE CASCADE
   )
 `);
+
+// Migration: Add body column if it doesn't exist (for existing databases)
+const tableInfo = db.prepare("PRAGMA table_info(chapters)").all() as { name: string }[];
+const hasBodyColumn = tableInfo.some((col) => col.name === 'body');
+if (!hasBodyColumn) {
+  db.exec(`ALTER TABLE chapters ADD COLUMN body TEXT NOT NULL DEFAULT ''`);
+}
 
 const defaultLectures = [
   {

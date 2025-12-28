@@ -7,6 +7,7 @@ import { httpBatchLink } from '@trpc/client';
 
 import { AddLecture } from './components/AddLecture';
 import { EditLecture } from './components/EditLecture';
+import { LectureView } from './components/LectureView';
 import { Overview } from './components/Overview';
 import { trpc } from './utils/trpc';
 
@@ -30,6 +31,7 @@ export default function App() {
             <Route path="/" element={<Overview />} />
             <Route path="/add-lecture" element={<AddLecture />} />
             <Route path="/edit-lecture/:id" element={<EditLecture />} />
+            <Route path="/lecture/:id" element={<LectureView />} />
           </Routes>
         </BrowserRouter>
       </QueryClientProvider>

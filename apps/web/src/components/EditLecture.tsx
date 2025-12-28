@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useState } from 'react';
 
 import type { Chapter } from '@athena/api';
+import ReactMarkdown from 'react-markdown';
 
 import { trpc } from '../utils/trpc';
 import { AppHeader } from './AppHeader';
@@ -20,6 +21,8 @@ export const EditLecture = () => {
   const [newChapterTitle, setNewChapterTitle] = useState('');
   const [editingChapter, setEditingChapter] = useState<Chapter | null>(null);
   const [editingTitle, setEditingTitle] = useState('');
+  const [editingBody, setEditingBody] = useState('');
+  const [showPreview, setShowPreview] = useState(false);
 
   const lectureQuery = trpc.getLecture.useQuery(
     { id: id! },
@@ -60,6 +63,8 @@ export const EditLecture = () => {
       utils.getChapters.invalidate({ lectureId: id! });
       setEditingChapter(null);
       setEditingTitle('');
+      setEditingBody('');
+      setShowPreview(false);
     },
   });
 
@@ -90,6 +95,8 @@ export const EditLecture = () => {
   const handleStartEdit = (chapter: Chapter) => {
     setEditingChapter(chapter);
     setEditingTitle(chapter.title);
+    setEditingBody(chapter.body);
+    setShowPreview(false);
   };
 
   const handleSaveEdit = () => {
@@ -97,12 +104,15 @@ export const EditLecture = () => {
     updateChapter.mutate({
       id: editingChapter.id,
       title: editingTitle.trim(),
+      body: editingBody,
     });
   };
 
   const handleCancelEdit = () => {
     setEditingChapter(null);
     setEditingTitle('');
+    setEditingBody('');
+    setShowPreview(false);
   };
 
   const handleDeleteChapter = (chapterId: string) => {
@@ -295,54 +305,34 @@ export const EditLecture = () => {
                 chapters.map((chapter) => (
                   <div
                     key={chapter.id}
-                    className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg border border-gray-200"
+                    className="p-4 bg-gray-50 rounded-lg border border-gray-200"
                   >
-                    <span className="shrink-0 w-8 h-8 flex items-center justify-center bg-primary-100 text-primary-700 font-semibold rounded-full text-sm">
-                      {chapter.order + 1}
-                    </span>
-
-                    {editingChapter?.id === chapter.id ? (
-                      <>
-                        <input
-                          type="text"
-                          value={editingTitle}
-                          onChange={(e) => setEditingTitle(e.target.value)}
-                          className="flex-1 px-3 py-1.5 rounded border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
-                          autoFocus
-                        />
-                        <button
-                          onClick={handleSaveEdit}
-                          disabled={updateChapter.isLoading}
-                          className="px-3 py-1.5 text-sm bg-green-600 hover:bg-green-700 text-white rounded transition-colors"
-                        >
-                          Save
-                        </button>
-                        <button
-                          onClick={handleCancelEdit}
-                          className="px-3 py-1.5 text-sm bg-gray-400 hover:bg-gray-500 text-white rounded transition-colors"
-                        >
-                          Cancel
-                        </button>
-                      </>
-                    ) : (
-                      <>
-                        <span className="flex-1 text-on-surface">
-                          {chapter.title}
-                        </span>
-                        <button
-                          onClick={() => handleStartEdit(chapter)}
-                          className="px-3 py-1.5 text-sm text-primary-600 hover:bg-primary-50 rounded transition-colors"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => handleDeleteChapter(chapter.id)}
-                          disabled={deleteChapter.isLoading}
-                          className="px-3 py-1.5 text-sm text-red-600 hover:bg-red-50 rounded transition-colors"
-                        >
-                          Delete
-                        </button>
-                      </>
+                    <div className="flex items-center gap-3">
+                      <span className="shrink-0 w-8 h-8 flex items-center justify-center bg-primary-100 text-primary-700 font-semibold rounded-full text-sm">
+                        {chapter.order + 1}
+                      </span>
+                      <span className="flex-1 text-on-surface font-medium">
+                        {chapter.title}
+                      </span>
+                      <button
+                        onClick={() => handleStartEdit(chapter)}
+                        className="px-3 py-1.5 text-sm text-primary-600 hover:bg-primary-50 rounded transition-colors"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleDeleteChapter(chapter.id)}
+                        disabled={deleteChapter.isLoading}
+                        className="px-3 py-1.5 text-sm text-red-600 hover:bg-red-50 rounded transition-colors"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                    {chapter.body && (
+                      <div className="mt-3 pl-11 text-sm text-gray-500 truncate">
+                        {chapter.body.substring(0, 100)}
+                        {chapter.body.length > 100 && '...'}
+                      </div>
                     )}
                   </div>
                 ))
@@ -350,6 +340,83 @@ export const EditLecture = () => {
             </div>
           </div>
         </div>
+
+        {/* Chapter Edit Modal */}
+        {editingChapter && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col">
+              <div className="p-6 border-b border-gray-200">
+                <h3 className="text-xl font-semibold text-on-surface">
+                  Edit Chapter
+                </h3>
+              </div>
+
+              <div className="p-6 space-y-4 overflow-y-auto flex-1">
+                <div>
+                  <label className="block text-sm font-medium text-on-surface mb-2">
+                    Chapter Title
+                  </label>
+                  <input
+                    type="text"
+                    value={editingTitle}
+                    onChange={(e) => setEditingTitle(e.target.value)}
+                    className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+                    placeholder="Chapter title"
+                  />
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="block text-sm font-medium text-on-surface">
+                      Content (Markdown)
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setShowPreview(!showPreview)}
+                      className="text-sm text-primary-600 hover:text-primary-700"
+                    >
+                      {showPreview ? 'Edit' : 'Preview'}
+                    </button>
+                  </div>
+
+                  {showPreview ? (
+                    <div className="w-full min-h-[300px] px-4 py-3 rounded-lg border border-gray-300 bg-white prose prose-sm max-w-none overflow-y-auto">
+                      {editingBody ? (
+                        <ReactMarkdown>{editingBody}</ReactMarkdown>
+                      ) : (
+                        <p className="text-gray-400 italic">No content yet</p>
+                      )}
+                    </div>
+                  ) : (
+                    <textarea
+                      value={editingBody}
+                      onChange={(e) => setEditingBody(e.target.value)}
+                      rows={12}
+                      className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none font-mono text-sm resize-none"
+                      placeholder="Write your chapter content in Markdown..."
+                    />
+                  )}
+                </div>
+              </div>
+
+              <div className="p-6 border-t border-gray-200 flex gap-3 justify-end">
+                <button
+                  onClick={handleCancelEdit}
+                  className="px-4 py-2 rounded-lg border border-gray-300 text-on-surface hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSaveEdit}
+                  disabled={updateChapter.isLoading || !editingTitle.trim()}
+                  className="px-4 py-2 bg-primary-600 hover:bg-primary-700 disabled:bg-primary-400 text-white font-medium rounded-lg transition-colors"
+                >
+                  {updateChapter.isLoading ? 'Saving...' : 'Save Chapter'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );
