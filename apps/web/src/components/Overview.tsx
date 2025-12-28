@@ -1,7 +1,8 @@
+import type { Lecture } from '@athena/api';
+
 import { trpc } from '../utils/trpc';
 import { AppHeader } from './AppHeader';
 import { LectureCard } from './LectureCard';
-import type { Lecture } from '@athena/api';
 
 export const Overview = () => {
   const lecturesQuery = trpc.getLectures.useQuery();

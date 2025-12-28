@@ -1,5 +1,6 @@
-import { router, publicProcedure } from './trpc';
 import { z } from 'zod';
+
+import { publicProcedure, router } from './trpc';
 import type { Lecture } from './types';
 
 export const appRouter = router({

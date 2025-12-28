@@ -9,8 +9,9 @@
     "clean": "turbo clean"
   },
   "devDependencies": {
-    "turbo": "latest",
+    "@trivago/prettier-plugin-sort-imports": "^6.0.0",
     "prettier": "^3.0.0",
+    "turbo": "latest",
     "typescript": "^5.0.0"
   },
   "packageManager": "pnpm@9.0.0",
