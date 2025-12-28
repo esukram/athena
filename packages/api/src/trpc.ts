@@ -2,12 +2,22 @@ import { ZodError } from 'zod';
 
 import { initTRPC } from '@trpc/server';
 
-// Context definition (empty for now, add DB/Auth here later)
-export const createContext = async () => {
-  return {};
+import type { Lecture } from './types';
+
+export interface LectureRepository {
+  getAll: () => Lecture[];
+  create: (lecture: Omit<Lecture, 'id'>) => Lecture;
+}
+
+export interface AppContext {
+  lectureRepository: LectureRepository;
+}
+
+export const createContext = (deps: AppContext) => async () => {
+  return deps;
 };
 
-type Context = Awaited<ReturnType<typeof createContext>>;
+type Context = AppContext;
 
 const t = initTRPC.context<Context>().create({
   errorFormatter({ shape, error }) {

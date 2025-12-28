@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom';
+
 import logo from '../../assets/logo.png';
 
 export const AppHeader = () => {
@@ -19,12 +21,18 @@ export const AppHeader = () => {
         </div>
 
         <nav className="flex items-center gap-6">
-          <a
-            href="/"
+          <Link
+            to="/"
             className="text-base font-medium text-on-surface hover:text-primary-600 transition-colors"
           >
             Overview
-          </a>
+          </Link>
+          <Link
+            to="/add-lecture"
+            className="text-base font-medium text-white bg-primary-600 hover:bg-primary-700 px-4 py-2 rounded-lg transition-colors"
+          >
+            Add Lecture
+          </Link>
         </nav>
       </div>
     </header>

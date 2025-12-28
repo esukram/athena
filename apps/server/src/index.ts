@@ -3,7 +3,35 @@ import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import { fastifyTRPCPlugin } from '@trpc/server/adapters/fastify';
 
-import { appRouter, createContext } from '@athena/api';
+import {
+  type Lecture,
+  type LectureRepository,
+  appRouter,
+  createContext,
+} from '@athena/api';
+
+import { db } from './db';
+
+function createLectureRepository(): LectureRepository {
+  return {
+    getAll: (): Lecture[] => {
+      return db.prepare('SELECT * FROM lectures').all() as Lecture[];
+    },
+    create: (lecture: Omit<Lecture, 'id'>): Lecture => {
+      const id = crypto.randomUUID();
+      db.prepare(
+        'INSERT INTO lectures (id, title, description, imageUrl, duration) VALUES (?, ?, ?, ?, ?)',
+      ).run(
+        id,
+        lecture.title,
+        lecture.description,
+        lecture.imageUrl,
+        lecture.duration,
+      );
+      return { id, ...lecture };
+    },
+  };
+}
 
 const server = Fastify({
   logger: true,
@@ -14,9 +42,14 @@ async function main() {
     origin: true, // Allow all origins for dev simplicity
   });
 
+  const lectureRepository = createLectureRepository();
+
   await server.register(fastifyTRPCPlugin, {
     prefix: '/trpc',
-    trpcOptions: { router: appRouter, createContext },
+    trpcOptions: {
+      router: appRouter,
+      createContext: createContext({ lectureRepository }),
+    },
   });
 
   try {

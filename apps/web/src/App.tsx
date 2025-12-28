@@ -1,8 +1,11 @@
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
+
 import { useState } from 'react';
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { httpBatchLink } from '@trpc/client';
 
+import { AddLecture } from './components/AddLecture';
 import { Overview } from './components/Overview';
 import { trpc } from './utils/trpc';
 
@@ -21,7 +24,12 @@ export default function App() {
   return (
     <trpc.Provider client={trpcClient} queryClient={queryClient}>
       <QueryClientProvider client={queryClient}>
-        <Overview />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Overview />} />
+            <Route path="/add-lecture" element={<AddLecture />} />
+          </Routes>
+        </BrowserRouter>
       </QueryClientProvider>
     </trpc.Provider>
   );
