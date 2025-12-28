@@ -1,7 +1,8 @@
 import Database, { type Database as DatabaseType } from 'better-sqlite3';
 import path from 'path';
 
-const dbPath = path.join(process.cwd(), 'athena.db');
+const dbPath =
+  process.env.DB_PATH || path.join(process.cwd(), '../../athena.db');
 export const db: DatabaseType = new Database(dbPath);
 
 db.exec(`
