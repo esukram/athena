@@ -24,7 +24,7 @@ export const EditLecture = () => {
   const [editingBody, setEditingBody] = useState('');
   const [showPreview, setShowPreview] = useState(false);
 
-  const lectureQuery = trpc.getLecture.useQuery(
+  const lectureQuery = trpc.lectures.getLecture.useQuery(
     { id: id! },
     {
       enabled: !!id,
@@ -39,28 +39,28 @@ export const EditLecture = () => {
     },
   );
 
-  const chaptersQuery = trpc.getChapters.useQuery(
+  const chaptersQuery = trpc.chapters.getChapters.useQuery(
     { lectureId: id! },
     { enabled: !!id },
   );
 
-  const updateLecture = trpc.updateLecture.useMutation({
+  const updateLecture = trpc.lectures.updateLecture.useMutation({
     onSuccess: () => {
-      utils.getLectures.invalidate();
-      utils.getLecture.invalidate({ id: id! });
+      utils.lectures.getLectures.invalidate();
+      utils.lectures.getLecture.invalidate({ id: id! });
     },
   });
 
-  const createChapter = trpc.createChapter.useMutation({
+  const createChapter = trpc.chapters.createChapter.useMutation({
     onSuccess: () => {
-      utils.getChapters.invalidate({ lectureId: id! });
+      utils.chapters.getChapters.invalidate({ lectureId: id! });
       setNewChapterTitle('');
     },
   });
 
-  const updateChapter = trpc.updateChapter.useMutation({
+  const updateChapter = trpc.chapters.updateChapter.useMutation({
     onSuccess: () => {
-      utils.getChapters.invalidate({ lectureId: id! });
+      utils.chapters.getChapters.invalidate({ lectureId: id! });
       setEditingChapter(null);
       setEditingTitle('');
       setEditingBody('');
@@ -68,9 +68,9 @@ export const EditLecture = () => {
     },
   });
 
-  const deleteChapter = trpc.deleteChapter.useMutation({
+  const deleteChapter = trpc.chapters.deleteChapter.useMutation({
     onSuccess: () => {
-      utils.getChapters.invalidate({ lectureId: id! });
+      utils.chapters.getChapters.invalidate({ lectureId: id! });
     },
   });
 

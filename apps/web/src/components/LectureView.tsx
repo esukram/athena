@@ -11,9 +11,9 @@ export const LectureView = () => {
   const navigate = useNavigate();
   const [selectedChapterIndex, setSelectedChapterIndex] = useState(0);
 
-  const lectureQuery = trpc.getLecture.useQuery({ id: id! }, { enabled: !!id });
+  const lectureQuery = trpc.lectures.getLecture.useQuery({ id: id! }, { enabled: !!id });
 
-  const chaptersQuery = trpc.getChapters.useQuery(
+  const chaptersQuery = trpc.chapters.getChapters.useQuery(
     { lectureId: id! },
     { enabled: !!id },
   );

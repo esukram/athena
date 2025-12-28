@@ -1,7 +1,7 @@
 import { trpc } from '../utils/trpc';
 
 export const HelloWorld = () => {
-  const hello = trpc.hello.useQuery({ text: 'Client' });
+  const hello = trpc.hello.hello.useQuery({ text: 'Client' });
 
   if (hello.isLoading)
     return <div className="p-5 text-on-surface">Loading...</div>;

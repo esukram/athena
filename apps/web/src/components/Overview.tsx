@@ -5,7 +5,7 @@ import { AppHeader } from './AppHeader';
 import { LectureCard } from './LectureCard';
 
 export const Overview = () => {
-  const lecturesQuery = trpc.getLectures.useQuery();
+  const lecturesQuery = trpc.lectures.getLectures.useQuery();
 
   if (lecturesQuery.isLoading) {
     return (

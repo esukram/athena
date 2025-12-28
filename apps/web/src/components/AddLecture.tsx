@@ -13,9 +13,9 @@ export const AddLecture = () => {
   const [subtitle, setSubtitle] = useState('');
   const [description, setDescription] = useState('');
 
-  const createLecture = trpc.createLecture.useMutation({
+  const createLecture = trpc.lectures.createLecture.useMutation({
     onSuccess: () => {
-      utils.getLectures.invalidate();
+      utils.lectures.getLectures.invalidate();
       navigate('/');
     },
   });

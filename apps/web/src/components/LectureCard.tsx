@@ -12,9 +12,9 @@ export const LectureCard = ({ lecture }: { lecture: Lecture }) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  const deleteLecture = trpc.deleteLecture.useMutation({
+  const deleteLecture = trpc.lectures.deleteLecture.useMutation({
     onSuccess: () => {
-      utils.getLectures.invalidate();
+      utils.lectures.getLectures.invalidate();
     },
   });
 
