@@ -35,9 +35,10 @@ Athena uses a strict three-tier hierarchy to keep learning materials organized:
 * **Language:** TypeScript (Full Stack)  
 * **Frontend:** React.js  
 * **Design System:** Google Material 3 Design System (@material/web)
-* **Backend:** Node.js  
-* **Persistence:** S3-based Object Storage (AWS S3, MinIO, etc.)  
-* **State Management:** React Context / Hooks
+* **Backend:** Node.js
+* **API:** tRPC and Fastify
+* **Database:** SQLite
+* **Testing:** Jest
 
 See [ARCHITECTURE.md](ARCHITECTURE.md) for more information on the architecture of the application.
 
@@ -46,7 +47,7 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for more information on the architecture 
 ### **Prerequisites**
 
 * Node.js (v18 or higher)  
-* npm
+* pnpm
 
 ### **Installation**
 
@@ -57,10 +58,10 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for more information on the architecture 
    cd athena
 
 3. Install dependencies:
-   npm install
+   pnpm install
 
 4. Start the development server:
-   npm run dev
+   pnpm dev
 
 ## **📄 License**
 
