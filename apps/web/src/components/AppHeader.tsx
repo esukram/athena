@@ -3,7 +3,7 @@ import logo from "../../assets/logo.png";
 export const AppHeader = () => {
   return (
     <header className="sticky top-0 z-50 w-full border-b border-gray-200 bg-surface shadow-sm">
-      <div className="container mx-auto flex items-center px-4 py-4">
+      <div className="container mx-auto flex items-center justify-between px-4 py-4">
         <div className="flex items-center gap-3">
           <img
             src={logo}
@@ -17,6 +17,15 @@ export const AppHeader = () => {
             Athena
           </h1>
         </div>
+        
+        <nav className="flex items-center gap-6">
+          <a
+            href="/"
+            className="text-base font-medium text-on-surface hover:text-primary-600 transition-colors"
+          >
+            Overview
+          </a>
+        </nav>
       </div>
     </header>
   );

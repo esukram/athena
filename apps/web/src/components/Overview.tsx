@@ -2,7 +2,7 @@ import { trpc } from "../utils/trpc";
 import { AppHeader } from "./AppHeader";
 import { LectureCard, LectureProps } from "./LectureCard";
 
-export const LandingPage = () => {
+export const Overview = () => {
   const lecturesQuery = trpc.getLectures.useQuery();
 
   if (lecturesQuery.isLoading) {
