@@ -20,7 +20,9 @@ function createLectureRepository(): LectureRepository {
       return db.prepare('SELECT * FROM lectures').all() as Lecture[];
     },
     getById: (id: string): Lecture | undefined => {
-      return db.prepare('SELECT * FROM lectures WHERE id = ?').get(id) as Lecture | undefined;
+      return db.prepare('SELECT * FROM lectures WHERE id = ?').get(id) as
+        | Lecture
+        | undefined;
     },
     create: (lecture: Omit<Lecture, 'id'>): Lecture => {
       const id = crypto.randomUUID();
@@ -30,9 +32,11 @@ function createLectureRepository(): LectureRepository {
       return { id, ...lecture };
     },
     update: (id: string, lecture: Omit<Lecture, 'id'>): Lecture | undefined => {
-      const result = db.prepare(
-        'UPDATE lectures SET title = ?, subtitle = ?, description = ? WHERE id = ?',
-      ).run(lecture.title, lecture.subtitle, lecture.description, id);
+      const result = db
+        .prepare(
+          'UPDATE lectures SET title = ?, subtitle = ?, description = ? WHERE id = ?',
+        )
+        .run(lecture.title, lecture.subtitle, lecture.description, id);
       if (result.changes === 0) return undefined;
       return { id, ...lecture };
     },
@@ -42,7 +46,9 @@ function createLectureRepository(): LectureRepository {
 function createChapterRepository(): ChapterRepository {
   return {
     getByLectureId: (lectureId: string): Chapter[] => {
-      return db.prepare('SELECT * FROM chapters WHERE lectureId = ? ORDER BY "order"').all(lectureId) as Chapter[];
+      return db
+        .prepare('SELECT * FROM chapters WHERE lectureId = ? ORDER BY "order"')
+        .all(lectureId) as Chapter[];
     },
     create: (chapter: Omit<Chapter, 'id'>): Chapter => {
       const id = crypto.randomUUID();
@@ -51,8 +57,13 @@ function createChapterRepository(): ChapterRepository {
       ).run(id, chapter.lectureId, chapter.title, chapter.body, chapter.order);
       return { id, ...chapter };
     },
-    update: (id: string, chapter: Partial<Omit<Chapter, 'id'>>): Chapter | undefined => {
-      const existing = db.prepare('SELECT * FROM chapters WHERE id = ?').get(id) as Chapter | undefined;
+    update: (
+      id: string,
+      chapter: Partial<Omit<Chapter, 'id'>>,
+    ): Chapter | undefined => {
+      const existing = db
+        .prepare('SELECT * FROM chapters WHERE id = ?')
+        .get(id) as Chapter | undefined;
       if (!existing) return undefined;
       const updated = { ...existing, ...chapter };
       db.prepare(

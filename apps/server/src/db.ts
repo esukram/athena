@@ -26,7 +26,9 @@ db.exec(`
 `);
 
 // Migration: Add body column if it doesn't exist (for existing databases)
-const tableInfo = db.prepare("PRAGMA table_info(chapters)").all() as { name: string }[];
+const tableInfo = db.prepare('PRAGMA table_info(chapters)').all() as {
+  name: string;
+}[];
 const hasBodyColumn = tableInfo.some((col) => col.name === 'body');
 if (!hasBodyColumn) {
   db.exec(`ALTER TABLE chapters ADD COLUMN body TEXT NOT NULL DEFAULT ''`);

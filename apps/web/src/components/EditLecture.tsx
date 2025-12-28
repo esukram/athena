@@ -1,9 +1,9 @@
+import ReactMarkdown from 'react-markdown';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { useState } from 'react';
 
 import type { Chapter } from '@athena/api';
-import ReactMarkdown from 'react-markdown';
 
 import { trpc } from '../utils/trpc';
 import { AppHeader } from './AppHeader';
@@ -84,7 +84,8 @@ export const EditLecture = () => {
     e.preventDefault();
     if (!id || !newChapterTitle.trim()) return;
     const chapters = chaptersQuery.data || [];
-    const maxOrder = chapters.length > 0 ? Math.max(...chapters.map((c) => c.order)) : -1;
+    const maxOrder =
+      chapters.length > 0 ? Math.max(...chapters.map((c) => c.order)) : -1;
     createChapter.mutate({
       lectureId: id,
       title: newChapterTitle.trim(),

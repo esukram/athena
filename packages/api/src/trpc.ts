@@ -14,7 +14,10 @@ export interface LectureRepository {
 export interface ChapterRepository {
   getByLectureId: (lectureId: string) => Chapter[];
   create: (chapter: Omit<Chapter, 'id'>) => Chapter;
-  update: (id: string, chapter: Partial<Omit<Chapter, 'id'>>) => Chapter | undefined;
+  update: (
+    id: string,
+    chapter: Partial<Omit<Chapter, 'id'>>,
+  ) => Chapter | undefined;
   delete: (id: string) => boolean;
 }
 

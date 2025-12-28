@@ -1,8 +1,7 @@
+import ReactMarkdown from 'react-markdown';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { useState } from 'react';
-
-import ReactMarkdown from 'react-markdown';
 
 import { trpc } from '../utils/trpc';
 import { AppHeader } from './AppHeader';
@@ -12,10 +11,7 @@ export const LectureView = () => {
   const navigate = useNavigate();
   const [selectedChapterIndex, setSelectedChapterIndex] = useState(0);
 
-  const lectureQuery = trpc.getLecture.useQuery(
-    { id: id! },
-    { enabled: !!id },
-  );
+  const lectureQuery = trpc.getLecture.useQuery({ id: id! }, { enabled: !!id });
 
   const chaptersQuery = trpc.getChapters.useQuery(
     { lectureId: id! },
