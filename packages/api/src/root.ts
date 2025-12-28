@@ -18,9 +18,8 @@ export const appRouter = router({
     .input(
       z.object({
         title: z.string().min(1),
+        subtitle: z.string().min(1),
         description: z.string().min(1),
-        imageUrl: z.string().url(),
-        duration: z.string().min(1),
       }),
     )
     .mutation(({ ctx, input }) => {

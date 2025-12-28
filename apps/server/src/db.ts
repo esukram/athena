@@ -9,9 +9,18 @@ db.exec(`
   CREATE TABLE IF NOT EXISTS lectures (
     id TEXT PRIMARY KEY,
     title TEXT NOT NULL,
-    description TEXT NOT NULL,
-    imageUrl TEXT NOT NULL,
-    duration TEXT NOT NULL
+    subtitle TEXT NOT NULL,
+    description TEXT NOT NULL
+  )
+`);
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS chapters (
+    id TEXT PRIMARY KEY,
+    lectureId TEXT NOT NULL,
+    title TEXT NOT NULL,
+    "order" INTEGER NOT NULL,
+    FOREIGN KEY (lectureId) REFERENCES lectures(id) ON DELETE CASCADE
   )
 `);
 
@@ -19,30 +28,26 @@ const defaultLectures = [
   {
     id: '1',
     title: 'Introduction to React',
+    subtitle: 'Build modern web applications',
     description: 'Learn the basics of React, components, and state.',
-    imageUrl: 'https://placehold.co/600x400',
-    duration: '45 min',
   },
   {
     id: '2',
     title: 'Advanced TypeScript',
+    subtitle: 'Master type-safe development',
     description: 'Deep dive into Generics, Utility types, and more.',
-    imageUrl: 'https://placehold.co/600x400',
-    duration: '60 min',
   },
   {
     id: '3',
     title: 'Material Design 3',
+    subtitle: 'Create beautiful user interfaces',
     description: 'Building beautiful UIs with Google Material 3.',
-    imageUrl: 'https://placehold.co/600x400',
-    duration: '30 min',
   },
   {
     id: '4',
     title: 'Server-Side Rendering',
+    subtitle: 'Optimize web performance',
     description: 'Understanding SSR with Node.js and frameworks.',
-    imageUrl: 'https://placehold.co/600x400',
-    duration: '50 min',
   },
 ];
 
@@ -51,15 +56,14 @@ const count = db.prepare('SELECT COUNT(*) as count FROM lectures').get() as {
 };
 if (count.count === 0) {
   const insert = db.prepare(
-    'INSERT INTO lectures (id, title, description, imageUrl, duration) VALUES (?, ?, ?, ?, ?)',
+    'INSERT INTO lectures (id, title, subtitle, description) VALUES (?, ?, ?, ?)',
   );
   for (const lecture of defaultLectures) {
     insert.run(
       lecture.id,
       lecture.title,
+      lecture.subtitle,
       lecture.description,
-      lecture.imageUrl,
-      lecture.duration,
     );
   }
 }

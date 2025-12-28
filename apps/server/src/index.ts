@@ -20,14 +20,8 @@ function createLectureRepository(): LectureRepository {
     create: (lecture: Omit<Lecture, 'id'>): Lecture => {
       const id = crypto.randomUUID();
       db.prepare(
-        'INSERT INTO lectures (id, title, description, imageUrl, duration) VALUES (?, ?, ?, ?, ?)',
-      ).run(
-        id,
-        lecture.title,
-        lecture.description,
-        lecture.imageUrl,
-        lecture.duration,
-      );
+        'INSERT INTO lectures (id, title, subtitle, description) VALUES (?, ?, ?, ?)',
+      ).run(id, lecture.title, lecture.subtitle, lecture.description);
       return { id, ...lecture };
     },
   };

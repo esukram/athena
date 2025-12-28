@@ -6,7 +6,10 @@ export const AppHeader = () => {
   return (
     <header className="sticky top-0 z-50 w-full border-b border-gray-200 bg-surface shadow-sm">
       <div className="container mx-auto flex items-center justify-between px-4 py-4">
-        <div className="flex items-center gap-3">
+        <Link
+          to="/"
+          className="flex items-center gap-3 hover:opacity-80 transition-opacity"
+        >
           <img
             src={logo}
             alt="Athena Logo"
@@ -18,7 +21,7 @@ export const AppHeader = () => {
           <h1 className="text-2xl font-bold tracking-tight text-on-surface">
             Athena
           </h1>
-        </div>
+        </Link>
 
         <nav className="flex items-center gap-6">
           <Link

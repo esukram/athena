@@ -10,9 +10,8 @@ export const AddLecture = () => {
   const utils = trpc.useUtils();
 
   const [title, setTitle] = useState('');
+  const [subtitle, setSubtitle] = useState('');
   const [description, setDescription] = useState('');
-  const [imageUrl, setImageUrl] = useState('');
-  const [duration, setDuration] = useState('');
 
   const createLecture = trpc.createLecture.useMutation({
     onSuccess: () => {
@@ -23,7 +22,7 @@ export const AddLecture = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    createLecture.mutate({ title, description, imageUrl, duration });
+    createLecture.mutate({ title, subtitle, description });
   };
 
   return (
@@ -36,7 +35,7 @@ export const AddLecture = () => {
             Add New Lecture
           </h2>
           <p className="text-lg text-on-surface-variant">
-            Create a new lecture for your students
+            Create a new lecture
           </p>
         </div>
 
@@ -64,6 +63,24 @@ export const AddLecture = () => {
 
           <div>
             <label
+              htmlFor="subtitle"
+              className="block text-sm font-medium text-on-surface mb-2"
+            >
+              Subtitle
+            </label>
+            <input
+              type="text"
+              id="subtitle"
+              value={subtitle}
+              onChange={(e) => setSubtitle(e.target.value)}
+              required
+              className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-colors"
+              placeholder="Enter lecture subtitle"
+            />
+          </div>
+
+          <div>
+            <label
               htmlFor="description"
               className="block text-sm font-medium text-on-surface mb-2"
             >
@@ -77,42 +94,6 @@ export const AddLecture = () => {
               rows={4}
               className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-colors resize-none"
               placeholder="Enter lecture description"
-            />
-          </div>
-
-          <div>
-            <label
-              htmlFor="imageUrl"
-              className="block text-sm font-medium text-on-surface mb-2"
-            >
-              Image URL
-            </label>
-            <input
-              type="url"
-              id="imageUrl"
-              value={imageUrl}
-              onChange={(e) => setImageUrl(e.target.value)}
-              required
-              className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-colors"
-              placeholder="https://example.com/image.jpg"
-            />
-          </div>
-
-          <div>
-            <label
-              htmlFor="duration"
-              className="block text-sm font-medium text-on-surface mb-2"
-            >
-              Duration
-            </label>
-            <input
-              type="text"
-              id="duration"
-              value={duration}
-              onChange={(e) => setDuration(e.target.value)}
-              required
-              className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-colors"
-              placeholder="e.g., 45 min"
             />
           </div>
 
