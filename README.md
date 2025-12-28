@@ -34,7 +34,7 @@ Athena uses a strict three-tier hierarchy to keep learning materials organized:
 
 - **Language:** TypeScript (Full Stack)
 - **Frontend:** React.js
-- **Design System:** Google Material 3 Design System (@material/web)
+- **Design System:** Tailwind CSS
 - **Backend:** Node.js
 - **API:** tRPC and Fastify
 - **Database:** SQLite

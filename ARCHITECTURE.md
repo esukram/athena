@@ -45,14 +45,12 @@ The repository is organized into `apps` (deployable applications) and `packages`
 
 ## **3. UI Design Guidelines**
 
-The application UI **MUST** be implemented purely based on **Google Material Design 3 (Material You)**.
+The application UI is built with Tailwind CSS. Use design tokens by adding custom styles to the theme.
 
 ### **3.1 Principles**
 
-- **Material 3 Foundation**: All UI elements should follow the M3 guidelines for color, typography, elevation, and layout.
-- **Components**: Use `@material/web` (Google's official Web Components) or a strict M3-themed React library. Do not use generic styling or inconsistent components.
-- **Tokens**: Utilize Material Design Tokens for colors and spacing to ensure consistency (e.g., `primary`, `on-surface`, `container`).
-- **Responsive**: Designs must work on Mobile, Tablet, and Desktop, utilizing standard Material breakpoints.
+- **Tokens**: Utilize Tailwind CSS design tokens for colors and spacing to ensure consistency (e.g., `primary`, `on-surface`, `container`).
+- **Responsive**: Designs must work on Mobile, Tablet, and Desktop, utilizing standard Tailwind breakpoints.
 
 ## **4. Testing Strategy**
 
