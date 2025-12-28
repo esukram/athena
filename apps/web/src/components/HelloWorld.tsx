@@ -9,6 +9,7 @@ export const HelloWorld = () => {
   return (
     <div style={{ padding: '20px', fontFamily: 'sans-serif' }}>
       <h1>tRPC + React + Turborepo</h1>
+      <img src="/assets/logo.png" alt="Logo" />
       <pre>{JSON.stringify(hello.data, null, 2)}</pre>
     </div>
   );
