@@ -10,19 +10,20 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
+    "@athena/api": "workspace:*",
+    "@material/web": "^2.4.1",
     "@tanstack/react-query": "^4.36.1",
     "@trpc/client": "^10.45.0",
     "@trpc/react-query": "^10.45.0",
-    "@athena/api": "workspace:*"
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
   },
   "devDependencies": {
+    "@athena/typescript-config": "workspace:*",
     "@types/react": "^18.2.66",
     "@types/react-dom": "^18.2.22",
     "@vitejs/plugin-react": "^4.2.1",
-    "vite": "^5.2.0",
     "typescript": "^5.0.0",
-    "@athena/typescript-config": "workspace:*"
+    "vite": "^5.2.0"
   }
 }
