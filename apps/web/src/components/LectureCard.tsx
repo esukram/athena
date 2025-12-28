@@ -45,7 +45,7 @@ export const LectureCard = ({ lecture }: { lecture: Lecture }) => {
               e.stopPropagation();
               setMenuOpen(!menuOpen);
             }}
-            className="opacity-0 group-hover:opacity-100 p-2 rounded-full bg-white/80 hover:bg-white shadow-md transition-all duration-200"
+            className="opacity-100 md:opacity-0 md:group-hover:opacity-100 md:focus:opacity-100 p-2 rounded-full bg-white/80 hover:bg-white shadow-md transition-all duration-200"
             aria-label="More options"
           >
             <svg
