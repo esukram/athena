@@ -1,6 +1,7 @@
-import { trpc } from "../utils/trpc";
-import { AppHeader } from "./AppHeader";
-import { LectureCard, LectureProps } from "./LectureCard";
+import { trpc } from '../utils/trpc';
+import { AppHeader } from './AppHeader';
+import { LectureCard } from './LectureCard';
+import type { Lecture } from '@athena/api';
 
 export const Overview = () => {
   const lecturesQuery = trpc.getLectures.useQuery();
@@ -45,7 +46,7 @@ export const Overview = () => {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {lectures?.map((lecture: LectureProps) => (
+          {lectures?.map((lecture: Lecture) => (
             <LectureCard key={lecture.id} lecture={lecture} />
           ))}
         </div>

@@ -1,12 +1,6 @@
-export interface LectureProps {
-  id: string;
-  title: string;
-  description: string;
-  imageUrl: string;
-  duration: string;
-}
+import type { Lecture } from '@athena/api';
 
-export const LectureCard = ({ lecture }: { lecture: LectureProps }) => {
+export const LectureCard = ({ lecture }: { lecture: Lecture }) => {
   return (
     <div className="group flex flex-col overflow-hidden rounded-2xl bg-white shadow-lg transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 border border-gray-100">
       <div className="relative h-52 w-full overflow-hidden bg-gradient-to-br from-primary-100 to-primary-50">

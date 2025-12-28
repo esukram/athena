@@ -1,4 +1,4 @@
-import logo from "../../assets/logo.png";
+import logo from '../../assets/logo.png';
 
 export const AppHeader = () => {
   return (
@@ -10,14 +10,14 @@ export const AppHeader = () => {
             alt="Athena Logo"
             className="h-10 w-10 object-contain"
             onError={(e) => {
-              e.currentTarget.style.display = "none";
+              e.currentTarget.style.display = 'none';
             }}
           />
           <h1 className="text-2xl font-bold tracking-tight text-on-surface">
             Athena
           </h1>
         </div>
-        
+
         <nav className="flex items-center gap-6">
           <a
             href="/"
