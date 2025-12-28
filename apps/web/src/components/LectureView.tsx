@@ -97,7 +97,7 @@ export const LectureView = () => {
         ) : (
           <div className="grid gap-8 lg:grid-cols-[280px_1fr]">
             {/* Chapter Navigation */}
-            <div className="bg-surface rounded-xl shadow-md p-4 h-fit lg:sticky lg:top-8">
+            <div className="bg-surface-container-low rounded-xl shadow-md p-4 h-fit lg:sticky lg:top-8">
               <h3 className="text-sm font-semibold text-on-surface-variant uppercase tracking-wide mb-4">
                 Chapters
               </h3>
@@ -121,7 +121,7 @@ export const LectureView = () => {
             </div>
 
             {/* Chapter Content */}
-            <div className="bg-surface rounded-xl shadow-md p-8">
+            <div className="bg-surface-container rounded-xl shadow-md p-8">
               {currentChapter ? (
                 <>
                   <h2 className="text-2xl font-bold text-on-background mb-6">
@@ -138,7 +138,7 @@ export const LectureView = () => {
                   )}
 
                   {/* Chapter Navigation */}
-                  <div className="flex justify-between mt-12 pt-6 border-t border-gray-200">
+                  <div className="flex justify-between mt-12 pt-6 border-t border-gray-300">
                     <button
                       onClick={() =>
                         setSelectedChapterIndex(selectedChapterIndex - 1)
