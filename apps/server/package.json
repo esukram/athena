@@ -1,0 +1,21 @@
+{
+  "name": "server",
+  "version": "0.0.0",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc"
+  },
+  "dependencies": {
+    "fastify": "^4.26.0",
+    "@trpc/server": "^10.45.0",
+    "@athena/api": "workspace:*",
+    "cors": "^2.8.5",
+    "@fastify/cors": "^9.0.1"
+  },
+  "devDependencies": {
+    "tsx": "^4.7.0",
+    "typescript": "^5.0.0",
+    "@types/node": "^20.0.0",
+    "@athena/typescript-config": "workspace:*"
+  }
+}
