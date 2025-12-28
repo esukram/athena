@@ -1,82 +1,90 @@
-# **Project Architecture: Monorepo React \+ tRPC**
+# **Project Architecture: Monorepo React + tRPC**
 
-This document outlines the architectural design, directory structure, and technical stack for the application. The project is managed as a monorepo containing both the frontend and backend logic within a unified TypeScript environment.
+This document outlines the architectural design, directory structure, and technical stack for the application. The project is managed as a **pnpm + Turbo** monorepo containing both the frontend and backend logic, along with shared packages.
 
-## **1\. Technical Stack**
+## **1. Technical Stack**
 
-| Component | Technology | Version |
-| :---- | :---- | :---- |
-| **Package Manager** | npm | v10+ (Stable) |
-| **Language** | TypeScript | v5.7.2 (Stable) |
-| **Build Tooling** | Vite | v6.0.5 (Stable) |
-| **Frontend Framework** | React | v19.0.0 (Stable) |
-| **Communication** | tRPC | v10.45.2 (Latest Stable) |
-| **Database** | SQLite | Latest (Stable) |
-| **Formatting** | Prettier | v3.4.2 (Stable) |
-| **Testing** | Vitest | v2.1.8 (Stable) |
-| **UI Library** | @material/web | v2.4.1 (Stable) |
+| Component           | Technology | Version | Description                                          |
+| :------------------ | :--------- | :------ | :--------------------------------------------------- |
+| **Language**        | TypeScript | v5.x    | Unified language for typical Full Stack type-safety. |
+| **Package Manager** | pnpm       | v9.0.x  | Fast, disk-efficient package manager.                |
+| **Monorepo**        | Turborepo  | latest  | High-performance build system.                       |
+| **Frontend**        | React      | v18.2.x | UI library using functional components and hooks.    |
+| **Build Tooling**   | Vite       | v5.x    | Fast frontend build tool.                            |
+| **Backend**         | Fastify    | v4.26.x | Low overhead web framework for Node.js.              |
+| **Communication**   | tRPC       | v10.x   | End-to-end typesafe APIs.                            |
+| **Database**        | SQLite     | Latest  | (Planned) Lightweight relational database.           |
+| **Formatting**      | Prettier   | v3.x    | Opinionated code formatter.                          |
 
-## **2\. Directory Structure**
+## **2. Repository Structure**
 
-The project follows a strict monorepo layout within the src directory to maintain clear boundaries between the client and server codebases.
+The repository is organized into `apps` (deployable applications) and `packages` (shared internal libraries).
 
-.  
-├── src/  
-│   ├── backend/  
-│   │   ├── dao/             \# Data Access Objects for SQLite interaction  
-│   │   ├── routers/         \# tRPC router definitions  
-│   │   ├── tests/           \# Dedicated backend unit and integration tests  
-│   │   ├── context.ts       \# tRPC context (Auth, DB instances)  
-│   │   └── index.ts         \# Server entry point  
-│   ├── frontend/  
-│   │   ├── components/      \# UI components  
-│   │   ├── hooks/           \# Dedicated custom React hooks  
-│   │   ├── tests/           \# Frontend unit and component tests (Vitest/RTL)  
-│   │   ├── utils/           \# tRPC client and helpers  
-│   │   ├── App.tsx          \# Main application entry  
-│   │   └── main.tsx         \# Vite entry point  
-│   └── shared/              \# Shared TypeScript types (tRPC router types)  
-├── package.json             \# Root package.json (npm workspaces)  
-├── vite.config.ts           \# Vite configuration  
-├── tsconfig.json            \# Base TypeScript configuration  
-└── .prettierrc              \# Prettier formatting rules
+```text
+.
+├── apps/
+│   ├── web/          # Frontend application (Vite + React)
+│   └── server/       # Backend server (Fastify + tRPC)
+├── packages/
+│   ├── api/          # Shared tRPC router and procedure definitions
+│   └── typescript-config/ # Shared TSConfig bases
+├── package.json      # Root manifest (Workspaces + Turbo config)
+├── pnpm-workspace.yaml # Monorepo workspace definition
+└── turbo.json        # Pipeline configuration
+```
 
-## **3\. Package Management (npm)**
+### **2.1 Apps**
 
-The project uses **npm** for dependency management and workspace orchestration.
+- **web**: A Single Page Application (SPA) built with Vite and React. It consumes the backing API via the tRPC React Query client.
+- **server**: A Node.js server using Fastify. It hosts the tRPC router defined in `@athena/api` and handles database interactions.
 
-* **Workspaces:** The monorepo utilizes npm workspaces defined in the root package.json to manage cross-package dependencies (e.g., frontend importing types from backend/shared).  
-* **Scripts:** Standardized scripts are provided at the root for npm install, npm run dev, and npm run build to execute commands across the workspace.
+### **2.2 Packages**
 
-## **4\. Communication Layer (tRPC)**
+- **api**: Contains the `appRouter` definition, Zod schemas, and context creators. This is imported by `server` (to implement) and `web` (to consume types), ensuring perfect type synchronization.
+- **typescript-config**: Centralized `tsconfig.json` files to ensure consistent compiler options across the monorepo.
 
-The application uses **tRPC v10** (Stable) to provide end-to-end typesafe APIs.
+## **3. UI Design Guidelines**
 
-* **Contract-First:** The backend defines the AppRouter type, which is imported by the frontend to provide full autocomplete and type-checking for API calls.  
-* **Procedures:** All logic is organized into queries (reads) and mutations (writes).  
-* **Validation:** Inputs are validated using Zod (Stable) to ensure runtime safety alongside TypeScript's compile-time safety.
+The application UI **MUST** be implemented purely based on **Google Material Design 3 (Material You)**.
 
-## **5\. Backend & Data Access (DAO Layer)**
+### **3.1 Principles**
 
-To maintain a clean separation of concerns, the backend utilizes a **DAO (Data Access Object) Pattern**.
+- **Material 3 Foundation**: All UI elements should follow the M3 guidelines for color, typography, elevation, and layout.
+- **Components**: Use `@material/web` (Google's official Web Components) or a strict M3-themed React library. Do not use generic styling or inconsistent components.
+- **Tokens**: Utilize Material Design Tokens for colors and spacing to ensure consistency (e.g., `primary`, `on-surface`, `container`).
+- **Responsive**: Designs must work on Mobile, Tablet, and Desktop, utilizing standard Material breakpoints.
 
-1. **SQLite Database:** Persistent storage using a local .db file.  
-2. **DAO Layer (src/backend/dao/):** These classes/functions are the only parts of the application that interact directly with the database. They encapsulate SQL queries and return clean TypeScript objects.  
-3. **tRPC Routers:** The procedures in the routers call methods on the DAOs. They do not write raw SQL or interact with the database driver directly.
+## **4. Testing Strategy**
 
-## **6\. Frontend Architecture**
+Testing is a critical part of the architecture and should follow this split:
 
-* **Vite:** Used for rapid development and optimized production builds.  
-* **Custom Hooks (src/frontend/hooks/):** Complex logic, state management, and tRPC query wrappers are extracted into dedicated hooks to keep components lean and presentational.  
-* **State Management:** Managed primarily through @trpc/react-query, leveraging TanStack Query v5 (Stable) for caching, synchronization, and server-state management.
+### **4.1 Unit & Integration Testing (Vitest)**
 
-## **7\. Testing Strategy**
+- **Tool**: [Vitest](https://vitest.dev/) (fast, Vite-native).
+- **Scope**:
+  - Shared logic in `packages/`.
+  - Individual React components in `apps/web`.
+  - Backend helper functions in `apps/server`.
+- **Location**: Test files should be co-located with source files (e.g., `Button.test.tsx` next to `Button.tsx`).
 
-* **Backend Tests (src/backend/tests):** Focused on DAO logic and tRPC procedure integration using Vitest. Databases are mocked or pointed to an in-memory SQLite instance for speed.  
-* **Frontend Tests (src/frontend/tests):** Focused on component rendering and hook logic using Vitest and React Testing Library.
+### **4.2 End-to-End (E2E) Testing (Playwright)**
 
-## **8\. Development Guidelines**
+- **Tool**: [Playwright](https://playwright.dev/).
+- **Scope**: Critical user journeys (Login, Data submission, etc.).
+- **Location**: A dedicated `e2e` folder or within `apps/web`.
 
-* **Formatting:** Prettier is enforced across the repository to ensure consistent code style.  
-* **Type Safety:** any is strictly discouraged. Leverage tRPC's inferred types for all data-fetching operations.  
-* **Building:** Run npm run build to generate the frontend assets and compile the TypeScript backend.
+## **5. Development Workflow**
+
+### **5.1 Setup**
+
+1. Install dependencies: `pnpm install`
+2. Start development mode: `pnpm dev`
+   - This starts both `apps/web` (Vite) and `apps/server` (Fastify) in parallel via Turbo.
+
+### **5.2 Adding Features**
+
+1. **Define Schema**: Update `@athena/api` with new Input/Output Zod schemas.
+2. **Implement Procedure**: Add the procedure to the tRPC router in `@athena/api`.
+3. **Backend Logic**: Implement the resolver logic, connecting to the database if needed.
+4. **Frontend UI**: Create React components consuming the new tRPC query/mutation.
+5. **Verify**: Ensure types flow through and everything compiles.
