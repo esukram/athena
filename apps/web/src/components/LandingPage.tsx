@@ -1,6 +1,6 @@
-import { trpc } from '../utils/trpc';
-import { AppHeader } from './AppHeader';
-import { LectureCard, LectureProps } from './LectureCard';
+import { trpc } from "../utils/trpc";
+import { AppHeader } from "./AppHeader";
+import { LectureCard, LectureProps } from "./LectureCard";
 
 export const LandingPage = () => {
   const lecturesQuery = trpc.getLectures.useQuery();
@@ -20,7 +20,9 @@ export const LandingPage = () => {
     return (
       <div className="flex h-screen items-center justify-center bg-background">
         <div className="rounded-lg bg-red-50 px-6 py-4 border border-red-200">
-          <p className="text-lg font-medium text-error">Error loading lectures</p>
+          <p className="text-lg font-medium text-error">
+            Error loading lectures
+          </p>
         </div>
       </div>
     );
@@ -31,13 +33,17 @@ export const LandingPage = () => {
   return (
     <div className="min-h-screen bg-background">
       <AppHeader />
-      
+
       <main className="container mx-auto px-4 py-8 md:py-12">
         <div className="mb-8">
-          <h2 className="text-4xl font-bold text-on-background mb-2">Available Lectures</h2>
-          <p className="text-lg text-on-surface-variant">Explore our collection of educational content</p>
+          <h2 className="text-4xl font-bold text-on-background mb-2">
+            Available Lectures
+          </h2>
+          <p className="text-lg text-on-surface-variant">
+            Explore our collection of educational content
+          </p>
         </div>
-        
+
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {lectures?.map((lecture: LectureProps) => (
             <LectureCard key={lecture.id} lecture={lecture} />

@@ -1,5 +1,5 @@
-import { router, publicProcedure } from './trpc';
-import { z } from 'zod';
+import { router, publicProcedure } from "./trpc";
+import { z } from "zod";
 
 export const appRouter = router({
   hello: publicProcedure
@@ -7,42 +7,41 @@ export const appRouter = router({
     .query(({ input }) => {
       return {
         greeting: `Hello ${input.text} from Fastify + tRPC!`,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       };
     }),
-  getLectures: publicProcedure
-    .query(() => {
-      return [
-        {
-          id: '1',
-          title: 'Introduction to React',
-          description: 'Learn the basics of React, components, and state.',
-          imageUrl: 'https://placehold.co/600x400',
-          duration: '45 min'
-        },
-        {
-          id: '2',
-          title: 'Advanced TypeScript',
-          description: 'Deep dive into Generics, Utility types, and more.',
-          imageUrl: 'https://placehold.co/600x400',
-          duration: '60 min'
-        },
-        {
-          id: '3',
-          title: 'Material Design 3',
-          description: 'Building beautiful UIs with Google Material 3.',
-          imageUrl: 'https://placehold.co/600x400',
-          duration: '30 min'
-        },
-        {
-          id: '4',
-          title: 'Server-Side Rendering',
-          description: 'Understanding SSR with Node.js and frameworks.',
-          imageUrl: 'https://placehold.co/600x400',
-          duration: '50 min'
-        }
-      ];
-    }),
+  getLectures: publicProcedure.query(() => {
+    return [
+      {
+        id: "1",
+        title: "Introduction to React",
+        description: "Learn the basics of React, components, and state.",
+        imageUrl: "https://placehold.co/600x400",
+        duration: "45 min",
+      },
+      {
+        id: "2",
+        title: "Advanced TypeScript",
+        description: "Deep dive into Generics, Utility types, and more.",
+        imageUrl: "https://placehold.co/600x400",
+        duration: "60 min",
+      },
+      {
+        id: "3",
+        title: "Material Design 3",
+        description: "Building beautiful UIs with Google Material 3.",
+        imageUrl: "https://placehold.co/600x400",
+        duration: "30 min",
+      },
+      {
+        id: "4",
+        title: "Server-Side Rendering",
+        description: "Understanding SSR with Node.js and frameworks.",
+        imageUrl: "https://placehold.co/600x400",
+        duration: "50 min",
+      },
+    ];
+  }),
 });
 
 export type AppRouter = typeof appRouter;

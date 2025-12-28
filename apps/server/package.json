@@ -3,7 +3,8 @@
   "version": "0.0.0",
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "build": "tsc"
+    "build": "tsc",
+    "format": "prettier --write ."
   },
   "dependencies": {
     "fastify": "^4.26.0",

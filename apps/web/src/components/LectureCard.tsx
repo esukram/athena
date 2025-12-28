@@ -10,22 +10,32 @@ export const LectureCard = ({ lecture }: { lecture: LectureProps }) => {
   return (
     <div className="group flex flex-col overflow-hidden rounded-2xl bg-white shadow-lg transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 border border-gray-100">
       <div className="relative h-52 w-full overflow-hidden bg-gradient-to-br from-primary-100 to-primary-50">
-        <div 
+        <div
           className="h-full w-full bg-cover bg-center transition-transform duration-300 group-hover:scale-110"
           style={{ backgroundImage: `url(${lecture.imageUrl})` }}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-        
+
         <div className="absolute top-3 right-3">
           <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-white/95 text-primary-700 shadow-md backdrop-blur-sm">
-            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <svg
+              className="w-3.5 h-3.5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
             </svg>
             {lecture.duration}
           </span>
         </div>
       </div>
-      
+
       <div className="flex flex-col flex-1 p-6">
         <div className="flex-1 space-y-3">
           <h2 className="text-xl font-bold text-gray-900 leading-tight group-hover:text-primary-600 transition-colors duration-200">
