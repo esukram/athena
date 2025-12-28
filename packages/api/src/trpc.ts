@@ -9,6 +9,7 @@ export interface LectureRepository {
   getById: (id: string) => Lecture | undefined;
   create: (lecture: Omit<Lecture, 'id'>) => Lecture;
   update: (id: string, lecture: Omit<Lecture, 'id'>) => Lecture | undefined;
+  delete: (id: string) => boolean;
 }
 
 export interface ChapterRepository {

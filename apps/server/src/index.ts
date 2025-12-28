@@ -40,6 +40,10 @@ function createLectureRepository(): LectureRepository {
       if (result.changes === 0) return undefined;
       return { id, ...lecture };
     },
+    delete: (id: string): boolean => {
+      const result = db.prepare('DELETE FROM lectures WHERE id = ?').run(id);
+      return result.changes > 0;
+    },
   };
 }
 

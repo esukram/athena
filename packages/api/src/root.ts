@@ -78,6 +78,11 @@ export const appRouter = router({
     .mutation(({ ctx, input }) => {
       return ctx.chapterRepository.delete(input.id);
     }),
+  deleteLecture: publicProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(({ ctx, input }) => {
+      return ctx.lectureRepository.delete(input.id);
+    }),
 });
 
 export type AppRouter = typeof appRouter;

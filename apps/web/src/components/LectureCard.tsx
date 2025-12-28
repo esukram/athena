@@ -4,10 +4,26 @@ import { useEffect, useRef, useState } from 'react';
 
 import type { Lecture } from '@athena/api';
 
+import { trpc } from '../utils/trpc';
+
 export const LectureCard = ({ lecture }: { lecture: Lecture }) => {
   const navigate = useNavigate();
+  const utils = trpc.useUtils();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+
+  const deleteLecture = trpc.deleteLecture.useMutation({
+    onSuccess: () => {
+      utils.getLectures.invalidate();
+    },
+  });
+
+  const handleDelete = () => {
+    if (confirm(`Are you sure you want to delete "${lecture.title}"?`)) {
+      setMenuOpen(false);
+      deleteLecture.mutate({ id: lecture.id });
+    }
+  };
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -60,6 +76,15 @@ export const LectureCard = ({ lecture }: { lecture: Lecture }) => {
                 className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 transition-colors"
               >
                 Edit Lecture
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDelete();
+                }}
+                className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 transition-colors"
+              >
+                Delete Lecture
               </button>
             </div>
           )}
