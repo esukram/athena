@@ -1,6 +1,7 @@
 ---
 trigger: always_on
 ---
+
 # **React Development Standards (2025)**
 
 These instructions outline the core philosophy, technical constraints, and best practices for generating React applications.
@@ -15,7 +16,7 @@ These instructions outline the core philosophy, technical constraints, and best 
 ## **2\. Technical Stack & Constraints**
 
 - **Framework:** React (Functional Components with Hooks).
-- **Styling:** Use @material/web and [Customizing Material](https://m3.material.io/foundations/customization).
+- **Styling:** Use @material/web and [Customizing Material](https://m3.material.io/foundations/customization). _DO NOT_ use custom CSS!
 - **Icons:** lucide-react.
 - **State Management:** use `tRPC` and TanStack Query for data fetching and state management.
 - **Persistence:** sessionStorage or localStorage for user preferences.
