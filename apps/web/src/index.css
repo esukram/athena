@@ -1,6 +1,31 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@theme {
+  --color-primary-50: #F5F3FF;
+  --color-primary-100: #EDE9FE;
+  --color-primary-200: #DDD6FE;
+  --color-primary-300: #C4B5FD;
+  --color-primary-400: #A78BFA;
+  --color-primary-500: #8B5CF6;
+  --color-primary-600: #6750A4;
+  --color-primary-700: #5B21B6;
+  --color-primary-800: #4C1D95;
+  --color-primary-900: #2E1065;
+  --color-primary: #6750A4;
+
+  --color-surface: #FFFBFE;
+  --color-surface-container: #F3EDF7;
+  --color-surface-container-low: #F7F2FA;
+  --color-surface-container-high: #ECE6F0;
+  --color-surface-variant: #E7E0EC;
+
+  --color-background: #FFFBFE;
+  --color-error: #B3261E;
+  --color-on-surface: #1C1B1F;
+  --color-on-surface-variant: #49454F;
+  --color-on-background: #1C1B1F;
+  --color-on-primary: #FFFFFF;
+}
 
 @layer base {
   body {
