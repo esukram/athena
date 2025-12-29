@@ -1,7 +1,8 @@
 import ReactMarkdown from 'react-markdown';
 import { useNavigate, useParams } from 'react-router-dom';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { Plus, ChevronDown, ChevronUp, Trash2 } from 'lucide-react';
 
 import type { Chapter, Question } from '@athena/api';
 
@@ -10,6 +11,15 @@ import { AppHeader } from '../components/AppHeader';
 import { Card } from '../components/Card';
 
 import { Accordion } from '../components/Accordion';
+
+interface EditingQuestion {
+  id: string | null; // null for new questions
+  question: string;
+  answer: string;
+  order: number;
+  isExpanded: boolean;
+  showPreview: boolean;
+}
 
 export const EditLecture = () => {
   const { id } = useParams<{ id: string }>();
@@ -22,11 +32,43 @@ export const EditLecture = () => {
 
   const [newChapterQuestion, setNewChapterQuestion] = useState('');
   const [editingChapter, setEditingChapter] = useState<Chapter | null>(null);
-  const [editingQuestion, setEditingQuestion] = useState('');
-  const [editingAnswer, setEditingAnswer] = useState('');
   const [editingAssociation, setEditingAssociation] = useState('');
-  const [showPreview, setShowPreview] = useState(false);
-  const [editingQuestionId, setEditingQuestionId] = useState<string | null>(null);
+  const [editingQuestions, setEditingQuestions] = useState<EditingQuestion[]>([]);
+
+  // Fetch questions for the editing chapter
+  const chapterQuestionsQuery = trpc.questions.getQuestions.useQuery(
+    { chapterId: editingChapter?.id || '' },
+    { enabled: !!editingChapter?.id }
+  );
+
+  // Sync fetched questions to editing state when modal opens
+  useEffect(() => {
+    if (editingChapter && chapterQuestionsQuery.data) {
+      const questions = chapterQuestionsQuery.data;
+      if (questions.length > 0) {
+        setEditingQuestions(
+          questions.map((q, index) => ({
+            id: q.id,
+            question: q.question,
+            answer: q.answer,
+            order: q.order,
+            isExpanded: index === 0, // First question expanded by default
+            showPreview: false,
+          }))
+        );
+      } else {
+        // No questions yet, create an empty one
+        setEditingQuestions([{
+          id: null,
+          question: '',
+          answer: '',
+          order: 0,
+          isExpanded: true,
+          showPreview: false,
+        }]);
+      }
+    }
+  }, [editingChapter?.id, chapterQuestionsQuery.data]);
 
   const lectureQuery = trpc.lectures.getLecture.useQuery(
     { id: id! },
@@ -60,11 +102,8 @@ export const EditLecture = () => {
       setNewChapterQuestion('');
       // Open edit dialog for the new chapter
       setEditingChapter(newChapter);
-      setEditingQuestion('');
-      setEditingAnswer('');
       setEditingAssociation(newChapter.association);
-      setEditingQuestionId(null);
-      setShowPreview(false);
+      // Questions will be populated by useEffect (empty for new chapter)
     },
   });
 
@@ -77,24 +116,21 @@ export const EditLecture = () => {
   const createQuestion = trpc.questions.createQuestion.useMutation({
     onSuccess: () => {
       utils.chapters.getChapters.invalidate({ lectureId: id! });
-      setEditingChapter(null);
-      setEditingQuestion('');
-      setEditingAnswer('');
-      setEditingAssociation('');
-      setEditingQuestionId(null);
-      setShowPreview(false);
+      utils.questions.getQuestions.invalidate({ chapterId: editingChapter?.id || '' });
     },
   });
 
   const updateQuestion = trpc.questions.updateQuestion.useMutation({
     onSuccess: () => {
       utils.chapters.getChapters.invalidate({ lectureId: id! });
-      setEditingChapter(null);
-      setEditingQuestion('');
-      setEditingAnswer('');
-      setEditingAssociation('');
-      setEditingQuestionId(null);
-      setShowPreview(false);
+      utils.questions.getQuestions.invalidate({ chapterId: editingChapter?.id || '' });
+    },
+  });
+
+  const deleteQuestion = trpc.questions.deleteQuestion.useMutation({
+    onSuccess: () => {
+      utils.chapters.getChapters.invalidate({ lectureId: id! });
+      utils.questions.getQuestions.invalidate({ chapterId: editingChapter?.id || '' });
     },
   });
 
@@ -122,17 +158,18 @@ export const EditLecture = () => {
     });
   };
 
-  const handleStartEdit = async (chapter: Chapter, firstQuestion?: Question) => {
+  const handleStartEdit = async (chapter: Chapter) => {
     setEditingChapter(chapter);
-    setEditingQuestion(firstQuestion?.question || '');
-    setEditingAnswer(firstQuestion?.answer || '');
     setEditingAssociation(chapter.association);
-    setEditingQuestionId(firstQuestion?.id || null);
-    setShowPreview(false);
+    setEditingQuestions([]); // Will be populated by useEffect when query loads
   };
 
-  const handleSaveEdit = () => {
-    if (!editingChapter || !editingQuestion.trim()) return;
+  const handleSaveEdit = async () => {
+    if (!editingChapter) return;
+    
+    // Check that at least the first question has content
+    const hasValidQuestion = editingQuestions.some(q => q.question.trim());
+    if (!hasValidQuestion) return;
     
     // Update chapter association if changed
     if (editingAssociation !== editingChapter.association) {
@@ -142,30 +179,76 @@ export const EditLecture = () => {
       });
     }
     
-    // Update or create the first question
-    if (editingQuestionId) {
-      updateQuestion.mutate({
-        id: editingQuestionId,
-        question: editingQuestion.trim(),
-        answer: editingAnswer,
-      });
-    } else {
-      createQuestion.mutate({
-        chapterId: editingChapter.id,
-        question: editingQuestion.trim(),
-        answer: editingAnswer,
-        order: 0,
-      });
+    // Save all questions
+    for (const eq of editingQuestions) {
+      if (!eq.question.trim()) continue; // Skip empty questions
+      
+      if (eq.id) {
+        // Update existing question
+        updateQuestion.mutate({
+          id: eq.id,
+          question: eq.question.trim(),
+          answer: eq.answer,
+          order: eq.order,
+        });
+      } else {
+        // Create new question
+        createQuestion.mutate({
+          chapterId: editingChapter.id,
+          question: eq.question.trim(),
+          answer: eq.answer,
+          order: eq.order,
+        });
+      }
     }
+    
+    // Close modal after saving
+    handleCancelEdit();
   };
 
   const handleCancelEdit = () => {
     setEditingChapter(null);
-    setEditingQuestion('');
-    setEditingAnswer('');
     setEditingAssociation('');
-    setEditingQuestionId(null);
-    setShowPreview(false);
+    setEditingQuestions([]);
+  };
+
+  const handleAddQuestion = () => {
+    const maxOrder = editingQuestions.length > 0
+      ? Math.max(...editingQuestions.map(q => q.order))
+      : -1;
+    setEditingQuestions([
+      ...editingQuestions.map(q => ({ ...q, isExpanded: false })), // Collapse others
+      {
+        id: null,
+        question: '',
+        answer: '',
+        order: maxOrder + 1,
+        isExpanded: true,
+        showPreview: false,
+      },
+    ]);
+  };
+
+  const handleUpdateEditingQuestion = (index: number, updates: Partial<EditingQuestion>) => {
+    setEditingQuestions(prev =>
+      prev.map((q, i) => (i === index ? { ...q, ...updates } : q))
+    );
+  };
+
+  const handleToggleQuestionExpanded = (index: number) => {
+    setEditingQuestions(prev =>
+      prev.map((q, i) => ({ ...q, isExpanded: i === index ? !q.isExpanded : false }))
+    );
+  };
+
+  const handleDeleteEditingQuestion = (index: number) => {
+    const question = editingQuestions[index];
+    if (question.id) {
+      // Delete from database
+      deleteQuestion.mutate({ id: question.id });
+    }
+    // Remove from local state
+    setEditingQuestions(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleDeleteChapter = (chapterId: string) => {
@@ -352,7 +435,7 @@ export const EditLecture = () => {
                           {firstQuestion?.question || 'Untitled'}
                         </span>
                         <button
-                          onClick={() => handleStartEdit(chapter, firstQuestion)}
+                          onClick={() => handleStartEdit(chapter)}
                           className="px-3 py-1.5 text-sm text-primary-600 hover:bg-primary-50 rounded transition-colors"
                         >
                           Edit
@@ -403,51 +486,124 @@ export const EditLecture = () => {
                   />
                 </div>
 
+                {/* Questions Section */}
                 <div>
-                  <label className="block text-sm font-medium text-on-surface mb-2">
-                    Question
-                  </label>
-                  <input
-                    type="text"
-                    value={editingQuestion}
-                    onChange={(e) => setEditingQuestion(e.target.value)}
-                    className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
-                    placeholder="Enter question"
-                  />
-                </div>
-
-                <div>
-                  <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center justify-between mb-3">
                     <label className="block text-sm font-medium text-on-surface">
-                      Answer (Markdown)
+                      Questions
                     </label>
                     <button
                       type="button"
-                      tabIndex={-1}
-                      onClick={() => setShowPreview(!showPreview)}
-                      className="text-sm text-primary-600 hover:text-primary-700"
+                      onClick={handleAddQuestion}
+                      className="flex items-center gap-1 px-3 py-1.5 text-sm text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
                     >
-                      {showPreview ? 'Edit' : 'Preview'}
+                      <Plus size={16} />
+                      Add Question
                     </button>
                   </div>
 
-                  {showPreview ? (
-                    <div className="w-full min-h-[300px] px-4 py-3 rounded-lg border border-gray-300 bg-white prose prose-sm max-w-none overflow-y-auto">
-                      {editingAnswer ? (
-                        <ReactMarkdown>{editingAnswer}</ReactMarkdown>
-                      ) : (
-                        <p className="text-gray-400 italic">No content yet</p>
-                      )}
-                    </div>
-                  ) : (
-                    <textarea
-                      value={editingAnswer}
-                      onChange={(e) => setEditingAnswer(e.target.value)}
-                      rows={12}
-                      className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none font-mono text-sm resize-none"
-                      placeholder="Write your answer in Markdown..."
-                    />
-                  )}
+                  <div className="space-y-3">
+                    {editingQuestions.map((eq, index) => (
+                      <div
+                        key={eq.id || `new-${index}`}
+                        className="border border-gray-200 rounded-lg overflow-hidden"
+                      >
+                        {/* Accordion Header */}
+                        <button
+                          type="button"
+                          onClick={() => handleToggleQuestionExpanded(index)}
+                          className="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 transition-colors text-left"
+                        >
+                          <div className="flex items-center gap-3 flex-1 min-w-0">
+                            <span className="shrink-0 w-6 h-6 flex items-center justify-center bg-primary-100 text-primary-700 font-semibold rounded-full text-xs">
+                              {index + 1}
+                            </span>
+                            <span className="text-on-surface font-medium truncate">
+                              {eq.question || 'New Question'}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2 ml-2">
+                            {editingQuestions.length > 1 && (
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDeleteEditingQuestion(index);
+                                }}
+                                className="p-1 text-red-500 hover:bg-red-50 rounded transition-colors"
+                                title="Delete question"
+                              >
+                                <Trash2 size={16} />
+                              </button>
+                            )}
+                            {eq.isExpanded ? (
+                              <ChevronUp size={20} className="text-gray-500" />
+                            ) : (
+                              <ChevronDown size={20} className="text-gray-500" />
+                            )}
+                          </div>
+                        </button>
+
+                        {/* Accordion Content */}
+                        {eq.isExpanded && (
+                          <div className="p-4 space-y-4 border-t border-gray-200">
+                            <div>
+                              <label className="block text-sm font-medium text-on-surface mb-2">
+                                Question
+                              </label>
+                              <input
+                                type="text"
+                                value={eq.question}
+                                onChange={(e) =>
+                                  handleUpdateEditingQuestion(index, { question: e.target.value })
+                                }
+                                className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+                                placeholder="Enter question"
+                              />
+                            </div>
+
+                            <div>
+                              <div className="flex items-center justify-between mb-2">
+                                <label className="block text-sm font-medium text-on-surface">
+                                  Answer (Markdown)
+                                </label>
+                                <button
+                                  type="button"
+                                  tabIndex={-1}
+                                  onClick={() =>
+                                    handleUpdateEditingQuestion(index, { showPreview: !eq.showPreview })
+                                  }
+                                  className="text-sm text-primary-600 hover:text-primary-700"
+                                >
+                                  {eq.showPreview ? 'Edit' : 'Preview'}
+                                </button>
+                              </div>
+
+                              {eq.showPreview ? (
+                                <div className="w-full min-h-[200px] px-4 py-3 rounded-lg border border-gray-300 bg-white prose prose-sm max-w-none overflow-y-auto">
+                                  {eq.answer ? (
+                                    <ReactMarkdown>{eq.answer}</ReactMarkdown>
+                                  ) : (
+                                    <p className="text-gray-400 italic">No content yet</p>
+                                  )}
+                                </div>
+                              ) : (
+                                <textarea
+                                  value={eq.answer}
+                                  onChange={(e) =>
+                                    handleUpdateEditingQuestion(index, { answer: e.target.value })
+                                  }
+                                  rows={8}
+                                  className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none font-mono text-sm resize-none"
+                                  placeholder="Write your answer in Markdown..."
+                                />
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
 
@@ -460,7 +616,7 @@ export const EditLecture = () => {
                 </button>
                 <button
                   onClick={handleSaveEdit}
-                  disabled={updateQuestion.isLoading || createQuestion.isLoading || !editingQuestion.trim()}
+                  disabled={updateQuestion.isLoading || createQuestion.isLoading || !editingQuestions.some(q => q.question.trim())}
                   className="px-4 py-2 bg-primary-600 hover:bg-primary-700 disabled:bg-primary-400 text-white font-medium rounded-lg transition-colors"
                 >
                   {(updateQuestion.isLoading || createQuestion.isLoading) ? 'Saving...' : 'Save Chapter'}
