@@ -269,7 +269,7 @@ export const LectureTrain = () => {
                             chapterButtonsRef.current.delete(originalIndex);
                           }
                         }}
-                        onClick={() => navigate(`/lecture/${id}/${chapter.id}`)}
+                        onClick={() => navigate(`/lecture/${id}/train/${chapter.id}`)}
                         className={`w-full text-left px-3 py-2 rounded-lg transition-colors ${
                           selectedChapterIndex === originalIndex
                             ? 'bg-primary-100 text-primary-700 font-medium'
