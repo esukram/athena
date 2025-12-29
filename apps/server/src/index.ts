@@ -67,6 +67,7 @@ function createChapterRepository(): ChapterRepository {
       if (tokens.length === 0) return [];
       
       // Search in questions (question text) and chapters (association)
+      // Use aliases for the main query
       const questionConditions = tokens.map(() => 
         'LOWER(q.question) LIKE ?'
       ).join(' AND ');
@@ -88,11 +89,25 @@ function createChapterRepository(): ChapterRepository {
         `)
         .all(...questionParams, ...associationParams) as Chapter[];
       
-      // Attach first question to each chapter
+      // Conditions for finding the matching question within a specific chapter
+      const innerQuestionConditions = tokens.map(() => 
+        'LOWER(question) LIKE ?'
+      ).join(' AND ');
+
+      // Attach the best matching question to each chapter
       return chapters.map(chapter => {
-        const firstQuestion = db
-          .prepare('SELECT * FROM questions WHERE chapterId = ? ORDER BY "order" LIMIT 1')
-          .get(chapter.id) as Question | undefined;
+        // First try to find a question that matches the search query
+        let firstQuestion = db
+          .prepare(`SELECT * FROM questions WHERE chapterId = ? AND (${innerQuestionConditions}) LIMIT 1`)
+          .get(chapter.id, ...questionParams) as Question | undefined;
+
+        // If no question matches (match was on association), fall back to the actual first question
+        if (!firstQuestion) {
+          firstQuestion = db
+            .prepare('SELECT * FROM questions WHERE chapterId = ? ORDER BY "order" LIMIT 1')
+            .get(chapter.id) as Question | undefined;
+        }
+
         return { ...chapter, firstQuestion };
       });
     },
