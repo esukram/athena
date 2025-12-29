@@ -78,11 +78,11 @@ function createChapterRepository(): ChapterRepository {
       const questionParams = tokens.map(token => `%${token}%`);
       const associationParams = tokens.map(token => `%${token}%`);
       
-      // Get chapters that match via their first question or association
+      // Get chapters that match via ANY question or association
       const chapters = db
         .prepare(`
           SELECT DISTINCT c.* FROM chapters c
-          LEFT JOIN questions q ON q.chapterId = c.id AND q."order" = 0
+          LEFT JOIN questions q ON q.chapterId = c.id
           WHERE (${questionConditions}) OR (${associationConditions})
           ORDER BY c."order"
         `)

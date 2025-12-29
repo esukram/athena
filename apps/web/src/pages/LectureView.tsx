@@ -127,6 +127,14 @@ export const LectureView = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [chapters, selectedChapterIndex, id, navigate]);
 
+  // Fetch all questions for the current chapter
+  const currentChapter = chapters[selectedChapterIndex];
+  const currentChapterQuestionsQuery = trpc.questions.getQuestions.useQuery(
+    { chapterId: currentChapter?.id || '' },
+    { enabled: !!currentChapter?.id }
+  );
+  const currentChapterQuestions = currentChapterQuestionsQuery.data || [];
+
   if (lectureQuery.isLoading || chaptersQuery.isLoading) {
     return (
       <div className="min-h-screen bg-background">
@@ -156,15 +164,7 @@ export const LectureView = () => {
   }
 
   const lecture = lectureQuery.data;
-  const currentChapter = chapters[selectedChapterIndex];
   const currentFirstQuestion = currentChapter ? firstQuestionMap.get(currentChapter.id) : undefined;
-
-  // Fetch all questions for the current chapter
-  const currentChapterQuestionsQuery = trpc.questions.getQuestions.useQuery(
-    { chapterId: currentChapter?.id || '' },
-    { enabled: !!currentChapter?.id }
-  );
-  const currentChapterQuestions = currentChapterQuestionsQuery.data || [];
 
   return (
     <div className="min-h-screen bg-background">
