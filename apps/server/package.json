@@ -8,11 +8,12 @@
   },
   "dependencies": {
     "@athena/api": "workspace:*",
-    "@fastify/cors": "^9.0.1",
+    "@fastify/cors": "^10.0.1",
+    "@fastify/static": "^9.0.0",
     "@trpc/server": "^10.45.0",
     "better-sqlite3": "^12.5.0",
     "cors": "^2.8.5",
-    "fastify": "^4.26.0"
+    "fastify": "^5.6.2"
   },
   "devDependencies": {
     "@athena/typescript-config": "workspace:*",

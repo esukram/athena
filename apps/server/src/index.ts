@@ -1,6 +1,10 @@
 import Fastify from 'fastify';
 
+import path from 'path';
+import { fileURLToPath } from 'url';
+
 import cors from '@fastify/cors';
+import staticPlugin from '@fastify/static';
 import { fastifyTRPCPlugin } from '@trpc/server/adapters/fastify';
 
 import {
@@ -102,8 +106,31 @@ async function main() {
     },
   });
 
+  const __filename = fileURLToPath(import.meta.url);
+  const __dirname = path.dirname(__filename);
+
+  // Serve static files from the 'public' directory
+  // In Docker, we will copy the React build to 'public' relative to this script's execution context
+  await server.register(staticPlugin, {
+    root: path.join(__dirname, '../public'),
+    prefix: '/',
+  });
+
+  // SPA fallback: Send index.html for any request that doesn't match an API route or static file
+  server.setNotFoundHandler((req, reply) => {
+    if (req.raw.url?.startsWith('/trpc')) {
+      reply.code(404).send({
+        message: 'Endpoint not found',
+        error: 'Not Found',
+        statusCode: 404,
+      });
+      return;
+    }
+    reply.sendFile('index.html');
+  });
+
   try {
-    await server.listen({ port: 4000 });
+    await server.listen({ port: 4000, host: '0.0.0.0' });
     console.log('Server running on http://localhost:4000');
   } catch (err) {
     server.log.error(err);
