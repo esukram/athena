@@ -43,9 +43,10 @@ export const EditLecture = () => {
 
   // Sync fetched questions to editing state when modal opens
   useEffect(() => {
-    if (editingChapter && chapterQuestionsQuery.data) {
+    if (editingChapter && chapterQuestionsQuery.data !== undefined) {
       const questions = chapterQuestionsQuery.data;
       if (questions.length > 0) {
+        // Load existing questions from database
         setEditingQuestions(
           questions.map((q, index) => ({
             id: q.id,
@@ -56,8 +57,9 @@ export const EditLecture = () => {
             showPreview: false,
           }))
         );
-      } else {
-        // No questions yet, create an empty one
+      } else if (editingQuestions.length === 0) {
+        // No questions in DB and none set locally (existing chapter with no questions)
+        // For new chapters, questions are pre-populated in createChapter.onSuccess
         setEditingQuestions([{
           id: null,
           question: '',
@@ -114,11 +116,19 @@ export const EditLecture = () => {
   const createChapter = trpc.chapters.createChapter.useMutation({
     onSuccess: (newChapter) => {
       utils.chapters.getChapters.invalidate({ lectureId: id! });
-      setNewChapterQuestion('');
-      // Open edit dialog for the new chapter
+      // Open edit dialog for the new chapter with the entered question
       setEditingChapter(newChapter);
       setEditingAssociation(newChapter.association);
-      // Questions will be populated by useEffect (empty for new chapter)
+      // Pre-populate the first question with the entered text
+      setEditingQuestions([{
+        id: null,
+        question: newChapterQuestion,
+        answer: '',
+        order: 0,
+        isExpanded: true,
+        showPreview: false,
+      }]);
+      setNewChapterQuestion('');
     },
   });
 
