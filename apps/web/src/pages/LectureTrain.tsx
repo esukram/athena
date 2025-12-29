@@ -7,7 +7,6 @@ import { Search, X } from 'lucide-react';
 import { trpc } from '../utils/trpc';
 import { AppHeader } from '../components/AppHeader';
 import type { Question } from '@athena/api';
-import { ChapterMenu } from '../components/ChapterMenu';
 import { Accordion } from '../components/Accordion';
 
 export const LectureTrain = () => {
@@ -290,14 +289,11 @@ export const LectureTrain = () => {
                     <h2 className="text-2xl font-bold text-on-background">
                       {currentFirstQuestion?.question || 'Untitled'}
                     </h2>
-                    <div className="flex items-center gap-2">
-                      {currentChapter.association && (
-                        <span className="px-3 py-1 text-sm font-medium bg-primary-100 text-primary-700 rounded-full">
-                          {currentChapter.association}
-                        </span>
-                      )}
-                      <ChapterMenu chapter={currentChapter} lectureId={id!} />
-                    </div>
+                    {currentChapter.association && (
+                      <span className="px-3 py-1 text-sm font-medium bg-primary-100 text-primary-700 rounded-full">
+                        {currentChapter.association}
+                      </span>
+                    )}
                   </div>
 
                   {currentChapterQuestions.length > 0 ? (
