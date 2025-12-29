@@ -89,6 +89,21 @@ export const EditLecture = () => {
     { enabled: !!id },
   );
 
+  const chapters = chaptersQuery.data || [];
+
+  // Fetch first question for each chapter (must be before early returns)
+  const firstQuestionsQueries = trpc.useQueries((t) =>
+    chapters.map((chapter) =>
+      t.questions.getFirstQuestion({ chapterId: chapter.id })
+    )
+  );
+
+  // Build a map of chapterId -> firstQuestion
+  const firstQuestionMap = new Map<string, Question | undefined>();
+  chapters.forEach((chapter, index) => {
+    firstQuestionMap.set(chapter.id, firstQuestionsQueries[index]?.data);
+  });
+
   const updateLecture = trpc.lectures.updateLecture.useMutation({
     onSuccess: () => {
       utils.lectures.getLectures.invalidate();
@@ -284,21 +299,6 @@ export const EditLecture = () => {
       </div>
     );
   }
-
-  const chapters = chaptersQuery.data || [];
-
-  // Fetch first question for each chapter
-  const firstQuestionsQueries = trpc.useQueries((t) =>
-    chapters.map((chapter) =>
-      t.questions.getFirstQuestion({ chapterId: chapter.id })
-    )
-  );
-
-  // Build a map of chapterId -> firstQuestion
-  const firstQuestionMap = new Map<string, Question | undefined>();
-  chapters.forEach((chapter, index) => {
-    firstQuestionMap.set(chapter.id, firstQuestionsQueries[index]?.data);
-  });
 
   return (
     <div className="min-h-screen bg-background">
