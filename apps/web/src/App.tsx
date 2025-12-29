@@ -31,7 +31,7 @@ export default function App() {
             <Route path="/" element={<Overview />} />
             <Route path="/add-lecture" element={<AddLecture />} />
             <Route path="/edit-lecture/:id" element={<EditLecture />} />
-            <Route path="/lecture/:id" element={<LectureView />} />
+            <Route path="/lecture/:id/:chapterId?" element={<LectureView />} />
           </Routes>
         </BrowserRouter>
       </QueryClientProvider>

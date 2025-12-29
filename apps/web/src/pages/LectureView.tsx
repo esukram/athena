@@ -10,7 +10,7 @@ import { ChapterMenu } from '../components/ChapterMenu';
 import { Accordion } from '../components/Accordion';
 
 export const LectureView = () => {
-  const { id } = useParams<{ id: string }>();
+  const { id, chapterId } = useParams<{ id: string; chapterId?: string }>();
   const navigate = useNavigate();
   const [selectedChapterIndex, setSelectedChapterIndex] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
@@ -26,6 +26,16 @@ export const LectureView = () => {
   );
 
   const chapters = chaptersQuery.data || [];
+
+  // Set selected chapter based on URL chapterId parameter
+  useEffect(() => {
+    if (chapterId && chapters.length > 0) {
+      const index = chapters.findIndex((c) => c.id === chapterId);
+      if (index !== -1) {
+        setSelectedChapterIndex(index);
+      }
+    }
+  }, [chapterId, chapters]);
 
   // Tokenized search filter
   const filteredChapters = useMemo(() => {

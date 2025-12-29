@@ -66,8 +66,8 @@ export const GlobalSearch = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleResultClick = (lectureId: string) => {
-    navigate(`/lecture/${lectureId}`);
+  const handleResultClick = (lectureId: string, chapterId: string) => {
+    navigate(`/lecture/${lectureId}/${chapterId}`);
     setIsOpen(false);
     setQuery('');
   };
@@ -143,7 +143,7 @@ export const GlobalSearch = () => {
               {results.map((chapter) => (
                 <li key={chapter.id}>
                   <button
-                    onClick={() => handleResultClick(chapter.lectureId)}
+                    onClick={() => handleResultClick(chapter.lectureId, chapter.id)}
                     className="w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors"
                   >
                     <div className="font-medium text-on-surface mb-1">
