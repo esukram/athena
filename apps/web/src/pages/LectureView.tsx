@@ -117,7 +117,7 @@ export const LectureView = () => {
               <h3 className="text-sm font-semibold text-on-surface-variant uppercase tracking-wide mb-4">
                 Chapters
               </h3>
-              <nav className="space-y-1">
+              <nav className={`space-y-1 ${chapters.length > 10 ? 'max-h-96 overflow-y-auto' : ''}`}>
                 {chapters.map((chapter, index) => (
                   <button
                     key={chapter.id}
