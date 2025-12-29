@@ -30,7 +30,7 @@ export default function App() {
           <Routes>
             <Route path="/" element={<Overview />} />
             <Route path="/add-lecture" element={<AddLecture />} />
-            <Route path="/edit-lecture/:id" element={<EditLecture />} />
+            <Route path="/lecture/:id/edit" element={<EditLecture />} />
             <Route path="/lecture/:id/:chapterId?" element={<LectureView />} />
           </Routes>
         </BrowserRouter>
