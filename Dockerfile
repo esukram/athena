@@ -38,6 +38,7 @@ RUN pnpm install --prod --frozen-lockfile
 
 # Copy built server artifacts
 COPY --chown=athena:nodejs --from=builder /app/apps/server/dist ./apps/server/dist
+COPY --chown=athena:nodejs --from=builder /app/packages/api/dist ./packages/api/dist
 # Copy built web artifacts
 COPY --chown=athena:nodejs --from=builder /app/apps/web/dist ./apps/server/public
 
