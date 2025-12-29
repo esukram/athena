@@ -4,7 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useState } from 'react';
 
 import { trpc } from '../utils/trpc';
-import { AppHeader } from './AppHeader';
+import { AppHeader } from '../components/AppHeader';
 
 export const LectureView = () => {
   const { id } = useParams<{ id: string }>();

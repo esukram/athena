@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 
 import { trpc } from '../utils/trpc';
-import { AppHeader } from './AppHeader';
+import { AppHeader } from '../components/AppHeader';
 
 export const AddLecture = () => {
   const navigate = useNavigate();

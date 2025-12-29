@@ -13,7 +13,7 @@ export const AppHeader = () => {
           <img
             src={logo}
             alt="Athena Logo"
-            className="h-10 w-10 object-contain"
+            className="h-12 w-12 object-contain"
             onError={(e) => {
               e.currentTarget.style.display = 'none';
             }}
@@ -26,7 +26,7 @@ export const AppHeader = () => {
         <nav className="flex items-center gap-6">
           <Link
             to="/"
-            className="text-base font-medium text-on-surface hover:text-primary-600 transition-colors"
+            className="hidden sm:block text-base font-medium text-on-surface hover:text-primary-600 transition-colors"
           >
             Overview
           </Link>

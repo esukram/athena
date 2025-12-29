@@ -6,7 +6,7 @@ import { useState } from 'react';
 import type { Chapter } from '@athena/api';
 
 import { trpc } from '../utils/trpc';
-import { AppHeader } from './AppHeader';
+import { AppHeader } from '../components/AppHeader';
 
 export const EditLecture = () => {
   const { id } = useParams<{ id: string }>();

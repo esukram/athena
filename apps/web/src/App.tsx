@@ -5,10 +5,10 @@ import { useState } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { httpBatchLink } from '@trpc/client';
 
-import { AddLecture } from './components/AddLecture';
-import { EditLecture } from './components/EditLecture';
-import { LectureView } from './components/LectureView';
-import { Overview } from './components/Overview';
+import { AddLecture } from './pages/AddLecture';
+import { EditLecture } from './pages/EditLecture';
+import { LectureView } from './pages/LectureView';
+import { Overview } from './pages/Overview';
 import { trpc } from './utils/trpc';
 
 export default function App() {
