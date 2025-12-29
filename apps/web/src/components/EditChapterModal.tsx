@@ -1,5 +1,6 @@
 import ReactMarkdown from 'react-markdown';
 import { Plus, ChevronDown, ChevronUp, Trash2 } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
 
 export interface EditingQuestion {
   id: string | null;
@@ -14,6 +15,7 @@ interface EditChapterModalProps {
   association: string;
   questions: EditingQuestion[];
   isSaving: boolean;
+  existingAssociations?: string[];
   onAssociationChange: (association: string) => void;
   onAddQuestion: () => void;
   onUpdateQuestion: (index: number, updates: Partial<EditingQuestion>) => void;
@@ -27,6 +29,7 @@ export const EditChapterModal = ({
   association,
   questions,
   isSaving,
+  existingAssociations = [],
   onAssociationChange,
   onAddQuestion,
   onUpdateQuestion,
@@ -36,6 +39,62 @@ export const EditChapterModal = ({
   onCancel,
 }: EditChapterModalProps) => {
   const canSave = questions.some(q => q.question.trim());
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [highlightedIndex, setHighlightedIndex] = useState(-1);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const suggestionsRef = useRef<HTMLDivElement>(null);
+
+  // Filter suggestions based on current input
+  const filteredSuggestions = existingAssociations.filter(
+    a => a.toLowerCase().includes(association.toLowerCase()) && a !== association
+  );
+
+  // Close suggestions when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        suggestionsRef.current &&
+        !suggestionsRef.current.contains(event.target as Node) &&
+        inputRef.current &&
+        !inputRef.current.contains(event.target as Node)
+      ) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (!showSuggestions || filteredSuggestions.length === 0) return;
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setHighlightedIndex(prev =>
+        prev < filteredSuggestions.length - 1 ? prev + 1 : 0
+      );
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setHighlightedIndex(prev =>
+        prev > 0 ? prev - 1 : filteredSuggestions.length - 1
+      );
+    } else if (e.key === 'Enter' && highlightedIndex >= 0) {
+      e.preventDefault();
+      onAssociationChange(filteredSuggestions[highlightedIndex]);
+      setShowSuggestions(false);
+      setHighlightedIndex(-1);
+    } else if (e.key === 'Escape') {
+      setShowSuggestions(false);
+      setHighlightedIndex(-1);
+    }
+  };
+
+  const handleSelectSuggestion = (suggestion: string) => {
+    onAssociationChange(suggestion);
+    setShowSuggestions(false);
+    setHighlightedIndex(-1);
+    inputRef.current?.focus();
+  };
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
@@ -47,17 +106,43 @@ export const EditChapterModal = ({
         </div>
 
         <div className="p-6 space-y-4 overflow-y-auto flex-1">
-          <div>
+          <div className="relative">
             <label className="block text-sm font-medium text-on-surface mb-2">
               Association
             </label>
             <input
+              ref={inputRef}
               type="text"
               value={association}
-              onChange={(e) => onAssociationChange(e.target.value)}
+              onChange={(e) => {
+                onAssociationChange(e.target.value);
+                setShowSuggestions(true);
+                setHighlightedIndex(-1);
+              }}
+              onFocus={() => setShowSuggestions(true)}
+              onKeyDown={handleKeyDown}
               className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
               placeholder="Enter association"
             />
+            {showSuggestions && filteredSuggestions.length > 0 && (
+              <div
+                ref={suggestionsRef}
+                className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-48 overflow-y-auto"
+              >
+                {filteredSuggestions.map((suggestion, index) => (
+                  <button
+                    key={suggestion}
+                    type="button"
+                    onClick={() => handleSelectSuggestion(suggestion)}
+                    className={`w-full px-4 py-2 text-left hover:bg-primary-50 transition-colors ${
+                      index === highlightedIndex ? 'bg-primary-100' : ''
+                    }`}
+                  >
+                    {suggestion}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Questions Section */}

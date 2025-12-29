@@ -14,6 +14,7 @@ export interface LectureRepository {
 
 export interface ChapterRepository {
   getByLectureId: (lectureId: string) => Chapter[];
+  getDistinctAssociations: () => string[];
   search: (query: string) => (Chapter & { firstQuestion?: Question })[];
   create: (chapter: Omit<Chapter, 'id'>) => Chapter;
   update: (

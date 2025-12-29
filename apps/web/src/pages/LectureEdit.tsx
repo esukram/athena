@@ -82,6 +82,10 @@ export const EditLecture = () => {
     { enabled: !!id },
   );
 
+  // Fetch distinct associations for autocomplete
+  const associationsQuery = trpc.chapters.getDistinctAssociations.useQuery();
+  const existingAssociations = associationsQuery.data || [];
+
   const chapters = chaptersQuery.data || [];
 
   // Fetch first question for each chapter (must be before early returns)
@@ -472,6 +476,7 @@ export const EditLecture = () => {
             association={editingAssociation}
             questions={editingQuestions}
             isSaving={updateQuestion.isLoading || createQuestion.isLoading}
+            existingAssociations={existingAssociations}
             onAssociationChange={setEditingAssociation}
             onAddQuestion={handleAddQuestion}
             onUpdateQuestion={handleUpdateEditingQuestion}

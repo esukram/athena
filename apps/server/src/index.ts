@@ -60,6 +60,12 @@ function createChapterRepository(): ChapterRepository {
         .prepare('SELECT * FROM chapters WHERE lectureId = ? ORDER BY "order"')
         .all(lectureId) as Chapter[];
     },
+    getDistinctAssociations: (): string[] => {
+      const rows = db
+        .prepare("SELECT DISTINCT association FROM chapters WHERE association != '' ORDER BY association")
+        .all() as { association: string }[];
+      return rows.map(row => row.association);
+    },
     search: (query: string): (Chapter & { firstQuestion?: Question })[] => {
       if (!query.trim()) return [];
       

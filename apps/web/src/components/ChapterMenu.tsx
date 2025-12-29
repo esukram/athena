@@ -24,6 +24,10 @@ export const ChapterMenu = ({ chapter, lectureId }: ChapterMenuProps) => {
     { enabled: editModalOpen }
   );
 
+  // Fetch distinct associations for autocomplete
+  const associationsQuery = trpc.chapters.getDistinctAssociations.useQuery();
+  const existingAssociations = associationsQuery.data || [];
+
   // Sync fetched questions to editing state when modal opens
   useEffect(() => {
     if (editModalOpen && chapterQuestionsQuery.data !== undefined) {
@@ -237,6 +241,7 @@ export const ChapterMenu = ({ chapter, lectureId }: ChapterMenuProps) => {
           association={editingAssociation}
           questions={editingQuestions}
           isSaving={updateQuestion.isLoading || createQuestion.isLoading}
+          existingAssociations={existingAssociations}
           onAssociationChange={setEditingAssociation}
           onAddQuestion={handleAddQuestion}
           onUpdateQuestion={handleUpdateEditingQuestion}
