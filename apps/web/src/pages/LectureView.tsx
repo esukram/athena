@@ -1,7 +1,8 @@
 import ReactMarkdown from 'react-markdown';
 import { useNavigate, useParams } from 'react-router-dom';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
+import { Search, X } from 'lucide-react';
 
 import { trpc } from '../utils/trpc';
 import { AppHeader } from '../components/AppHeader';
@@ -11,6 +12,9 @@ export const LectureView = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [selectedChapterIndex, setSelectedChapterIndex] = useState(0);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   const lectureQuery = trpc.lectures.getLecture.useQuery({ id: id! }, { enabled: !!id });
 
@@ -20,6 +24,23 @@ export const LectureView = () => {
   );
 
   const chapters = chaptersQuery.data || [];
+
+  // Tokenized search filter
+  const filteredChapters = useMemo(() => {
+    if (!searchQuery.trim()) return chapters;
+    const tokens = searchQuery.toLowerCase().split(/\s+/).filter(Boolean);
+    return chapters.filter((chapter) => {
+      const title = chapter.title.toLowerCase();
+      return tokens.every((token) => title.includes(token));
+    });
+  }, [chapters, searchQuery]);
+
+  // Focus search input when opened
+  useEffect(() => {
+    if (isSearchOpen && searchInputRef.current) {
+      searchInputRef.current.focus();
+    }
+  }, [isSearchOpen]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -114,25 +135,60 @@ export const LectureView = () => {
           <div className="grid gap-8 lg:grid-cols-[280px_1fr]">
             {/* Chapter Navigation */}
             <div className="bg-surface-container-low rounded-xl shadow-md p-4 h-fit lg:sticky lg:top-8">
-              <h3 className="text-sm font-semibold text-on-surface-variant uppercase tracking-wide mb-4">
-                Chapters
-              </h3>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-sm font-semibold text-on-surface-variant uppercase tracking-wide">
+                  Chapters
+                </h3>
+                <button
+                  onClick={() => {
+                    setIsSearchOpen(!isSearchOpen);
+                    if (isSearchOpen) {
+                      setSearchQuery('');
+                    }
+                  }}
+                  className="p-1 rounded-lg hover:bg-gray-100 transition-colors text-on-surface-variant hover:text-on-surface"
+                  aria-label={isSearchOpen ? 'Close search' : 'Search chapters'}
+                >
+                  {isSearchOpen ? <X size={18} /> : <Search size={18} />}
+                </button>
+              </div>
+              {isSearchOpen && (
+                <div className="mb-3">
+                  <input
+                    ref={searchInputRef}
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search chapters..."
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white text-on-surface"
+                  />
+                </div>
+              )}
               <nav className={`space-y-1 ${chapters.length > 10 ? 'max-h-96 overflow-y-auto' : ''}`}>
-                {chapters.map((chapter, index) => (
-                  <button
-                    key={chapter.id}
-                    onClick={() => setSelectedChapterIndex(index)}
-                    className={`w-full text-left px-3 py-2 rounded-lg transition-colors ${
-                      selectedChapterIndex === index
-                        ? 'bg-primary-100 text-primary-700 font-medium'
-                        : 'text-on-surface hover:bg-gray-100'
-                    }`}
-                  >
-                    <span className="text-sm">
-                      {chapter.order + 1}. {chapter.title}
-                    </span>
-                  </button>
-                ))}
+                {filteredChapters.length === 0 ? (
+                  <p className="text-sm text-on-surface-variant italic px-3 py-2">
+                    No chapters found
+                  </p>
+                ) : (
+                  filteredChapters.map((chapter) => {
+                    const originalIndex = chapters.findIndex((c) => c.id === chapter.id);
+                    return (
+                      <button
+                        key={chapter.id}
+                        onClick={() => setSelectedChapterIndex(originalIndex)}
+                        className={`w-full text-left px-3 py-2 rounded-lg transition-colors ${
+                          selectedChapterIndex === originalIndex
+                            ? 'bg-primary-100 text-primary-700 font-medium'
+                            : 'text-on-surface hover:bg-gray-100'
+                        }`}
+                      >
+                        <span className="text-sm">
+                          {chapter.order + 1}. {chapter.title}
+                        </span>
+                      </button>
+                    );
+                  })
+                )}
               </nav>
             </div>
 
