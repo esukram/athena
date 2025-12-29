@@ -212,7 +212,7 @@ async function main() {
   const questionRepository = createQuestionRepository();
 
   await server.register(fastifyTRPCPlugin, {
-    prefix: '/trpc',
+    prefix: '/api/trpc',
     trpcOptions: {
       router: appRouter,
       createContext: createContext({
@@ -235,7 +235,7 @@ async function main() {
 
   // SPA fallback: Send index.html for any request that doesn't match an API route or static file
   server.setNotFoundHandler((req, reply) => {
-    if (req.raw.url?.startsWith('/trpc')) {
+    if (req.raw.url?.startsWith('/api')) {
       reply.code(404).send({
         message: 'Endpoint not found',
         error: 'Not Found',
