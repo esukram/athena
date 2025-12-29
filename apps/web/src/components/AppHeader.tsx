@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 
-import { GlobalSearch } from './GlobalSearch';
 import appHeaderBg from '../../assets/app-header.png';
+import { GlobalSearch } from './GlobalSearch';
 
 export const AppHeader = () => {
   return (
@@ -10,7 +10,10 @@ export const AppHeader = () => {
         <Link
           to="/"
           className="flex items-center gap-3 hover:opacity-80 transition-opacity px-4 py-2 rounded-lg bg-center bg-no-repeat"
-          style={{ backgroundImage: `url(${appHeaderBg})`, backgroundSize: '100%' }}
+          style={{
+            backgroundImage: `url(${appHeaderBg})`,
+            backgroundSize: '100%',
+          }}
         >
           <h1 className="text-2xl font-bold tracking-tight text-white ml-16">
             Athena

@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
+
 import type { Chapter } from '@athena/api';
+
 import { trpc } from '../utils/trpc';
 import { EditChapterModal, type EditingQuestion } from './EditChapterModal';
 
@@ -15,13 +17,17 @@ export const ChapterMenu = ({ chapter, lectureId }: ChapterMenuProps) => {
   const menuRef = useRef<HTMLDivElement>(null);
 
   // Edit form state
-  const [editingAssociation, setEditingAssociation] = useState(chapter.association);
-  const [editingQuestions, setEditingQuestions] = useState<EditingQuestion[]>([]);
+  const [editingAssociation, setEditingAssociation] = useState(
+    chapter.association,
+  );
+  const [editingQuestions, setEditingQuestions] = useState<EditingQuestion[]>(
+    [],
+  );
 
   // Fetch all questions for this chapter
   const chapterQuestionsQuery = trpc.questions.getQuestions.useQuery(
     { chapterId: chapter.id },
-    { enabled: editModalOpen }
+    { enabled: editModalOpen },
   );
 
   // Fetch distinct associations for autocomplete
@@ -41,17 +47,19 @@ export const ChapterMenu = ({ chapter, lectureId }: ChapterMenuProps) => {
             order: q.order,
             isExpanded: index === 0,
             showPreview: false,
-          }))
+          })),
         );
       } else {
-        setEditingQuestions([{
-          id: null,
-          question: '',
-          answer: '',
-          order: 0,
-          isExpanded: true,
-          showPreview: false,
-        }]);
+        setEditingQuestions([
+          {
+            id: null,
+            question: '',
+            answer: '',
+            order: 0,
+            isExpanded: true,
+            showPreview: false,
+          },
+        ]);
       }
     }
   }, [editModalOpen, chapterQuestionsQuery.data]);
@@ -84,7 +92,7 @@ export const ChapterMenu = ({ chapter, lectureId }: ChapterMenuProps) => {
   });
 
   const handleSaveEdit = async () => {
-    const hasValidQuestion = editingQuestions.some(q => q.question.trim());
+    const hasValidQuestion = editingQuestions.some((q) => q.question.trim());
     if (!hasValidQuestion) return;
 
     // Update chapter association if changed
@@ -133,11 +141,12 @@ export const ChapterMenu = ({ chapter, lectureId }: ChapterMenuProps) => {
   };
 
   const handleAddQuestion = () => {
-    const maxOrder = editingQuestions.length > 0
-      ? Math.max(...editingQuestions.map(q => q.order))
-      : -1;
+    const maxOrder =
+      editingQuestions.length > 0
+        ? Math.max(...editingQuestions.map((q) => q.order))
+        : -1;
     setEditingQuestions([
-      ...editingQuestions.map(q => ({ ...q, isExpanded: false })),
+      ...editingQuestions.map((q) => ({ ...q, isExpanded: false })),
       {
         id: null,
         question: '',
@@ -149,15 +158,21 @@ export const ChapterMenu = ({ chapter, lectureId }: ChapterMenuProps) => {
     ]);
   };
 
-  const handleUpdateEditingQuestion = (index: number, updates: Partial<EditingQuestion>) => {
-    setEditingQuestions(prev =>
-      prev.map((q, i) => (i === index ? { ...q, ...updates } : q))
+  const handleUpdateEditingQuestion = (
+    index: number,
+    updates: Partial<EditingQuestion>,
+  ) => {
+    setEditingQuestions((prev) =>
+      prev.map((q, i) => (i === index ? { ...q, ...updates } : q)),
     );
   };
 
   const handleToggleQuestionExpanded = (index: number) => {
-    setEditingQuestions(prev =>
-      prev.map((q, i) => ({ ...q, isExpanded: i === index ? !q.isExpanded : false }))
+    setEditingQuestions((prev) =>
+      prev.map((q, i) => ({
+        ...q,
+        isExpanded: i === index ? !q.isExpanded : false,
+      })),
     );
   };
 
@@ -166,7 +181,7 @@ export const ChapterMenu = ({ chapter, lectureId }: ChapterMenuProps) => {
     if (question.id) {
       deleteQuestion.mutate({ id: question.id });
     }
-    setEditingQuestions(prev => prev.filter((_, i) => i !== index));
+    setEditingQuestions((prev) => prev.filter((_, i) => i !== index));
   };
 
   useEffect(() => {

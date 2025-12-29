@@ -2,9 +2,9 @@ import { useNavigate } from 'react-router-dom';
 
 import { useState } from 'react';
 
-import { trpc } from '../utils/trpc';
 import { AppHeader } from '../components/AppHeader';
 import { Card } from '../components/Card';
+import { trpc } from '../utils/trpc';
 
 export const AddLecture = () => {
   const navigate = useNavigate();
@@ -39,11 +39,7 @@ export const AddLecture = () => {
           </p>
         </div>
 
-        <Card
-          as="form"
-          onSubmit={handleSubmit}
-          className="max-w-2xl space-y-6"
-        >
+        <Card as="form" onSubmit={handleSubmit} className="max-w-2xl space-y-6">
           <div>
             <label
               htmlFor="title"
@@ -61,7 +57,6 @@ export const AddLecture = () => {
               placeholder="Enter lecture title"
             />
           </div>
-
 
           <div>
             <label

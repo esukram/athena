@@ -1,6 +1,9 @@
 import { useNavigate } from 'react-router-dom';
+
 import { useEffect, useRef, useState } from 'react';
+
 import type { Lecture } from '@athena/api';
+
 import { trpc } from '../utils/trpc';
 
 interface LectureMenuProps {

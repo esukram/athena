@@ -1,13 +1,14 @@
+import { Search, X } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { useNavigate, useParams } from 'react-router-dom';
 
-import { useEffect, useState, useMemo, useRef } from 'react';
-import { Search, X } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
-import { trpc } from '../utils/trpc';
-import { AppHeader } from '../components/AppHeader';
 import type { Question } from '@athena/api';
+
 import { Accordion } from '../components/Accordion';
+import { AppHeader } from '../components/AppHeader';
+import { trpc } from '../utils/trpc';
 
 export const LectureTrain = () => {
   const { id, chapterId } = useParams<{ id: string; chapterId?: string }>();
@@ -18,7 +19,10 @@ export const LectureTrain = () => {
   const searchInputRef = useRef<HTMLInputElement>(null);
   const chapterButtonsRef = useRef<Map<number, HTMLButtonElement>>(new Map());
 
-  const lectureQuery = trpc.lectures.getLecture.useQuery({ id: id! }, { enabled: !!id });
+  const lectureQuery = trpc.lectures.getLecture.useQuery(
+    { id: id! },
+    { enabled: !!id },
+  );
 
   const chaptersQuery = trpc.chapters.getChapters.useQuery(
     { lectureId: id! },
@@ -30,8 +34,8 @@ export const LectureTrain = () => {
   // Fetch first question for each chapter
   const firstQuestionsQueries = trpc.useQueries((t) =>
     chapters.map((chapter) =>
-      t.questions.getFirstQuestion({ chapterId: chapter.id })
-    )
+      t.questions.getFirstQuestion({ chapterId: chapter.id }),
+    ),
   );
 
   // Build a map of chapterId -> firstQuestion
@@ -72,7 +76,9 @@ export const LectureTrain = () => {
     if (tokens.length === 0) return text;
 
     // Build a regex to match any of the tokens (case-insensitive)
-    const escapedTokens = tokens.map((t) => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+    const escapedTokens = tokens.map((t) =>
+      t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
+    );
     const regex = new RegExp(`(${escapedTokens.join('|')})`, 'gi');
 
     const parts = text.split(regex);
@@ -80,7 +86,10 @@ export const LectureTrain = () => {
       const isMatch = tokens.some((token) => part.toLowerCase() === token);
       if (isMatch) {
         return (
-          <mark key={index} className="bg-yellow-200 text-inherit rounded px-0.5">
+          <mark
+            key={index}
+            className="bg-yellow-200 text-inherit rounded px-0.5"
+          >
             {part}
           </mark>
         );
@@ -130,7 +139,7 @@ export const LectureTrain = () => {
   const currentChapter = chapters[selectedChapterIndex];
   const currentChapterQuestionsQuery = trpc.questions.getQuestions.useQuery(
     { chapterId: currentChapter?.id || '' },
-    { enabled: !!currentChapter?.id }
+    { enabled: !!currentChapter?.id },
   );
   const currentChapterQuestions = currentChapterQuestionsQuery.data || [];
 
@@ -163,7 +172,9 @@ export const LectureTrain = () => {
   }
 
   const lecture = lectureQuery.data;
-  const currentFirstQuestion = currentChapter ? firstQuestionMap.get(currentChapter.id) : undefined;
+  const currentFirstQuestion = currentChapter
+    ? firstQuestionMap.get(currentChapter.id)
+    : undefined;
 
   return (
     <div className="min-h-screen bg-background">
@@ -239,14 +250,18 @@ export const LectureTrain = () => {
                   />
                 </div>
               )}
-              <nav className={`space-y-1 ${chapters.length > 10 ? 'max-h-96 overflow-y-auto' : ''}`}>
+              <nav
+                className={`space-y-1 ${chapters.length > 10 ? 'max-h-96 overflow-y-auto' : ''}`}
+              >
                 {filteredChapters.length === 0 ? (
                   <p className="text-sm text-on-surface-variant italic px-3 py-2">
                     No chapters found
                   </p>
                 ) : (
                   filteredChapters.map((chapter) => {
-                    const originalIndex = chapters.findIndex((c) => c.id === chapter.id);
+                    const originalIndex = chapters.findIndex(
+                      (c) => c.id === chapter.id,
+                    );
                     return (
                       <button
                         key={chapter.id}
@@ -286,8 +301,7 @@ export const LectureTrain = () => {
               {currentChapter ? (
                 <>
                   <div className="flex justify-between items-start mb-6">
-                    <h2 className="text-2xl font-bold text-on-background">
-                    </h2>
+                    <h2 className="text-2xl font-bold text-on-background"></h2>
                     {currentChapter.association && (
                       <span className="px-3 py-1 text-sm font-medium bg-primary-100 text-primary-700 rounded-full">
                         {currentChapter.association}
@@ -298,10 +312,7 @@ export const LectureTrain = () => {
                   {currentChapterQuestions.length > 0 ? (
                     <div className="space-y-4">
                       {currentChapterQuestions.map((question) => (
-                        <Accordion
-                          key={question.id}
-                          title={question.question}
-                        >
+                        <Accordion key={question.id} title={question.question}>
                           {question.answer ? (
                             <div className="prose prose-lg max-w-none">
                               <ReactMarkdown>{question.answer}</ReactMarkdown>
@@ -324,7 +335,9 @@ export const LectureTrain = () => {
                   <div className="flex justify-between mt-12 pt-6 border-t border-gray-300">
                     <button
                       onClick={() =>
-                        navigate(`/lecture/${id}/train/${chapters[selectedChapterIndex - 1].id}`)
+                        navigate(
+                          `/lecture/${id}/train/${chapters[selectedChapterIndex - 1].id}`,
+                        )
                       }
                       disabled={selectedChapterIndex === 0}
                       className="px-4 py-2 text-primary-600 hover:bg-primary-50 disabled:text-gray-400 disabled:hover:bg-transparent rounded-lg transition-colors flex items-center gap-2"
@@ -346,7 +359,9 @@ export const LectureTrain = () => {
                     </button>
                     <button
                       onClick={() =>
-                        navigate(`/lecture/${id}/train/${chapters[selectedChapterIndex + 1].id}`)
+                        navigate(
+                          `/lecture/${id}/train/${chapters[selectedChapterIndex + 1].id}`,
+                        )
                       }
                       disabled={selectedChapterIndex === chapters.length - 1}
                       className="px-4 py-2 text-primary-600 hover:bg-primary-50 disabled:text-gray-400 disabled:hover:bg-transparent rounded-lg transition-colors flex items-center gap-2"

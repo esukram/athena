@@ -1,6 +1,7 @@
+import { ChevronDown, ChevronUp, Plus, Trash2 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
-import { Plus, ChevronDown, ChevronUp, Trash2 } from 'lucide-react';
-import { useState, useRef, useEffect } from 'react';
+
+import { useEffect, useRef, useState } from 'react';
 
 export interface EditingQuestion {
   id: string | null;
@@ -38,7 +39,7 @@ export const EditChapterModal = ({
   onSave,
   onCancel,
 }: EditChapterModalProps) => {
-  const canSave = questions.some(q => q.question.trim());
+  const canSave = questions.some((q) => q.question.trim());
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -46,7 +47,8 @@ export const EditChapterModal = ({
 
   // Filter suggestions based on current input
   const filteredSuggestions = existingAssociations.filter(
-    a => a.toLowerCase().includes(association.toLowerCase()) && a !== association
+    (a) =>
+      a.toLowerCase().includes(association.toLowerCase()) && a !== association,
   );
 
   // Close suggestions when clicking outside
@@ -70,13 +72,13 @@ export const EditChapterModal = ({
 
     if (e.key === 'ArrowDown') {
       e.preventDefault();
-      setHighlightedIndex(prev =>
-        prev < filteredSuggestions.length - 1 ? prev + 1 : 0
+      setHighlightedIndex((prev) =>
+        prev < filteredSuggestions.length - 1 ? prev + 1 : 0,
       );
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
-      setHighlightedIndex(prev =>
-        prev > 0 ? prev - 1 : filteredSuggestions.length - 1
+      setHighlightedIndex((prev) =>
+        prev > 0 ? prev - 1 : filteredSuggestions.length - 1,
       );
     } else if (e.key === 'Enter' && highlightedIndex >= 0) {
       e.preventDefault();
@@ -214,7 +216,9 @@ export const EditChapterModal = ({
                           type="text"
                           value={eq.question}
                           onChange={(e) =>
-                            onUpdateQuestion(index, { question: e.target.value })
+                            onUpdateQuestion(index, {
+                              question: e.target.value,
+                            })
                           }
                           className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
                           placeholder="Enter question"
@@ -230,7 +234,9 @@ export const EditChapterModal = ({
                             type="button"
                             tabIndex={-1}
                             onClick={() =>
-                              onUpdateQuestion(index, { showPreview: !eq.showPreview })
+                              onUpdateQuestion(index, {
+                                showPreview: !eq.showPreview,
+                              })
                             }
                             className="text-sm text-primary-600 hover:text-primary-700"
                           >
@@ -243,14 +249,18 @@ export const EditChapterModal = ({
                             {eq.answer ? (
                               <ReactMarkdown>{eq.answer}</ReactMarkdown>
                             ) : (
-                              <p className="text-gray-400 italic">No content yet</p>
+                              <p className="text-gray-400 italic">
+                                No content yet
+                              </p>
                             )}
                           </div>
                         ) : (
                           <textarea
                             value={eq.answer}
                             onChange={(e) =>
-                              onUpdateQuestion(index, { answer: e.target.value })
+                              onUpdateQuestion(index, {
+                                answer: e.target.value,
+                              })
                             }
                             rows={8}
                             className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none font-mono text-sm resize-none"

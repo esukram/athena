@@ -1,6 +1,7 @@
-import { useState, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Search, X } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+
+import { useEffect, useRef, useState } from 'react';
 
 import { trpc } from '../utils/trpc';
 
@@ -71,7 +72,11 @@ export const GlobalSearch = () => {
           const maxIndex = results.length - 1;
           return prev > 0 ? prev - 1 : maxIndex;
         });
-      } else if (e.key === 'Enter' && selectedIndex >= 0 && selectedIndex < results.length) {
+      } else if (
+        e.key === 'Enter' &&
+        selectedIndex >= 0 &&
+        selectedIndex < results.length
+      ) {
         e.preventDefault();
         const selected = results[selectedIndex];
         handleResultClick(selected.lectureId, selected.id);
@@ -84,7 +89,10 @@ export const GlobalSearch = () => {
   // Close on click outside
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(e.target as Node)
+      ) {
         setIsOpen(false);
         setQuery('');
       }
@@ -99,15 +107,15 @@ export const GlobalSearch = () => {
     setQuery('');
   };
 
-
-
   // Highlight matching tokens in text
   const highlightMatches = (text: string, searchQuery: string) => {
     if (!searchQuery.trim()) return text;
     const tokens = searchQuery.toLowerCase().split(/\s+/).filter(Boolean);
     if (tokens.length === 0) return text;
 
-    const escapedTokens = tokens.map((t) => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+    const escapedTokens = tokens.map((t) =>
+      t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
+    );
     const regex = new RegExp(`(${escapedTokens.join('|')})`, 'gi');
 
     const parts = text.split(regex);
@@ -115,7 +123,10 @@ export const GlobalSearch = () => {
       const isMatch = tokens.some((token) => part.toLowerCase() === token);
       if (isMatch) {
         return (
-          <mark key={index} className="bg-yellow-200 text-inherit rounded px-0.5">
+          <mark
+            key={index}
+            className="bg-yellow-200 text-inherit rounded px-0.5"
+          >
             {part}
           </mark>
         );
@@ -178,30 +189,44 @@ export const GlobalSearch = () => {
       {isOpen && query.trim() && (
         <div className="absolute top-full left-0 mt-2 w-80 sm:w-96 max-h-96 bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden z-50">
           {searchQuery.isLoading || query !== debouncedQuery ? (
-            <div className="p-4 text-sm text-on-surface-variant">Searching...</div>
+            <div className="p-4 text-sm text-on-surface-variant">
+              Searching...
+            </div>
           ) : results.length === 0 ? (
-            <div className="p-4 text-sm text-on-surface-variant">No results found</div>
+            <div className="p-4 text-sm text-on-surface-variant">
+              No results found
+            </div>
           ) : (
             <ul className="divide-y divide-gray-100 max-h-80 overflow-y-auto">
               {results.map((chapter, index) => (
                 <li key={chapter.id}>
                   <button
                     ref={(el) => (itemsRef.current[index] = el)}
-                    onClick={() => handleResultClick(chapter.lectureId, chapter.id)}
+                    onClick={() =>
+                      handleResultClick(chapter.lectureId, chapter.id)
+                    }
                     className={`w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors ${
                       index === selectedIndex ? 'bg-gray-100' : ''
                     }`}
                   >
                     <div className="font-medium text-on-surface mb-1">
-                      {highlightMatches(chapter.firstQuestion?.question || 'Untitled', debouncedQuery)}
+                      {highlightMatches(
+                        chapter.firstQuestion?.question || 'Untitled',
+                        debouncedQuery,
+                      )}
                     </div>
                     <div className="flex items-center gap-2 text-xs text-on-surface-variant">
-                      <span>{lectureMap.get(chapter.lectureId) || 'Unknown Lecture'}</span>
+                      <span>
+                        {lectureMap.get(chapter.lectureId) || 'Unknown Lecture'}
+                      </span>
                       {chapter.association && (
                         <>
                           <span>•</span>
                           <span className="px-2 py-0.5 bg-primary-50 text-primary-600 rounded-full">
-                            {highlightMatches(chapter.association, debouncedQuery)}
+                            {highlightMatches(
+                              chapter.association,
+                              debouncedQuery,
+                            )}
                           </span>
                         </>
                       )}

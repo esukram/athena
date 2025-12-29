@@ -1,5 +1,4 @@
 import Fastify from 'fastify';
-
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -39,9 +38,7 @@ function createLectureRepository(): LectureRepository {
     },
     update: (id: string, lecture: Omit<Lecture, 'id'>): Lecture | undefined => {
       const result = db
-        .prepare(
-          'UPDATE lectures SET title = ?, description = ? WHERE id = ?',
-        )
+        .prepare('UPDATE lectures SET title = ?, description = ? WHERE id = ?')
         .run(lecture.title, lecture.description, id);
       if (result.changes === 0) return undefined;
       return { id, ...lecture };
@@ -62,55 +59,63 @@ function createChapterRepository(): ChapterRepository {
     },
     getDistinctAssociations: (): string[] => {
       const rows = db
-        .prepare("SELECT DISTINCT association FROM chapters WHERE association != '' ORDER BY association")
+        .prepare(
+          "SELECT DISTINCT association FROM chapters WHERE association != '' ORDER BY association",
+        )
         .all() as { association: string }[];
-      return rows.map(row => row.association);
+      return rows.map((row) => row.association);
     },
     search: (query: string): (Chapter & { firstQuestion?: Question })[] => {
       if (!query.trim()) return [];
-      
+
       const tokens = query.toLowerCase().split(/\s+/).filter(Boolean);
       if (tokens.length === 0) return [];
-      
+
       // Search in questions (question text) and chapters (association)
       // Use aliases for the main query
-      const questionConditions = tokens.map(() => 
-        'LOWER(q.question) LIKE ?'
-      ).join(' AND ');
-      
-      const associationConditions = tokens.map(() => 
-        'LOWER(c.association) LIKE ?'
-      ).join(' AND ');
-      
-      const questionParams = tokens.map(token => `%${token}%`);
-      const associationParams = tokens.map(token => `%${token}%`);
-      
+      const questionConditions = tokens
+        .map(() => 'LOWER(q.question) LIKE ?')
+        .join(' AND ');
+
+      const associationConditions = tokens
+        .map(() => 'LOWER(c.association) LIKE ?')
+        .join(' AND ');
+
+      const questionParams = tokens.map((token) => `%${token}%`);
+      const associationParams = tokens.map((token) => `%${token}%`);
+
       // Get chapters that match via ANY question or association
       const chapters = db
-        .prepare(`
+        .prepare(
+          `
           SELECT DISTINCT c.* FROM chapters c
           LEFT JOIN questions q ON q.chapterId = c.id
           WHERE (${questionConditions}) OR (${associationConditions})
           ORDER BY c."order"
-        `)
+        `,
+        )
         .all(...questionParams, ...associationParams) as Chapter[];
-      
+
       // Conditions for finding the matching question within a specific chapter
-      const innerQuestionConditions = tokens.map(() => 
-        'LOWER(question) LIKE ?'
-      ).join(' AND ');
+      const innerQuestionConditions = tokens
+        .map(() => 'LOWER(question) LIKE ?')
+        .join(' AND ');
 
       // Attach the best matching question to each chapter
-      return chapters.map(chapter => {
+      return chapters.map((chapter) => {
         // First try to find a question that matches the search query
         let firstQuestion = db
-          .prepare(`SELECT * FROM questions WHERE chapterId = ? AND (${innerQuestionConditions}) LIMIT 1`)
+          .prepare(
+            `SELECT * FROM questions WHERE chapterId = ? AND (${innerQuestionConditions}) LIMIT 1`,
+          )
           .get(chapter.id, ...questionParams) as Question | undefined;
 
         // If no question matches (match was on association), fall back to the actual first question
         if (!firstQuestion) {
           firstQuestion = db
-            .prepare('SELECT * FROM questions WHERE chapterId = ? ORDER BY "order" LIMIT 1')
+            .prepare(
+              'SELECT * FROM questions WHERE chapterId = ? ORDER BY "order" LIMIT 1',
+            )
             .get(chapter.id) as Question | undefined;
         }
 
@@ -154,14 +159,22 @@ function createQuestionRepository(): QuestionRepository {
     },
     getFirstByChapterId: (chapterId: string): Question | undefined => {
       return db
-        .prepare('SELECT * FROM questions WHERE chapterId = ? ORDER BY "order" LIMIT 1')
+        .prepare(
+          'SELECT * FROM questions WHERE chapterId = ? ORDER BY "order" LIMIT 1',
+        )
         .get(chapterId) as Question | undefined;
     },
     create: (question: Omit<Question, 'id'>): Question => {
       const id = crypto.randomUUID();
       db.prepare(
         'INSERT INTO questions (id, chapterId, question, answer, "order") VALUES (?, ?, ?, ?, ?)',
-      ).run(id, question.chapterId, question.question, question.answer, question.order);
+      ).run(
+        id,
+        question.chapterId,
+        question.question,
+        question.answer,
+        question.order,
+      );
       return { id, ...question };
     },
     update: (
@@ -202,7 +215,11 @@ async function main() {
     prefix: '/trpc',
     trpcOptions: {
       router: appRouter,
-      createContext: createContext({ lectureRepository, chapterRepository, questionRepository }),
+      createContext: createContext({
+        lectureRepository,
+        chapterRepository,
+        questionRepository,
+      }),
     },
   });
 

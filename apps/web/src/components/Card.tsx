@@ -36,7 +36,8 @@ export const Card = ({
   const variantClass = variantClasses[variant];
   const paddingClass = paddingClasses[padding];
 
-  const combinedClassName = `${baseClasses} ${variantClass} ${paddingClass} ${className}`.trim();
+  const combinedClassName =
+    `${baseClasses} ${variantClass} ${paddingClass} ${className}`.trim();
 
   if (Component === 'form') {
     return (

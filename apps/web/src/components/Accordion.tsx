@@ -1,5 +1,6 @@
-import React, { useState, ReactNode } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
+
+import React, { ReactNode, useState } from 'react';
 
 interface AccordionProps {
   title: string;
@@ -7,7 +8,11 @@ interface AccordionProps {
   children?: ReactNode;
 }
 
-export const Accordion: React.FC<AccordionProps> = ({ title, description = '', children }) => {
+export const Accordion: React.FC<AccordionProps> = ({
+  title,
+  description = '',
+  children,
+}) => {
   const [isOpen, setIsOpen] = useState(false);
 
   const shortDescription =
@@ -31,14 +36,10 @@ export const Accordion: React.FC<AccordionProps> = ({ title, description = '', c
             </p>
           )}
           {isOpen && (
-            <p className="text-primary font-medium text-sm mt-1">
-              Show Less
-            </p>
+            <p className="text-primary font-medium text-sm mt-1">Show Less</p>
           )}
           {!isOpen && (
-             <p className="text-primary font-medium text-sm mt-1">
-              Read More
-            </p>
+            <p className="text-primary font-medium text-sm mt-1">Read More</p>
           )}
         </div>
         <div className="ml-4 mt-2 text-on-surface-variant">

@@ -8,10 +8,9 @@ export const chaptersRouter = router({
     .query(({ ctx, input }) => {
       return ctx.chapterRepository.getByLectureId(input.lectureId);
     }),
-  getDistinctAssociations: publicProcedure
-    .query(({ ctx }) => {
-      return ctx.chapterRepository.getDistinctAssociations();
-    }),
+  getDistinctAssociations: publicProcedure.query(({ ctx }) => {
+    return ctx.chapterRepository.getDistinctAssociations();
+  }),
   searchChapters: publicProcedure
     .input(z.object({ query: z.string() }))
     .query(({ ctx, input }) => {

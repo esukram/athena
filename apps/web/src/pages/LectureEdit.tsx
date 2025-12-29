@@ -1,16 +1,17 @@
 import { useNavigate, useParams } from 'react-router-dom';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 import type { Chapter, Question } from '@athena/api';
 
-import { trpc } from '../utils/trpc';
+import { Accordion } from '../components/Accordion';
 import { AppHeader } from '../components/AppHeader';
 import { Card } from '../components/Card';
-import { Accordion } from '../components/Accordion';
-import { EditChapterModal, type EditingQuestion } from '../components/EditChapterModal';
-
-
+import {
+  EditChapterModal,
+  type EditingQuestion,
+} from '../components/EditChapterModal';
+import { trpc } from '../utils/trpc';
 
 export const EditLecture = () => {
   const { id } = useParams<{ id: string }>();
@@ -24,12 +25,14 @@ export const EditLecture = () => {
   const [newChapterQuestion, setNewChapterQuestion] = useState('');
   const [editingChapter, setEditingChapter] = useState<Chapter | null>(null);
   const [editingAssociation, setEditingAssociation] = useState('');
-  const [editingQuestions, setEditingQuestions] = useState<EditingQuestion[]>([]);
+  const [editingQuestions, setEditingQuestions] = useState<EditingQuestion[]>(
+    [],
+  );
 
   // Fetch questions for the editing chapter
   const chapterQuestionsQuery = trpc.questions.getQuestions.useQuery(
     { chapterId: editingChapter?.id || '' },
-    { enabled: !!editingChapter?.id }
+    { enabled: !!editingChapter?.id },
   );
 
   // Sync fetched questions to editing state when modal opens
@@ -46,19 +49,21 @@ export const EditLecture = () => {
             order: q.order,
             isExpanded: index === 0, // First question expanded by default
             showPreview: false,
-          }))
+          })),
         );
       } else if (editingQuestions.length === 0) {
         // No questions in DB and none set locally (existing chapter with no questions)
         // For new chapters, questions are pre-populated in createChapter.onSuccess
-        setEditingQuestions([{
-          id: null,
-          question: '',
-          answer: '',
-          order: 0,
-          isExpanded: true,
-          showPreview: false,
-        }]);
+        setEditingQuestions([
+          {
+            id: null,
+            question: '',
+            answer: '',
+            order: 0,
+            isExpanded: true,
+            showPreview: false,
+          },
+        ]);
       }
     }
   }, [editingChapter?.id, chapterQuestionsQuery.data]);
@@ -91,8 +96,8 @@ export const EditLecture = () => {
   // Fetch first question for each chapter (must be before early returns)
   const firstQuestionsQueries = trpc.useQueries((t) =>
     chapters.map((chapter) =>
-      t.questions.getFirstQuestion({ chapterId: chapter.id })
-    )
+      t.questions.getFirstQuestion({ chapterId: chapter.id }),
+    ),
   );
 
   // Build a map of chapterId -> firstQuestion
@@ -115,14 +120,16 @@ export const EditLecture = () => {
       setEditingChapter(newChapter);
       setEditingAssociation(newChapter.association);
       // Pre-populate the first question with the entered text
-      setEditingQuestions([{
-        id: null,
-        question: newChapterQuestion,
-        answer: '',
-        order: 0,
-        isExpanded: true,
-        showPreview: false,
-      }]);
+      setEditingQuestions([
+        {
+          id: null,
+          question: newChapterQuestion,
+          answer: '',
+          order: 0,
+          isExpanded: true,
+          showPreview: false,
+        },
+      ]);
       setNewChapterQuestion('');
     },
   });
@@ -136,24 +143,36 @@ export const EditLecture = () => {
   const createQuestion = trpc.questions.createQuestion.useMutation({
     onSuccess: () => {
       utils.chapters.getChapters.invalidate({ lectureId: id! });
-      utils.questions.getQuestions.invalidate({ chapterId: editingChapter?.id || '' });
-      utils.questions.getFirstQuestion.invalidate({ chapterId: editingChapter?.id || '' });
+      utils.questions.getQuestions.invalidate({
+        chapterId: editingChapter?.id || '',
+      });
+      utils.questions.getFirstQuestion.invalidate({
+        chapterId: editingChapter?.id || '',
+      });
     },
   });
 
   const updateQuestion = trpc.questions.updateQuestion.useMutation({
     onSuccess: () => {
       utils.chapters.getChapters.invalidate({ lectureId: id! });
-      utils.questions.getQuestions.invalidate({ chapterId: editingChapter?.id || '' });
-      utils.questions.getFirstQuestion.invalidate({ chapterId: editingChapter?.id || '' });
+      utils.questions.getQuestions.invalidate({
+        chapterId: editingChapter?.id || '',
+      });
+      utils.questions.getFirstQuestion.invalidate({
+        chapterId: editingChapter?.id || '',
+      });
     },
   });
 
   const deleteQuestion = trpc.questions.deleteQuestion.useMutation({
     onSuccess: () => {
       utils.chapters.getChapters.invalidate({ lectureId: id! });
-      utils.questions.getQuestions.invalidate({ chapterId: editingChapter?.id || '' });
-      utils.questions.getFirstQuestion.invalidate({ chapterId: editingChapter?.id || '' });
+      utils.questions.getQuestions.invalidate({
+        chapterId: editingChapter?.id || '',
+      });
+      utils.questions.getFirstQuestion.invalidate({
+        chapterId: editingChapter?.id || '',
+      });
     },
   });
 
@@ -189,11 +208,11 @@ export const EditLecture = () => {
 
   const handleSaveEdit = async () => {
     if (!editingChapter) return;
-    
+
     // Check that at least the first question has content
-    const hasValidQuestion = editingQuestions.some(q => q.question.trim());
+    const hasValidQuestion = editingQuestions.some((q) => q.question.trim());
     if (!hasValidQuestion) return;
-    
+
     // Update chapter association if changed
     if (editingAssociation !== editingChapter.association) {
       updateChapter.mutate({
@@ -201,11 +220,11 @@ export const EditLecture = () => {
         association: editingAssociation,
       });
     }
-    
+
     // Save all questions
     for (const eq of editingQuestions) {
       if (!eq.question.trim()) continue; // Skip empty questions
-      
+
       if (eq.id) {
         // Update existing question
         updateQuestion.mutate({
@@ -224,7 +243,7 @@ export const EditLecture = () => {
         });
       }
     }
-    
+
     // Close modal after saving
     handleCancelEdit();
   };
@@ -236,11 +255,12 @@ export const EditLecture = () => {
   };
 
   const handleAddQuestion = () => {
-    const maxOrder = editingQuestions.length > 0
-      ? Math.max(...editingQuestions.map(q => q.order))
-      : -1;
+    const maxOrder =
+      editingQuestions.length > 0
+        ? Math.max(...editingQuestions.map((q) => q.order))
+        : -1;
     setEditingQuestions([
-      ...editingQuestions.map(q => ({ ...q, isExpanded: false })), // Collapse others
+      ...editingQuestions.map((q) => ({ ...q, isExpanded: false })), // Collapse others
       {
         id: null,
         question: '',
@@ -252,15 +272,21 @@ export const EditLecture = () => {
     ]);
   };
 
-  const handleUpdateEditingQuestion = (index: number, updates: Partial<EditingQuestion>) => {
-    setEditingQuestions(prev =>
-      prev.map((q, i) => (i === index ? { ...q, ...updates } : q))
+  const handleUpdateEditingQuestion = (
+    index: number,
+    updates: Partial<EditingQuestion>,
+  ) => {
+    setEditingQuestions((prev) =>
+      prev.map((q, i) => (i === index ? { ...q, ...updates } : q)),
     );
   };
 
   const handleToggleQuestionExpanded = (index: number) => {
-    setEditingQuestions(prev =>
-      prev.map((q, i) => ({ ...q, isExpanded: i === index ? !q.isExpanded : false }))
+    setEditingQuestions((prev) =>
+      prev.map((q, i) => ({
+        ...q,
+        isExpanded: i === index ? !q.isExpanded : false,
+      })),
     );
   };
 
@@ -271,7 +297,7 @@ export const EditLecture = () => {
       deleteQuestion.mutate({ id: question.id });
     }
     // Remove from local state
-    setEditingQuestions(prev => prev.filter((_, i) => i !== index));
+    setEditingQuestions((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleDeleteChapter = (chapterId: string) => {
@@ -421,7 +447,9 @@ export const EditLecture = () => {
 
             {/* Chapters List */}
             <div className="space-y-3">
-              {chaptersQuery.isLoading || (chapters.length > 0 && firstQuestionsQueries.some(q => q.isLoading)) ? (
+              {chaptersQuery.isLoading ||
+              (chapters.length > 0 &&
+                firstQuestionsQueries.some((q) => q.isLoading)) ? (
                 <p className="text-on-surface-variant">Loading chapters...</p>
               ) : chapters.length === 0 ? (
                 <p className="text-on-surface-variant text-center py-8">

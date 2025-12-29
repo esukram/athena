@@ -1,5 +1,7 @@
 import { useNavigate } from 'react-router-dom';
+
 import type { Lecture } from '@athena/api';
+
 import { LectureMenu } from './LectureMenu';
 
 export const LectureCard = ({ lecture }: { lecture: Lecture }) => {
