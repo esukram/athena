@@ -176,12 +176,12 @@ export const EditLecture = () => {
           </p>
         </div>
 
-        <div className="grid gap-8 lg:grid-cols-2">
+        <div className="grid gap-8 xl:grid-cols-3">
           {/* Lecture Details Form */}
           <Card
             as="form"
             onSubmit={handleUpdateLecture}
-            className="space-y-6 h-fit"
+            className="space-y-6 h-fit xl:col-span-1 min-w-96"
           >
             <h3 className="text-xl font-semibold text-on-surface">
               Lecture Details
@@ -204,7 +204,6 @@ export const EditLecture = () => {
                 placeholder="Enter lecture title"
               />
             </div>
-
 
             <div>
               <label
@@ -259,7 +258,7 @@ export const EditLecture = () => {
           </Card>
 
           {/* Chapters Section */}
-          <Card className="space-y-6">
+          <Card className="space-y-6 xl:col-span-2">
             <h3 className="text-xl font-semibold text-on-surface">Chapters</h3>
 
             {/* Add Chapter Form */}
