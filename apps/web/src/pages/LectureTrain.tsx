@@ -287,7 +287,6 @@ export const LectureTrain = () => {
                 <>
                   <div className="flex justify-between items-start mb-6">
                     <h2 className="text-2xl font-bold text-on-background">
-                      {currentFirstQuestion?.question || 'Untitled'}
                     </h2>
                     {currentChapter.association && (
                       <span className="px-3 py-1 text-sm font-medium bg-primary-100 text-primary-700 rounded-full">
