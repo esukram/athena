@@ -11,7 +11,7 @@ import { AppHeader } from '../components/AppHeader';
 import { ChapterMenu } from '../components/ChapterMenu';
 import { trpc } from '../utils/trpc';
 
-export const LectureView = () => {
+export const LectureLearn = () => {
   const { id, chapterId } = useParams<{ id: string; chapterId?: string }>();
   const navigate = useNavigate();
   const [selectedChapterIndex, setSelectedChapterIndex] = useState(0);
@@ -122,12 +122,12 @@ export const LectureView = () => {
       if (event.key === 'ArrowRight') {
         const nextIndex = selectedChapterIndex + 1;
         if (nextIndex < chapters.length) {
-          navigate(`/lecture/${id}/${chapters[nextIndex].id}`);
+          navigate(`/learn/${id}/${chapters[nextIndex].id}`);
         }
       } else if (event.key === 'ArrowLeft') {
         const prevIndex = selectedChapterIndex - 1;
         if (prevIndex >= 0) {
-          navigate(`/lecture/${id}/${chapters[prevIndex].id}`);
+          navigate(`/learn/${id}/${chapters[prevIndex].id}`);
         }
       }
     };
@@ -212,7 +212,7 @@ export const LectureView = () => {
               This lecture has no chapters yet.
             </p>
             <button
-              onClick={() => navigate(`/lecture/${id}/edit`)}
+              onClick={() => navigate(`/edit/${id}`)}
               className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors"
             >
               Add Chapters
@@ -273,7 +273,7 @@ export const LectureView = () => {
                             chapterButtonsRef.current.delete(originalIndex);
                           }
                         }}
-                        onClick={() => navigate(`/lecture/${id}/${chapter.id}`)}
+                        onClick={() => navigate(`/learn/${id}/${chapter.id}`)}
                         className={`w-full text-left px-3 py-2 rounded-lg transition-colors ${
                           selectedChapterIndex === originalIndex
                             ? 'bg-primary-100 text-primary-700 font-medium'
@@ -352,7 +352,7 @@ export const LectureView = () => {
                     <button
                       onClick={() =>
                         navigate(
-                          `/lecture/${id}/${chapters[selectedChapterIndex - 1].id}`,
+                          `/learn/${id}/${chapters[selectedChapterIndex - 1].id}`,
                         )
                       }
                       disabled={selectedChapterIndex === 0}
@@ -376,7 +376,7 @@ export const LectureView = () => {
                     <button
                       onClick={() =>
                         navigate(
-                          `/lecture/${id}/${chapters[selectedChapterIndex + 1].id}`,
+                          `/learn/${id}/${chapters[selectedChapterIndex + 1].id}`,
                         )
                       }
                       disabled={selectedChapterIndex === chapters.length - 1}

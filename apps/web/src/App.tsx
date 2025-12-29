@@ -8,7 +8,7 @@ import { httpLink } from '@trpc/client';
 import { AddLecture } from './pages/LectureAdd';
 import { EditLecture } from './pages/LectureEdit';
 import { LectureTrain } from './pages/LectureTrain';
-import { LectureView } from './pages/LectureView';
+import { LectureLearn } from './pages/LectureLearn';
 import { Overview } from './pages/Overview';
 import { trpc } from './utils/trpc';
 
@@ -31,12 +31,12 @@ export default function App() {
           <Routes>
             <Route path="/" element={<Overview />} />
             <Route path="/add-lecture" element={<AddLecture />} />
-            <Route path="/lecture/:id/edit" element={<EditLecture />} />
+            <Route path="/edit/:id" element={<EditLecture />} />
             <Route
-              path="/lecture/:id/train/:chapterId?"
+              path="/train/:id/:chapterId?"
               element={<LectureTrain />}
             />
-            <Route path="/lecture/:id/:chapterId?" element={<LectureView />} />
+            <Route path="/learn/:id/:chapterId?" element={<LectureLearn />} />
           </Routes>
         </HashRouter>
       </QueryClientProvider>

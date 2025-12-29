@@ -121,12 +121,12 @@ export const LectureTrain = () => {
       if (event.key === 'ArrowRight') {
         const nextIndex = selectedChapterIndex + 1;
         if (nextIndex < chapters.length) {
-          navigate(`/lecture/${id}/train/${chapters[nextIndex].id}`);
+          navigate(`/learn/${id}/${chapters[nextIndex].id}`);
         }
       } else if (event.key === 'ArrowLeft') {
         const prevIndex = selectedChapterIndex - 1;
         if (prevIndex >= 0) {
-          navigate(`/lecture/${id}/train/${chapters[prevIndex].id}`);
+          navigate(`/learn/${id}/${chapters[prevIndex].id}`);
         }
       }
     };
@@ -208,7 +208,7 @@ export const LectureTrain = () => {
               This lecture has no chapters yet.
             </p>
             <button
-              onClick={() => navigate(`/lecture/${id}/edit`)}
+              onClick={() => navigate(`/edit/${id}`)}
               className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors"
             >
               Add Chapters
@@ -269,7 +269,7 @@ export const LectureTrain = () => {
                             chapterButtonsRef.current.delete(originalIndex);
                           }
                         }}
-                        onClick={() => navigate(`/lecture/${id}/train/${chapter.id}`)}
+                        onClick={() => navigate(`/train/${id}/${chapter.id}`)}
                         className={`w-full text-left px-3 py-2 rounded-lg transition-colors ${
                           selectedChapterIndex === originalIndex
                             ? 'bg-primary-100 text-primary-700 font-medium'
@@ -333,7 +333,7 @@ export const LectureTrain = () => {
                     <button
                       onClick={() =>
                         navigate(
-                          `/lecture/${id}/train/${chapters[selectedChapterIndex - 1].id}`,
+                          `/train/${id}/${chapters[selectedChapterIndex - 1].id}`,
                         )
                       }
                       disabled={selectedChapterIndex === 0}
@@ -357,7 +357,7 @@ export const LectureTrain = () => {
                     <button
                       onClick={() =>
                         navigate(
-                          `/lecture/${id}/train/${chapters[selectedChapterIndex + 1].id}`,
+                          `/train/${id}/${chapters[selectedChapterIndex + 1].id}`,
                         )
                       }
                       disabled={selectedChapterIndex === chapters.length - 1}
