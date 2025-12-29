@@ -7,6 +7,7 @@ import type { Chapter } from '@athena/api';
 
 import { trpc } from '../utils/trpc';
 import { AppHeader } from '../components/AppHeader';
+import { Card } from '../components/Card';
 
 export const EditLecture = () => {
   const { id } = useParams<{ id: string }>();
@@ -166,9 +167,10 @@ export const EditLecture = () => {
 
         <div className="grid gap-8 lg:grid-cols-2">
           {/* Lecture Details Form */}
-          <form
+          <Card
+            as="form"
             onSubmit={handleUpdateLecture}
-            className="bg-surface rounded-xl shadow-md p-6 space-y-6 h-fit"
+            className="space-y-6 h-fit"
           >
             <h3 className="text-xl font-semibold text-on-surface">
               Lecture Details
@@ -243,10 +245,10 @@ export const EditLecture = () => {
                 Back
               </button>
             </div>
-          </form>
+          </Card>
 
           {/* Chapters Section */}
-          <div className="bg-surface rounded-xl shadow-md p-6 space-y-6">
+          <Card className="space-y-6">
             <h3 className="text-xl font-semibold text-on-surface">Chapters</h3>
 
             {/* Add Chapter Form */}
@@ -320,7 +322,7 @@ export const EditLecture = () => {
                 ))
               )}
             </div>
-          </div>
+          </Card>
         </div>
 
         {/* Chapter Edit Modal */}

@@ -4,6 +4,7 @@ import { useState } from 'react';
 
 import { trpc } from '../utils/trpc';
 import { AppHeader } from '../components/AppHeader';
+import { Card } from '../components/Card';
 
 export const AddLecture = () => {
   const navigate = useNavigate();
@@ -38,9 +39,10 @@ export const AddLecture = () => {
           </p>
         </div>
 
-        <form
+        <Card
+          as="form"
           onSubmit={handleSubmit}
-          className="max-w-2xl bg-surface rounded-xl shadow-md p-6 space-y-6"
+          className="max-w-2xl space-y-6"
         >
           <div>
             <label
@@ -103,7 +105,7 @@ export const AddLecture = () => {
               Cancel
             </button>
           </div>
-        </form>
+        </Card>
       </main>
     </div>
   );
