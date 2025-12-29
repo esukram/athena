@@ -159,6 +159,13 @@ export const LectureView = () => {
   const currentChapter = chapters[selectedChapterIndex];
   const currentFirstQuestion = currentChapter ? firstQuestionMap.get(currentChapter.id) : undefined;
 
+  // Fetch all questions for the current chapter
+  const currentChapterQuestionsQuery = trpc.questions.getQuestions.useQuery(
+    { chapterId: currentChapter?.id || '' },
+    { enabled: !!currentChapter?.id }
+  );
+  const currentChapterQuestions = currentChapterQuestionsQuery.data || [];
+
   return (
     <div className="min-h-screen bg-background">
       <AppHeader />
@@ -292,9 +299,27 @@ export const LectureView = () => {
                       <ChapterMenu chapter={currentChapter} lectureId={id!} />
                     </div>
                   </div>
-                  {currentFirstQuestion?.answer ? (
-                    <div className="prose prose-lg max-w-none">
-                      <ReactMarkdown>{currentFirstQuestion.answer}</ReactMarkdown>
+
+                  {currentChapterQuestions.length > 0 ? (
+                    <div className="space-y-8">
+                      {currentChapterQuestions.map((question, index) => (
+                        <div key={question.id} className={index > 0 ? 'pt-8 border-t border-gray-200' : ''}>
+                          {index > 0 && (
+                            <h2 className="text-2xl font-bold text-on-background mb-4">
+                              {question.question}
+                            </h2>
+                          )}
+                          {question.answer ? (
+                            <div className="prose prose-lg max-w-none">
+                              <ReactMarkdown>{question.answer}</ReactMarkdown>
+                            </div>
+                          ) : (
+                            <p className="text-on-surface-variant italic">
+                              No answer yet.
+                            </p>
+                          )}
+                        </div>
+                      ))}
                     </div>
                   ) : (
                     <p className="text-on-surface-variant italic">
