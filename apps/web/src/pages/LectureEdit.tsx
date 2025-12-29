@@ -170,92 +170,83 @@ export const EditLecture = () => {
 
       <main className="container mx-auto px-4 py-8 md:py-12">
         <div className="mb-8">
-          <Accordion title={title} description={description} />
+          <Accordion title={title} description={description}>
+            <form onSubmit={handleUpdateLecture} className="space-y-6">
+              <div>
+                <label
+                  htmlFor="title"
+                  className="block text-sm font-medium text-on-surface mb-2"
+                >
+                  Title
+                </label>
+                <input
+                  type="text"
+                  id="title"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  required
+                  className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-colors"
+                  placeholder="Enter lecture title"
+                />
+              </div>
+
+              <div>
+                <label
+                  htmlFor="description"
+                  className="block text-sm font-medium text-on-surface mb-2"
+                >
+                  Description
+                </label>
+                <textarea
+                  id="description"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  required
+                  rows={4}
+                  className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-colors resize-none"
+                  placeholder="Enter lecture description"
+                />
+              </div>
+
+              {updateLecture.error && (
+                <div className="rounded-lg bg-red-50 px-4 py-3 border border-red-200">
+                  <p className="text-sm text-error">
+                    Error: {updateLecture.error.message}
+                  </p>
+                </div>
+              )}
+
+              {updateLecture.isSuccess && (
+                <div className="rounded-lg bg-green-50 px-4 py-3 border border-green-200">
+                  <p className="text-sm text-green-700">
+                    Lecture updated successfully!
+                  </p>
+                </div>
+              )}
+
+              <div className="flex gap-4">
+                <button
+                  type="submit"
+                  disabled={updateLecture.isLoading}
+                  className="flex-1 bg-primary-600 hover:bg-primary-700 disabled:bg-primary-400 text-white font-medium py-3 px-6 rounded-lg transition-colors"
+                >
+                  {updateLecture.isLoading ? 'Saving...' : 'Save Changes'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => navigate('/')}
+                  className="px-6 py-3 rounded-lg border border-gray-300 text-on-surface hover:bg-gray-50 transition-colors"
+                >
+                  Back
+                </button>
+              </div>
+            </form>
+          </Accordion>
         </div>
 
-        <div className="grid gap-8 xl:grid-cols-3">
-          {/* Lecture Details Form */}
-          <Card
-            as="form"
-            onSubmit={handleUpdateLecture}
-            className="space-y-6 h-fit xl:col-span-1 min-w-96"
-          >
-            <h3 className="text-xl font-semibold text-on-surface">
-              Lecture Details
-            </h3>
-
-            <div>
-              <label
-                htmlFor="title"
-                className="block text-sm font-medium text-on-surface mb-2"
-              >
-                Title
-              </label>
-              <input
-                type="text"
-                id="title"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                required
-                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-colors"
-                placeholder="Enter lecture title"
-              />
-            </div>
-
-            <div>
-              <label
-                htmlFor="description"
-                className="block text-sm font-medium text-on-surface mb-2"
-              >
-                Description
-              </label>
-              <textarea
-                id="description"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                required
-                rows={4}
-                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-colors resize-none"
-                placeholder="Enter lecture description"
-              />
-            </div>
-
-            {updateLecture.error && (
-              <div className="rounded-lg bg-red-50 px-4 py-3 border border-red-200">
-                <p className="text-sm text-error">
-                  Error: {updateLecture.error.message}
-                </p>
-              </div>
-            )}
-
-            {updateLecture.isSuccess && (
-              <div className="rounded-lg bg-green-50 px-4 py-3 border border-green-200">
-                <p className="text-sm text-green-700">
-                  Lecture updated successfully!
-                </p>
-              </div>
-            )}
-
-            <div className="flex gap-4">
-              <button
-                type="submit"
-                disabled={updateLecture.isLoading}
-                className="flex-1 bg-primary-600 hover:bg-primary-700 disabled:bg-primary-400 text-white font-medium py-3 px-6 rounded-lg transition-colors"
-              >
-                {updateLecture.isLoading ? 'Saving...' : 'Save Changes'}
-              </button>
-              <button
-                type="button"
-                onClick={() => navigate('/')}
-                className="px-6 py-3 rounded-lg border border-gray-300 text-on-surface hover:bg-gray-50 transition-colors"
-              >
-                Back
-              </button>
-            </div>
-          </Card>
-
+        <div className="grid gap-8">
           {/* Chapters Section */}
-          <Card className="space-y-6 xl:col-span-2">
+          <Card className="space-y-6">
             <h3 className="text-xl font-semibold text-on-surface">Chapters</h3>
 
             {/* Add Chapter Form */}

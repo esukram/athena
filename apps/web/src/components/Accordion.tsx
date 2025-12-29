@@ -1,12 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, ReactNode } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 
 interface AccordionProps {
   title: string;
   description: string;
+  children?: ReactNode;
 }
 
-export const Accordion: React.FC<AccordionProps> = ({ title, description }) => {
+export const Accordion: React.FC<AccordionProps> = ({ title, description, children }) => {
   const [isOpen, setIsOpen] = useState(false);
 
   const shortDescription =
@@ -46,8 +47,8 @@ export const Accordion: React.FC<AccordionProps> = ({ title, description }) => {
       </button>
 
       {isOpen && (
-        <div className="px-6 pb-6 bg-surface-container text-on-surface text-base whitespace-pre-wrap">
-          {description}
+        <div className="px-6 pb-6 bg-surface-container text-on-surface text-base">
+          {children || <p className="whitespace-pre-wrap">{description}</p>}
         </div>
       )}
     </div>
