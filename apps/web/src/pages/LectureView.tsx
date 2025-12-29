@@ -79,7 +79,6 @@ export const LectureView = () => {
           <h1 className="text-4xl font-bold text-on-background mb-2">
             {lecture.title}
           </h1>
-          <p className="text-lg text-on-surface-variant">{lecture.subtitle}</p>
         </div>
 
         {chapters.length === 0 ? (

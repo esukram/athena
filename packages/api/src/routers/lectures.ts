@@ -15,7 +15,6 @@ export const lecturesRouter = router({
     .input(
       z.object({
         title: z.string().min(1),
-        subtitle: z.string().min(1),
         description: z.string().min(1),
       }),
     )
@@ -27,7 +26,6 @@ export const lecturesRouter = router({
       z.object({
         id: z.string(),
         title: z.string().min(1),
-        subtitle: z.string().min(1),
         description: z.string().min(1),
       }),
     )

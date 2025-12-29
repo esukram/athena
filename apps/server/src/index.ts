@@ -27,16 +27,16 @@ function createLectureRepository(): LectureRepository {
     create: (lecture: Omit<Lecture, 'id'>): Lecture => {
       const id = crypto.randomUUID();
       db.prepare(
-        'INSERT INTO lectures (id, title, subtitle, description) VALUES (?, ?, ?, ?)',
-      ).run(id, lecture.title, lecture.subtitle, lecture.description);
+        'INSERT INTO lectures (id, title, description) VALUES (?, ?, ?)',
+      ).run(id, lecture.title, lecture.description);
       return { id, ...lecture };
     },
     update: (id: string, lecture: Omit<Lecture, 'id'>): Lecture | undefined => {
       const result = db
         .prepare(
-          'UPDATE lectures SET title = ?, subtitle = ?, description = ? WHERE id = ?',
+          'UPDATE lectures SET title = ?, description = ? WHERE id = ?',
         )
-        .run(lecture.title, lecture.subtitle, lecture.description, id);
+        .run(lecture.title, lecture.description, id);
       if (result.changes === 0) return undefined;
       return { id, ...lecture };
     },

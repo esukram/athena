@@ -10,7 +10,6 @@ export const AddLecture = () => {
   const utils = trpc.useUtils();
 
   const [title, setTitle] = useState('');
-  const [subtitle, setSubtitle] = useState('');
   const [description, setDescription] = useState('');
 
   const createLecture = trpc.lectures.createLecture.useMutation({
@@ -22,7 +21,7 @@ export const AddLecture = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    createLecture.mutate({ title, subtitle, description });
+    createLecture.mutate({ title, description });
   };
 
   return (
@@ -61,23 +60,6 @@ export const AddLecture = () => {
             />
           </div>
 
-          <div>
-            <label
-              htmlFor="subtitle"
-              className="block text-sm font-medium text-on-surface mb-2"
-            >
-              Subtitle
-            </label>
-            <input
-              type="text"
-              id="subtitle"
-              value={subtitle}
-              onChange={(e) => setSubtitle(e.target.value)}
-              required
-              className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-colors"
-              placeholder="Enter lecture subtitle"
-            />
-          </div>
 
           <div>
             <label

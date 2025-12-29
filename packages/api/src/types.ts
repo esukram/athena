@@ -1,7 +1,6 @@
 export interface Lecture {
   id: string;
   title: string;
-  subtitle: string;
   description: string;
 }
 

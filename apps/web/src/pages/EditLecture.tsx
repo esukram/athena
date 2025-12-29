@@ -14,7 +14,6 @@ export const EditLecture = () => {
   const utils = trpc.useUtils();
 
   const [title, setTitle] = useState('');
-  const [subtitle, setSubtitle] = useState('');
   const [description, setDescription] = useState('');
   const [isInitialized, setIsInitialized] = useState(false);
 
@@ -31,7 +30,6 @@ export const EditLecture = () => {
       onSuccess: (data) => {
         if (data && !isInitialized) {
           setTitle(data.title);
-          setSubtitle(data.subtitle);
           setDescription(data.description);
           setIsInitialized(true);
         }
@@ -77,7 +75,7 @@ export const EditLecture = () => {
   const handleUpdateLecture = (e: React.FormEvent) => {
     e.preventDefault();
     if (!id) return;
-    updateLecture.mutate({ id, title, subtitle, description });
+    updateLecture.mutate({ id, title, description });
   };
 
   const handleAddChapter = (e: React.FormEvent) => {
@@ -194,23 +192,6 @@ export const EditLecture = () => {
               />
             </div>
 
-            <div>
-              <label
-                htmlFor="subtitle"
-                className="block text-sm font-medium text-on-surface mb-2"
-              >
-                Subtitle
-              </label>
-              <input
-                type="text"
-                id="subtitle"
-                value={subtitle}
-                onChange={(e) => setSubtitle(e.target.value)}
-                required
-                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-colors"
-                placeholder="Enter lecture subtitle"
-              />
-            </div>
 
             <div>
               <label

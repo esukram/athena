@@ -12,12 +12,9 @@ export const LectureCard = ({ lecture }: { lecture: Lecture }) => {
 
         <div className="h-full w-full flex items-center justify-center p-6">
           <div className="text-center">
-            <h2 className="text-2xl font-bold text-primary-700 mb-2">
+            <h2 className="text-2xl font-bold text-primary-700 mb-2 text-center">
               {lecture.title}
             </h2>
-            <p className="text-sm text-primary-600 font-medium">
-              {lecture.subtitle}
-            </p>
           </div>
         </div>
         <div className="absolute inset-0 bg-gradient-to-t from-black/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />

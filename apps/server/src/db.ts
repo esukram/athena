@@ -9,7 +9,6 @@ db.exec(`
   CREATE TABLE IF NOT EXISTS lectures (
     id TEXT PRIMARY KEY,
     title TEXT NOT NULL,
-    subtitle TEXT NOT NULL,
     description TEXT NOT NULL
   )
 `);
@@ -38,25 +37,21 @@ const defaultLectures = [
   {
     id: '1',
     title: 'Introduction to React',
-    subtitle: 'Build modern web applications',
     description: 'Learn the basics of React, components, and state.',
   },
   {
     id: '2',
     title: 'Advanced TypeScript',
-    subtitle: 'Master type-safe development',
     description: 'Deep dive into Generics, Utility types, and more.',
   },
   {
     id: '3',
     title: 'Material Design 3',
-    subtitle: 'Create beautiful user interfaces',
     description: 'Building beautiful UIs with Google Material 3.',
   },
   {
     id: '4',
     title: 'Server-Side Rendering',
-    subtitle: 'Optimize web performance',
     description: 'Understanding SSR with Node.js and frameworks.',
   },
 ];
@@ -66,13 +61,12 @@ const count = db.prepare('SELECT COUNT(*) as count FROM lectures').get() as {
 };
 if (count.count === 0) {
   const insert = db.prepare(
-    'INSERT INTO lectures (id, title, subtitle, description) VALUES (?, ?, ?, ?)',
+    'INSERT INTO lectures (id, title, description) VALUES (?, ?, ?)',
   );
   for (const lecture of defaultLectures) {
     insert.run(
       lecture.id,
       lecture.title,
-      lecture.subtitle,
       lecture.description,
     );
   }
