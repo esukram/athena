@@ -3,7 +3,7 @@ import path from 'path';
 
 const dbPath =
   process.env.DB_PATH || path.join(process.cwd(), '../../athena.db');
-export const db: DatabaseType = new Database(dbPath);
+export const db: DatabaseType = new Database(dbPath, { verbose: console.log });
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS lectures (
