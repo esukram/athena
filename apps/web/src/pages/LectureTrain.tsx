@@ -172,9 +172,6 @@ export const LectureTrain = () => {
   }
 
   const lecture = lectureQuery.data;
-  const currentFirstQuestion = currentChapter
-    ? firstQuestionMap.get(currentChapter.id)
-    : undefined;
 
   return (
     <div className="min-h-screen bg-background">
