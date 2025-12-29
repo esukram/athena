@@ -9,6 +9,7 @@ import { AddLecture } from './pages/LectureAdd';
 import { EditLecture } from './pages/LectureEdit';
 import { LectureView } from './pages/LectureView';
 import { Overview } from './pages/Overview';
+import { LectureTrain } from './pages/LectureTrain';
 import { trpc } from './utils/trpc';
 
 export default function App() {
@@ -31,6 +32,7 @@ export default function App() {
             <Route path="/" element={<Overview />} />
             <Route path="/add-lecture" element={<AddLecture />} />
             <Route path="/lecture/:id/edit" element={<EditLecture />} />
+            <Route path="/lecture/:id/train/:chapterId?" element={<LectureTrain />} />
             <Route path="/lecture/:id/:chapterId?" element={<LectureView />} />
           </Routes>
         </BrowserRouter>

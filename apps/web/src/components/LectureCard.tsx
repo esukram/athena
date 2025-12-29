@@ -36,7 +36,7 @@ export const LectureCard = ({ lecture }: { lecture: Lecture }) => {
           </button>
 
           <button
-            onClick={() => navigate(`/lecture/${lecture.id}`)}
+            onClick={() => navigate(`/lecture/${lecture.id}/train`)}
             className="flex-1 px-4 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-primary-600 to-primary-700 rounded-lg hover:from-primary-700 hover:to-primary-800 active:from-primary-800 active:to-primary-900 transition-all duration-200 shadow-md hover:shadow-lg"
           >
             Train

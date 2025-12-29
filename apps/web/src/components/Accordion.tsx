@@ -3,11 +3,11 @@ import { ChevronDown, ChevronUp } from 'lucide-react';
 
 interface AccordionProps {
   title: string;
-  description: string;
+  description?: string;
   children?: ReactNode;
 }
 
-export const Accordion: React.FC<AccordionProps> = ({ title, description, children }) => {
+export const Accordion: React.FC<AccordionProps> = ({ title, description = '', children }) => {
   const [isOpen, setIsOpen] = useState(false);
 
   const shortDescription =
