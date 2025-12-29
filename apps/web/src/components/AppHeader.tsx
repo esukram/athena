@@ -19,12 +19,14 @@ export const AppHeader = () => {
 
         <nav className="flex items-center gap-6">
           <GlobalSearch />
+          {/*
           <Link
             to="/"
             className="hidden sm:block text-base font-medium text-on-surface hover:text-primary-600 transition-colors"
           >
             Overview
           </Link>
+          */}
           <Link
             to="/add-lecture"
             className="text-base font-medium text-white bg-primary-600 hover:bg-primary-700 px-4 py-2 rounded-lg transition-colors"
