@@ -29,10 +29,14 @@ export const LectureView = () => {
 
   // Set selected chapter based on URL chapterId parameter
   useEffect(() => {
-    if (chapterId && chapters.length > 0) {
-      const index = chapters.findIndex((c) => c.id === chapterId);
-      if (index !== -1) {
-        setSelectedChapterIndex(index);
+    if (chapters.length > 0) {
+      if (chapterId) {
+        const index = chapters.findIndex((c) => c.id === chapterId);
+        if (index !== -1) {
+          setSelectedChapterIndex(index);
+        }
+      } else {
+        setSelectedChapterIndex(0);
       }
     }
   }, [chapterId, chapters]);
@@ -88,18 +92,25 @@ export const LectureView = () => {
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
+      // Don't trigger navigation if search is focused
+      if (document.activeElement === searchInputRef.current) return;
+
       if (event.key === 'ArrowRight') {
-        setSelectedChapterIndex((prev) =>
-          prev < chapters.length - 1 ? prev + 1 : prev,
-        );
+        const nextIndex = selectedChapterIndex + 1;
+        if (nextIndex < chapters.length) {
+          navigate(`/lecture/${id}/${chapters[nextIndex].id}`);
+        }
       } else if (event.key === 'ArrowLeft') {
-        setSelectedChapterIndex((prev) => (prev > 0 ? prev - 1 : prev));
+        const prevIndex = selectedChapterIndex - 1;
+        if (prevIndex >= 0) {
+          navigate(`/lecture/${id}/${chapters[prevIndex].id}`);
+        }
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [chapters.length]);
+  }, [chapters, selectedChapterIndex, id, navigate]);
 
   if (lectureQuery.isLoading || chaptersQuery.isLoading) {
     return (
@@ -224,7 +235,7 @@ export const LectureView = () => {
                             chapterButtonsRef.current.delete(originalIndex);
                           }
                         }}
-                        onClick={() => setSelectedChapterIndex(originalIndex)}
+                        onClick={() => navigate(`/lecture/${id}/${chapter.id}`)}
                         className={`w-full text-left px-3 py-2 rounded-lg transition-colors ${
                           selectedChapterIndex === originalIndex
                             ? 'bg-primary-100 text-primary-700 font-medium'
@@ -277,7 +288,7 @@ export const LectureView = () => {
                   <div className="flex justify-between mt-12 pt-6 border-t border-gray-300">
                     <button
                       onClick={() =>
-                        setSelectedChapterIndex(selectedChapterIndex - 1)
+                        navigate(`/lecture/${id}/${chapters[selectedChapterIndex - 1].id}`)
                       }
                       disabled={selectedChapterIndex === 0}
                       className="px-4 py-2 text-primary-600 hover:bg-primary-50 disabled:text-gray-400 disabled:hover:bg-transparent rounded-lg transition-colors flex items-center gap-2"
@@ -299,7 +310,7 @@ export const LectureView = () => {
                     </button>
                     <button
                       onClick={() =>
-                        setSelectedChapterIndex(selectedChapterIndex + 1)
+                        navigate(`/lecture/${id}/${chapters[selectedChapterIndex + 1].id}`)
                       }
                       disabled={selectedChapterIndex === chapters.length - 1}
                       className="px-4 py-2 text-primary-600 hover:bg-primary-50 disabled:text-gray-400 disabled:hover:bg-transparent rounded-lg transition-colors flex items-center gap-2"
