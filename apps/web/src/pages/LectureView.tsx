@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 
 import { trpc } from '../utils/trpc';
 import { AppHeader } from '../components/AppHeader';
+import { ChapterMenu } from '../components/ChapterMenu';
 
 export const LectureView = () => {
   const { id } = useParams<{ id: string }>();
@@ -143,11 +144,14 @@ export const LectureView = () => {
                     <h2 className="text-2xl font-bold text-on-background">
                       {currentChapter.title}
                     </h2>
-                    {currentChapter.association && (
-                      <span className="px-3 py-1 text-sm font-medium bg-primary-100 text-primary-700 rounded-full">
-                        {currentChapter.association}
-                      </span>
-                    )}
+                    <div className="flex items-center gap-2">
+                      {currentChapter.association && (
+                        <span className="px-3 py-1 text-sm font-medium bg-primary-100 text-primary-700 rounded-full">
+                          {currentChapter.association}
+                        </span>
+                      )}
+                      <ChapterMenu chapter={currentChapter} lectureId={id!} />
+                    </div>
                   </div>
                   {currentChapter.body ? (
                     <div className="prose prose-lg max-w-none">
