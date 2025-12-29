@@ -217,7 +217,7 @@ export const LectureTrain = () => {
         ) : (
           <div className="grid gap-8 lg:grid-cols-[280px_1fr]">
             {/* Chapter Navigation */}
-            <div className="bg-surface-container-low rounded-xl shadow-md p-4 h-fit lg:sticky lg:top-8">
+            <div className="min-w-0 overflow-hidden bg-surface-container-low rounded-xl shadow-md p-4 h-fit lg:sticky lg:top-8">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-sm font-semibold text-on-surface-variant uppercase tracking-wide">
                   Chapters
@@ -276,7 +276,7 @@ export const LectureTrain = () => {
                             : 'text-on-surface hover:bg-gray-100'
                         }`}
                       >
-                        <span className="text-sm">
+                        <span className="text-sm break-words">
                           {chapter.order + 1}.{' '}
                           {(() => {
                             const firstQ = firstQuestionMap.get(chapter.id);
@@ -294,7 +294,7 @@ export const LectureTrain = () => {
             </div>
 
             {/* Chapter Content */}
-            <div className="bg-surface-container rounded-xl shadow-md p-8">
+            <div className="min-w-0 overflow-hidden bg-surface-container rounded-xl shadow-md p-8">
               {currentChapter ? (
                 <>
                   <div className="flex justify-between items-start mb-6">
