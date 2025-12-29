@@ -426,7 +426,7 @@ export const EditLecture = () => {
 
             {/* Chapters List */}
             <div className="space-y-3">
-              {chaptersQuery.isLoading ? (
+              {chaptersQuery.isLoading || (chapters.length > 0 && firstQuestionsQueries.some(q => q.isLoading)) ? (
                 <p className="text-on-surface-variant">Loading chapters...</p>
               ) : chapters.length === 0 ? (
                 <p className="text-on-surface-variant text-center py-8">
