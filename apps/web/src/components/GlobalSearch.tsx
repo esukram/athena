@@ -8,6 +8,7 @@ export const GlobalSearch = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
+  const [selectedIndex, setSelectedIndex] = useState(-1);
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
@@ -21,11 +22,18 @@ export const GlobalSearch = () => {
     return () => clearTimeout(timer);
   }, [query]);
 
+  // Reset selected index when results change
+  useEffect(() => {
+    setSelectedIndex(-1);
+  }, [debouncedQuery]);
+
   // Fetch search results
   const searchQuery = trpc.chapters.searchChapters.useQuery(
     { query: debouncedQuery },
     { enabled: debouncedQuery.trim().length > 0 },
   );
+
+  const results = searchQuery.data || [];
 
   // Fetch all lectures for title lookup
   const lecturesQuery = trpc.lectures.getLectures.useQuery();
@@ -42,17 +50,36 @@ export const GlobalSearch = () => {
     }
   }, [isOpen]);
 
-  // Close on Escape key
+  // Keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen) {
+      if (!isOpen) return;
+
+      if (e.key === 'Escape') {
         setIsOpen(false);
         setQuery('');
+        setSelectedIndex(-1);
+      } else if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        setSelectedIndex((prev) => {
+          const maxIndex = results.length - 1;
+          return prev < maxIndex ? prev + 1 : 0;
+        });
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        setSelectedIndex((prev) => {
+          const maxIndex = results.length - 1;
+          return prev > 0 ? prev - 1 : maxIndex;
+        });
+      } else if (e.key === 'Enter' && selectedIndex >= 0 && selectedIndex < results.length) {
+        e.preventDefault();
+        const selected = results[selectedIndex];
+        handleResultClick(selected.lectureId, selected.id);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen]);
+  }, [isOpen, results, selectedIndex]);
 
   // Close on click outside
   useEffect(() => {
@@ -72,7 +99,7 @@ export const GlobalSearch = () => {
     setQuery('');
   };
 
-  const results = searchQuery.data || [];
+
 
   // Highlight matching tokens in text
   const highlightMatches = (text: string, searchQuery: string) => {
@@ -96,6 +123,22 @@ export const GlobalSearch = () => {
       return part;
     });
   };
+
+  // Scroll selected item into view
+  const itemsRef = useRef<(HTMLButtonElement | null)[]>([]);
+
+  useEffect(() => {
+    if (selectedIndex >= 0 && itemsRef.current[selectedIndex]) {
+      itemsRef.current[selectedIndex]?.scrollIntoView({
+        block: 'nearest',
+      });
+    }
+  }, [selectedIndex]);
+
+  useEffect(() => {
+    // Reset refs array when results change
+    itemsRef.current = itemsRef.current.slice(0, results.length);
+  }, [results]);
 
   return (
     <div ref={containerRef} className="relative">
@@ -140,11 +183,14 @@ export const GlobalSearch = () => {
             <div className="p-4 text-sm text-on-surface-variant">No results found</div>
           ) : (
             <ul className="divide-y divide-gray-100 max-h-80 overflow-y-auto">
-              {results.map((chapter) => (
+              {results.map((chapter, index) => (
                 <li key={chapter.id}>
                   <button
+                    ref={(el) => (itemsRef.current[index] = el)}
                     onClick={() => handleResultClick(chapter.lectureId, chapter.id)}
-                    className="w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors"
+                    className={`w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors ${
+                      index === selectedIndex ? 'bg-gray-100' : ''
+                    }`}
                   >
                     <div className="font-medium text-on-surface mb-1">
                       {highlightMatches(chapter.title, debouncedQuery)}
