@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { publicProcedure, router } from '../trpc';
+import { publicProcedure, router } from '../trpc.js';
 
 export const questionsRouter = router({
   getQuestions: publicProcedure

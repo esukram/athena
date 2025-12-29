@@ -2,7 +2,7 @@ import { ZodError } from 'zod';
 
 import { initTRPC } from '@trpc/server';
 
-import type { Chapter, Lecture, Question } from './types';
+import type { Chapter, Lecture, Question } from './types.js';
 
 export interface LectureRepository {
   getAll: () => Lecture[];

@@ -1,7 +1,7 @@
-import { chaptersRouter } from './routers/chapters';
-import { lecturesRouter } from './routers/lectures';
-import { questionsRouter } from './routers/questions';
-import { router } from './trpc';
+import { chaptersRouter } from './routers/chapters.js';
+import { lecturesRouter } from './routers/lectures.js';
+import { questionsRouter } from './routers/questions.js';
+import { router } from './trpc.js';
 
 export const appRouter = router({
   lectures: lecturesRouter,
