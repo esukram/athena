@@ -17,29 +17,31 @@ RUN pnpm build
 
 # Runner stage
 FROM base AS runner
+RUN groupadd --system --gid 1001 nodejs && \
+    useradd --system --uid 1001 --gid nodejs athena
+
 WORKDIR /app
 
-# Don't run production as root
-# RUN addgroup --system --gid 1001 nodejs
-# RUN adduser --system --uid 1001 nestjs
-# USER nestjs
+# Set ownership of the working directories and pnpm store
+RUN mkdir -p /data /pnpm && chown -R athena:nodejs /app /data /pnpm
+
+USER athena
 
 # Install production dependencies only
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
-COPY apps/server/package.json ./apps/server/package.json
-COPY apps/web/package.json ./apps/web/package.json
-COPY packages/api/package.json ./packages/api/package.json
-COPY packages/typescript-config/package.json ./packages/typescript-config/package.json
+COPY --chown=athena:nodejs package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
+COPY --chown=athena:nodejs apps/server/package.json ./apps/server/package.json
+COPY --chown=athena:nodejs apps/web/package.json ./apps/web/package.json
+COPY --chown=athena:nodejs packages/api/package.json ./packages/api/package.json
+COPY --chown=athena:nodejs packages/typescript-config/package.json ./packages/typescript-config/package.json
 
 RUN pnpm install --prod --frozen-lockfile
 
 # Copy built server artifacts
-COPY --from=builder /app/apps/server/dist ./apps/server/dist
+COPY --chown=athena:nodejs --from=builder /app/apps/server/dist ./apps/server/dist
 # Copy built web artifacts
-COPY --from=builder /app/apps/web/dist ./apps/server/public
+COPY --chown=athena:nodejs --from=builder /app/apps/web/dist ./apps/server/public
 
-# Create data directory and define volume for SQLite
-RUN mkdir -p /data
+# Define volume for SQLite
 VOLUME /data
 
 EXPOSE 4000
