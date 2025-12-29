@@ -1,4 +1,4 @@
-import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import { HashRouter, Route, Routes } from 'react-router-dom';
 
 import { useState } from 'react';
 
@@ -18,7 +18,7 @@ export default function App() {
     trpc.createClient({
       links: [
         httpLink({
-          url: '/api/trpc',
+          url: 'api/trpc',
         }),
       ],
     }),
@@ -27,7 +27,7 @@ export default function App() {
   return (
     <trpc.Provider client={trpcClient} queryClient={queryClient}>
       <QueryClientProvider client={queryClient}>
-        <BrowserRouter>
+        <HashRouter>
           <Routes>
             <Route path="/" element={<Overview />} />
             <Route path="/add-lecture" element={<AddLecture />} />
@@ -38,7 +38,7 @@ export default function App() {
             />
             <Route path="/lecture/:id/:chapterId?" element={<LectureView />} />
           </Routes>
-        </BrowserRouter>
+        </HashRouter>
       </QueryClientProvider>
     </trpc.Provider>
   );
