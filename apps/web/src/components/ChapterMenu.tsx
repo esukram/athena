@@ -165,6 +165,7 @@ export const ChapterMenu = ({ chapter, lectureId }: ChapterMenuProps) => {
                   </label>
                   <button
                     type="button"
+                    tabIndex={-1}
                     onClick={() => setShowPreview(!showPreview)}
                     className="text-sm text-primary-600 hover:text-primary-700"
                   >
