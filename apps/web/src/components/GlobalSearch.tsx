@@ -7,14 +7,24 @@ import { trpc } from '../utils/trpc';
 export const GlobalSearch = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState('');
+  const [debouncedQuery, setDebouncedQuery] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
+  // Debounce query
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedQuery(query);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [query]);
+
   // Fetch search results
   const searchQuery = trpc.chapters.searchChapters.useQuery(
-    { query },
-    { enabled: query.trim().length > 0 },
+    { query: debouncedQuery },
+    { enabled: debouncedQuery.trim().length > 0 },
   );
 
   // Fetch all lectures for title lookup
@@ -124,7 +134,7 @@ export const GlobalSearch = () => {
       {/* Search Results Overlay */}
       {isOpen && query.trim() && (
         <div className="absolute top-full left-0 mt-2 w-80 sm:w-96 max-h-96 bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden z-50">
-          {searchQuery.isLoading ? (
+          {searchQuery.isLoading || query !== debouncedQuery ? (
             <div className="p-4 text-sm text-on-surface-variant">Searching...</div>
           ) : results.length === 0 ? (
             <div className="p-4 text-sm text-on-surface-variant">No results found</div>
@@ -137,7 +147,7 @@ export const GlobalSearch = () => {
                     className="w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors"
                   >
                     <div className="font-medium text-on-surface mb-1">
-                      {highlightMatches(chapter.title, query)}
+                      {highlightMatches(chapter.title, debouncedQuery)}
                     </div>
                     <div className="flex items-center gap-2 text-xs text-on-surface-variant">
                       <span>{lectureMap.get(chapter.lectureId) || 'Unknown Lecture'}</span>
@@ -145,7 +155,7 @@ export const GlobalSearch = () => {
                         <>
                           <span>•</span>
                           <span className="px-2 py-0.5 bg-primary-50 text-primary-600 rounded-full">
-                            {highlightMatches(chapter.association, query)}
+                            {highlightMatches(chapter.association, debouncedQuery)}
                           </span>
                         </>
                       )}
