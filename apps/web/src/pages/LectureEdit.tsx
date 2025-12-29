@@ -9,6 +9,8 @@ import { trpc } from '../utils/trpc';
 import { AppHeader } from '../components/AppHeader';
 import { Card } from '../components/Card';
 
+import { Accordion } from '../components/Accordion';
+
 export const EditLecture = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -168,12 +170,7 @@ export const EditLecture = () => {
 
       <main className="container mx-auto px-4 py-8 md:py-12">
         <div className="mb-8">
-          <h2 className="text-4xl font-bold text-on-background mb-2">
-            Edit Lecture
-          </h2>
-          <p className="text-lg text-on-surface-variant">
-            Update lecture details and manage chapters
-          </p>
+          <Accordion title={title} description={description} />
         </div>
 
         <div className="grid gap-8 xl:grid-cols-3">

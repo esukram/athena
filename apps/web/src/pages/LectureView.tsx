@@ -7,6 +7,7 @@ import { Search, X } from 'lucide-react';
 import { trpc } from '../utils/trpc';
 import { AppHeader } from '../components/AppHeader';
 import { ChapterMenu } from '../components/ChapterMenu';
+import { Accordion } from '../components/Accordion';
 
 export const LectureView = () => {
   const { id } = useParams<{ id: string }>();
@@ -147,9 +148,7 @@ export const LectureView = () => {
             </svg>
             Back to Lectures
           </button>
-          <h1 className="text-4xl font-bold text-on-background mb-2">
-            {lecture.title}
-          </h1>
+          <Accordion title={lecture.title} description={lecture.description} />
         </div>
 
         {chapters.length === 0 ? (
