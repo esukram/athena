@@ -1,7 +1,7 @@
 import ReactMarkdown from 'react-markdown';
 import { useNavigate, useParams } from 'react-router-dom';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { trpc } from '../utils/trpc';
 import { AppHeader } from '../components/AppHeader';
@@ -17,6 +17,23 @@ export const LectureView = () => {
     { lectureId: id! },
     { enabled: !!id },
   );
+
+  const chapters = chaptersQuery.data || [];
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'ArrowRight') {
+        setSelectedChapterIndex((prev) =>
+          prev < chapters.length - 1 ? prev + 1 : prev,
+        );
+      } else if (event.key === 'ArrowLeft') {
+        setSelectedChapterIndex((prev) => (prev > 0 ? prev - 1 : prev));
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [chapters.length]);
 
   if (lectureQuery.isLoading || chaptersQuery.isLoading) {
     return (
@@ -47,7 +64,6 @@ export const LectureView = () => {
   }
 
   const lecture = lectureQuery.data;
-  const chapters = chaptersQuery.data || [];
   const currentChapter = chapters[selectedChapterIndex];
 
   return (
