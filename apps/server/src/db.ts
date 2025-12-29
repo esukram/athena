@@ -1,9 +1,9 @@
 import Database, { type Database as DatabaseType } from 'better-sqlite3';
 import path from 'path';
 
-const dbPath =
-  process.env.DB_PATH || path.join(process.cwd(), '../../athena.db');
-export const db: DatabaseType = new Database(dbPath);
+const dbDir =
+  process.env.DB_PATH || path.join(process.cwd(), '../../');
+export const db: DatabaseType = new Database(dbDir + '/athena.db');
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS lectures (
