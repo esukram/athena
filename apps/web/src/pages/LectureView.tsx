@@ -15,6 +15,7 @@ export const LectureView = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const chapterButtonsRef = useRef<Map<number, HTMLButtonElement>>(new Map());
 
   const lectureQuery = trpc.lectures.getLecture.useQuery({ id: id! }, { enabled: !!id });
 
@@ -65,6 +66,14 @@ export const LectureView = () => {
       searchInputRef.current.focus();
     }
   }, [isSearchOpen]);
+
+  // Scroll selected chapter into view
+  useEffect(() => {
+    const button = chapterButtonsRef.current.get(selectedChapterIndex);
+    if (button) {
+      button.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  }, [selectedChapterIndex]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -199,6 +208,13 @@ export const LectureView = () => {
                     return (
                       <button
                         key={chapter.id}
+                        ref={(el) => {
+                          if (el) {
+                            chapterButtonsRef.current.set(originalIndex, el);
+                          } else {
+                            chapterButtonsRef.current.delete(originalIndex);
+                          }
+                        }}
                         onClick={() => setSelectedChapterIndex(originalIndex)}
                         className={`w-full text-left px-3 py-2 rounded-lg transition-colors ${
                           selectedChapterIndex === originalIndex
