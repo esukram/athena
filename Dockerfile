@@ -38,16 +38,14 @@ COPY --from=builder /app/apps/server/dist ./apps/server/dist
 # Copy built web artifacts
 COPY --from=builder /app/apps/web/dist ./apps/server/public
 
-# Copy other necessary files (like the db if it was part of the image, although it should be a volume)
-# For this task, we assume the DB schema is initialized or the file is copied.
-# Since we are using sqlite, we might want to ensure the folder exists or copy a seed.
-# COPY --from=builder /app/athena.db ./athena.db 
-# Note: In a real prod env, the DB should probably be volume mounted. 
-# But for simplicity here, we can copy the existing one or let the server create it.
+# Create data directory and define volume for SQLite
+RUN mkdir -p /data
+VOLUME /data
 
 EXPOSE 4000
 
 ENV NODE_ENV=production
+ENV DB_PATH=/data/athena.db
 
 # Run the server
 CMD ["node", "apps/server/dist/index.js"]
