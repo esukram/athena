@@ -52,9 +52,15 @@ export const EditLecture = () => {
   });
 
   const createChapter = trpc.chapters.createChapter.useMutation({
-    onSuccess: () => {
+    onSuccess: (newChapter) => {
       utils.chapters.getChapters.invalidate({ lectureId: id! });
       setNewChapterTitle('');
+      // Open edit dialog for the new chapter
+      setEditingChapter(newChapter);
+      setEditingTitle(newChapter.title);
+      setEditingBody(newChapter.body);
+      setEditingAssociation(newChapter.association);
+      setShowPreview(false);
     },
   });
 
