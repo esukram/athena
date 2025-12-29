@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 
-import logo from '../../assets/logo.png';
+import appHeaderBg from '../../assets/app-header.png';
 
 export const AppHeader = () => {
   return (
@@ -8,17 +8,10 @@ export const AppHeader = () => {
       <div className="container mx-auto flex items-center justify-between px-4 py-4">
         <Link
           to="/"
-          className="flex items-center gap-3 hover:opacity-80 transition-opacity"
+          className="flex items-center gap-3 hover:opacity-80 transition-opacity px-4 py-2 rounded-lg bg-center bg-no-repeat"
+          style={{ backgroundImage: `url(${appHeaderBg})`, backgroundSize: '100%' }}
         >
-          <img
-            src={logo}
-            alt="Athena Logo"
-            className="h-12 w-12 object-contain"
-            onError={(e) => {
-              e.currentTarget.style.display = 'none';
-            }}
-          />
-          <h1 className="text-2xl font-bold tracking-tight text-on-surface">
+          <h1 className="text-2xl font-bold tracking-tight text-white ml-16">
             Athena
           </h1>
         </Link>
