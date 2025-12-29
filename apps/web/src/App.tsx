@@ -5,8 +5,8 @@ import { useState } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { httpBatchLink } from '@trpc/client';
 
-import { AddLecture } from './pages/AddLecture';
-import { EditLecture } from './pages/EditLecture';
+import { AddLecture } from './pages/LectureAdd';
+import { EditLecture } from './pages/LectureEdit';
 import { LectureView } from './pages/LectureView';
 import { Overview } from './pages/Overview';
 import { trpc } from './utils/trpc';
