@@ -57,8 +57,8 @@ function createChapterRepository(): ChapterRepository {
     create: (chapter: Omit<Chapter, 'id'>): Chapter => {
       const id = crypto.randomUUID();
       db.prepare(
-        'INSERT INTO chapters (id, lectureId, title, body, "order") VALUES (?, ?, ?, ?, ?)',
-      ).run(id, chapter.lectureId, chapter.title, chapter.body, chapter.order);
+        'INSERT INTO chapters (id, lectureId, title, body, association, "order") VALUES (?, ?, ?, ?, ?, ?)',
+      ).run(id, chapter.lectureId, chapter.title, chapter.body, chapter.association, chapter.order);
       return { id, ...chapter };
     },
     update: (
@@ -71,8 +71,8 @@ function createChapterRepository(): ChapterRepository {
       if (!existing) return undefined;
       const updated = { ...existing, ...chapter };
       db.prepare(
-        'UPDATE chapters SET title = ?, body = ?, "order" = ? WHERE id = ?',
-      ).run(updated.title, updated.body, updated.order, id);
+        'UPDATE chapters SET title = ?, body = ?, association = ?, "order" = ? WHERE id = ?',
+      ).run(updated.title, updated.body, updated.association, updated.order, id);
       return updated;
     },
     delete: (id: string): boolean => {

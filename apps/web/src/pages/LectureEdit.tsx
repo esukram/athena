@@ -22,6 +22,7 @@ export const EditLecture = () => {
   const [editingChapter, setEditingChapter] = useState<Chapter | null>(null);
   const [editingTitle, setEditingTitle] = useState('');
   const [editingBody, setEditingBody] = useState('');
+  const [editingAssociation, setEditingAssociation] = useState('');
   const [showPreview, setShowPreview] = useState(false);
 
   const lectureQuery = trpc.lectures.getLecture.useQuery(
@@ -63,6 +64,7 @@ export const EditLecture = () => {
       setEditingChapter(null);
       setEditingTitle('');
       setEditingBody('');
+      setEditingAssociation('');
       setShowPreview(false);
     },
   });
@@ -96,6 +98,7 @@ export const EditLecture = () => {
     setEditingChapter(chapter);
     setEditingTitle(chapter.title);
     setEditingBody(chapter.body);
+    setEditingAssociation(chapter.association);
     setShowPreview(false);
   };
 
@@ -105,6 +108,7 @@ export const EditLecture = () => {
       id: editingChapter.id,
       title: editingTitle.trim(),
       body: editingBody,
+      association: editingAssociation,
     });
   };
 
@@ -112,6 +116,7 @@ export const EditLecture = () => {
     setEditingChapter(null);
     setEditingTitle('');
     setEditingBody('');
+    setEditingAssociation('');
     setShowPreview(false);
   };
 
@@ -346,6 +351,19 @@ export const EditLecture = () => {
                     onChange={(e) => setEditingTitle(e.target.value)}
                     className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
                     placeholder="Chapter title"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-on-surface mb-2">
+                    Association
+                  </label>
+                  <input
+                    type="text"
+                    value={editingAssociation}
+                    onChange={(e) => setEditingAssociation(e.target.value)}
+                    className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+                    placeholder="Enter association"
                   />
                 </div>
 

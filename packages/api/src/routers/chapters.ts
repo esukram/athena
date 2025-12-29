@@ -14,6 +14,7 @@ export const chaptersRouter = router({
         lectureId: z.string(),
         title: z.string().min(1),
         body: z.string().default(''),
+        association: z.string().default(''),
         order: z.number().int().min(0),
       }),
     )
@@ -26,6 +27,7 @@ export const chaptersRouter = router({
         id: z.string(),
         title: z.string().min(1).optional(),
         body: z.string().optional(),
+        association: z.string().optional(),
         order: z.number().int().min(0).optional(),
       }),
     )

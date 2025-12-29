@@ -19,6 +19,7 @@ db.exec(`
     lectureId TEXT NOT NULL,
     title TEXT NOT NULL,
     body TEXT NOT NULL DEFAULT '',
+    association TEXT NOT NULL DEFAULT '',
     "order" INTEGER NOT NULL,
     FOREIGN KEY (lectureId) REFERENCES lectures(id) ON DELETE CASCADE
   )

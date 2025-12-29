@@ -139,9 +139,16 @@ export const LectureView = () => {
             <div className="bg-surface-container rounded-xl shadow-md p-8">
               {currentChapter ? (
                 <>
-                  <h2 className="text-2xl font-bold text-on-background mb-6">
-                    {currentChapter.title}
-                  </h2>
+                  <div className="flex justify-between items-start mb-6">
+                    <h2 className="text-2xl font-bold text-on-background">
+                      {currentChapter.title}
+                    </h2>
+                    {currentChapter.association && (
+                      <span className="px-3 py-1 text-sm font-medium bg-primary-100 text-primary-700 rounded-full">
+                        {currentChapter.association}
+                      </span>
+                    )}
+                  </div>
                   {currentChapter.body ? (
                     <div className="prose prose-lg max-w-none">
                       <ReactMarkdown>{currentChapter.body}</ReactMarkdown>
