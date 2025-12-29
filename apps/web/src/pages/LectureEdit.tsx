@@ -132,6 +132,7 @@ export const EditLecture = () => {
     onSuccess: () => {
       utils.chapters.getChapters.invalidate({ lectureId: id! });
       utils.questions.getQuestions.invalidate({ chapterId: editingChapter?.id || '' });
+      utils.questions.getFirstQuestion.invalidate({ chapterId: editingChapter?.id || '' });
     },
   });
 
@@ -139,6 +140,7 @@ export const EditLecture = () => {
     onSuccess: () => {
       utils.chapters.getChapters.invalidate({ lectureId: id! });
       utils.questions.getQuestions.invalidate({ chapterId: editingChapter?.id || '' });
+      utils.questions.getFirstQuestion.invalidate({ chapterId: editingChapter?.id || '' });
     },
   });
 
@@ -146,6 +148,7 @@ export const EditLecture = () => {
     onSuccess: () => {
       utils.chapters.getChapters.invalidate({ lectureId: id! });
       utils.questions.getQuestions.invalidate({ chapterId: editingChapter?.id || '' });
+      utils.questions.getFirstQuestion.invalidate({ chapterId: editingChapter?.id || '' });
     },
   });
 
