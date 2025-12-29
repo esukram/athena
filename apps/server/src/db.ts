@@ -17,10 +17,19 @@ db.exec(`
   CREATE TABLE IF NOT EXISTS chapters (
     id TEXT PRIMARY KEY,
     lectureId TEXT NOT NULL,
-    title TEXT NOT NULL,
-    body TEXT NOT NULL DEFAULT '',
     association TEXT NOT NULL DEFAULT '',
     "order" INTEGER NOT NULL,
     FOREIGN KEY (lectureId) REFERENCES lectures(id) ON DELETE CASCADE
+  )
+`);
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS questions (
+    id TEXT PRIMARY KEY,
+    chapterId TEXT NOT NULL,
+    question TEXT NOT NULL,
+    answer TEXT NOT NULL DEFAULT '',
+    "order" INTEGER NOT NULL,
+    FOREIGN KEY (chapterId) REFERENCES chapters(id) ON DELETE CASCADE
   )
 `);

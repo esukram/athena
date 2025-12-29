@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 
 import { useState } from 'react';
 
-import type { Chapter } from '@athena/api';
+import type { Chapter, Question } from '@athena/api';
 
 import { trpc } from '../utils/trpc';
 import { AppHeader } from '../components/AppHeader';
@@ -20,12 +20,13 @@ export const EditLecture = () => {
   const [description, setDescription] = useState('');
   const [isInitialized, setIsInitialized] = useState(false);
 
-  const [newChapterTitle, setNewChapterTitle] = useState('');
+  const [newChapterQuestion, setNewChapterQuestion] = useState('');
   const [editingChapter, setEditingChapter] = useState<Chapter | null>(null);
-  const [editingTitle, setEditingTitle] = useState('');
-  const [editingBody, setEditingBody] = useState('');
+  const [editingQuestion, setEditingQuestion] = useState('');
+  const [editingAnswer, setEditingAnswer] = useState('');
   const [editingAssociation, setEditingAssociation] = useState('');
   const [showPreview, setShowPreview] = useState(false);
+  const [editingQuestionId, setEditingQuestionId] = useState<string | null>(null);
 
   const lectureQuery = trpc.lectures.getLecture.useQuery(
     { id: id! },
@@ -56,12 +57,13 @@ export const EditLecture = () => {
   const createChapter = trpc.chapters.createChapter.useMutation({
     onSuccess: (newChapter) => {
       utils.chapters.getChapters.invalidate({ lectureId: id! });
-      setNewChapterTitle('');
+      setNewChapterQuestion('');
       // Open edit dialog for the new chapter
       setEditingChapter(newChapter);
-      setEditingTitle(newChapter.title);
-      setEditingBody(newChapter.body);
+      setEditingQuestion('');
+      setEditingAnswer('');
       setEditingAssociation(newChapter.association);
+      setEditingQuestionId(null);
       setShowPreview(false);
     },
   });
@@ -69,10 +71,29 @@ export const EditLecture = () => {
   const updateChapter = trpc.chapters.updateChapter.useMutation({
     onSuccess: () => {
       utils.chapters.getChapters.invalidate({ lectureId: id! });
+    },
+  });
+
+  const createQuestion = trpc.questions.createQuestion.useMutation({
+    onSuccess: () => {
+      utils.chapters.getChapters.invalidate({ lectureId: id! });
       setEditingChapter(null);
-      setEditingTitle('');
-      setEditingBody('');
+      setEditingQuestion('');
+      setEditingAnswer('');
       setEditingAssociation('');
+      setEditingQuestionId(null);
+      setShowPreview(false);
+    },
+  });
+
+  const updateQuestion = trpc.questions.updateQuestion.useMutation({
+    onSuccess: () => {
+      utils.chapters.getChapters.invalidate({ lectureId: id! });
+      setEditingChapter(null);
+      setEditingQuestion('');
+      setEditingAnswer('');
+      setEditingAssociation('');
+      setEditingQuestionId(null);
       setShowPreview(false);
     },
   });
@@ -91,40 +112,59 @@ export const EditLecture = () => {
 
   const handleAddChapter = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!id || !newChapterTitle.trim()) return;
+    if (!id || !newChapterQuestion.trim()) return;
     const chapters = chaptersQuery.data || [];
     const maxOrder =
       chapters.length > 0 ? Math.max(...chapters.map((c) => c.order)) : -1;
     createChapter.mutate({
       lectureId: id,
-      title: newChapterTitle.trim(),
       order: maxOrder + 1,
     });
   };
 
-  const handleStartEdit = (chapter: Chapter) => {
+  const handleStartEdit = async (chapter: Chapter, firstQuestion?: Question) => {
     setEditingChapter(chapter);
-    setEditingTitle(chapter.title);
-    setEditingBody(chapter.body);
+    setEditingQuestion(firstQuestion?.question || '');
+    setEditingAnswer(firstQuestion?.answer || '');
     setEditingAssociation(chapter.association);
+    setEditingQuestionId(firstQuestion?.id || null);
     setShowPreview(false);
   };
 
   const handleSaveEdit = () => {
-    if (!editingChapter || !editingTitle.trim()) return;
-    updateChapter.mutate({
-      id: editingChapter.id,
-      title: editingTitle.trim(),
-      body: editingBody,
-      association: editingAssociation,
-    });
+    if (!editingChapter || !editingQuestion.trim()) return;
+    
+    // Update chapter association if changed
+    if (editingAssociation !== editingChapter.association) {
+      updateChapter.mutate({
+        id: editingChapter.id,
+        association: editingAssociation,
+      });
+    }
+    
+    // Update or create the first question
+    if (editingQuestionId) {
+      updateQuestion.mutate({
+        id: editingQuestionId,
+        question: editingQuestion.trim(),
+        answer: editingAnswer,
+      });
+    } else {
+      createQuestion.mutate({
+        chapterId: editingChapter.id,
+        question: editingQuestion.trim(),
+        answer: editingAnswer,
+        order: 0,
+      });
+    }
   };
 
   const handleCancelEdit = () => {
     setEditingChapter(null);
-    setEditingTitle('');
-    setEditingBody('');
+    setEditingQuestion('');
+    setEditingAnswer('');
     setEditingAssociation('');
+    setEditingQuestionId(null);
     setShowPreview(false);
   };
 
@@ -163,6 +203,19 @@ export const EditLecture = () => {
   }
 
   const chapters = chaptersQuery.data || [];
+
+  // Fetch first question for each chapter
+  const firstQuestionsQueries = trpc.useQueries((t) =>
+    chapters.map((chapter) =>
+      t.questions.getFirstQuestion({ chapterId: chapter.id })
+    )
+  );
+
+  // Build a map of chapterId -> firstQuestion
+  const firstQuestionMap = new Map<string, Question | undefined>();
+  chapters.forEach((chapter, index) => {
+    firstQuestionMap.set(chapter.id, firstQuestionsQueries[index]?.data);
+  });
 
   return (
     <div className="min-h-screen bg-background">
@@ -253,14 +306,14 @@ export const EditLecture = () => {
             <form onSubmit={handleAddChapter} className="flex gap-3">
               <input
                 type="text"
-                value={newChapterTitle}
-                onChange={(e) => setNewChapterTitle(e.target.value)}
-                placeholder="New chapter title"
+                value={newChapterQuestion}
+                onChange={(e) => setNewChapterQuestion(e.target.value)}
+                placeholder="New chapter question"
                 className="flex-1 px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-colors"
               />
               <button
                 type="submit"
-                disabled={createChapter.isLoading || !newChapterTitle.trim()}
+                disabled={createChapter.isLoading || !newChapterQuestion.trim()}
                 className="px-4 py-2 bg-primary-600 hover:bg-primary-700 disabled:bg-primary-400 text-white font-medium rounded-lg transition-colors"
               >
                 {createChapter.isLoading ? 'Adding...' : 'Add'}
@@ -284,40 +337,43 @@ export const EditLecture = () => {
                   No chapters yet. Add your first chapter above.
                 </p>
               ) : (
-                chapters.map((chapter) => (
-                  <div
-                    key={chapter.id}
-                    className="p-4 bg-gray-50 rounded-lg border border-gray-200"
-                  >
-                    <div className="flex items-center gap-3">
-                      <span className="shrink-0 w-8 h-8 flex items-center justify-center bg-primary-100 text-primary-700 font-semibold rounded-full text-sm">
-                        {chapter.order + 1}
-                      </span>
-                      <span className="flex-1 text-on-surface font-medium">
-                        {chapter.title}
-                      </span>
-                      <button
-                        onClick={() => handleStartEdit(chapter)}
-                        className="px-3 py-1.5 text-sm text-primary-600 hover:bg-primary-50 rounded transition-colors"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => handleDeleteChapter(chapter.id)}
-                        disabled={deleteChapter.isLoading}
-                        className="px-3 py-1.5 text-sm text-red-600 hover:bg-red-50 rounded transition-colors"
-                      >
-                        Delete
-                      </button>
-                    </div>
-                    {chapter.body && (
-                      <div className="mt-3 pl-11 text-sm text-gray-500 truncate">
-                        {chapter.body.substring(0, 100)}
-                        {chapter.body.length > 100 && '...'}
+                chapters.map((chapter) => {
+                  const firstQuestion = firstQuestionMap.get(chapter.id);
+                  return (
+                    <div
+                      key={chapter.id}
+                      className="p-4 bg-gray-50 rounded-lg border border-gray-200"
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="shrink-0 w-8 h-8 flex items-center justify-center bg-primary-100 text-primary-700 font-semibold rounded-full text-sm">
+                          {chapter.order + 1}
+                        </span>
+                        <span className="flex-1 text-on-surface font-medium">
+                          {firstQuestion?.question || 'Untitled'}
+                        </span>
+                        <button
+                          onClick={() => handleStartEdit(chapter, firstQuestion)}
+                          className="px-3 py-1.5 text-sm text-primary-600 hover:bg-primary-50 rounded transition-colors"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => handleDeleteChapter(chapter.id)}
+                          disabled={deleteChapter.isLoading}
+                          className="px-3 py-1.5 text-sm text-red-600 hover:bg-red-50 rounded transition-colors"
+                        >
+                          Delete
+                        </button>
                       </div>
-                    )}
-                  </div>
-                ))
+                      {firstQuestion?.answer && (
+                        <div className="mt-3 pl-11 text-sm text-gray-500 truncate">
+                          {firstQuestion.answer.substring(0, 100)}
+                          {firstQuestion.answer.length > 100 && '...'}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })
               )}
             </div>
           </Card>
@@ -336,19 +392,6 @@ export const EditLecture = () => {
               <div className="p-6 space-y-4 overflow-y-auto flex-1">
                 <div>
                   <label className="block text-sm font-medium text-on-surface mb-2">
-                    Chapter Title
-                  </label>
-                  <input
-                    type="text"
-                    value={editingTitle}
-                    onChange={(e) => setEditingTitle(e.target.value)}
-                    className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
-                    placeholder="Chapter title"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-on-surface mb-2">
                     Association
                   </label>
                   <input
@@ -361,9 +404,22 @@ export const EditLecture = () => {
                 </div>
 
                 <div>
+                  <label className="block text-sm font-medium text-on-surface mb-2">
+                    Question
+                  </label>
+                  <input
+                    type="text"
+                    value={editingQuestion}
+                    onChange={(e) => setEditingQuestion(e.target.value)}
+                    className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+                    placeholder="Enter question"
+                  />
+                </div>
+
+                <div>
                   <div className="flex items-center justify-between mb-2">
                     <label className="block text-sm font-medium text-on-surface">
-                      Content (Markdown)
+                      Answer (Markdown)
                     </label>
                     <button
                       type="button"
@@ -377,19 +433,19 @@ export const EditLecture = () => {
 
                   {showPreview ? (
                     <div className="w-full min-h-[300px] px-4 py-3 rounded-lg border border-gray-300 bg-white prose prose-sm max-w-none overflow-y-auto">
-                      {editingBody ? (
-                        <ReactMarkdown>{editingBody}</ReactMarkdown>
+                      {editingAnswer ? (
+                        <ReactMarkdown>{editingAnswer}</ReactMarkdown>
                       ) : (
                         <p className="text-gray-400 italic">No content yet</p>
                       )}
                     </div>
                   ) : (
                     <textarea
-                      value={editingBody}
-                      onChange={(e) => setEditingBody(e.target.value)}
+                      value={editingAnswer}
+                      onChange={(e) => setEditingAnswer(e.target.value)}
                       rows={12}
                       className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none font-mono text-sm resize-none"
-                      placeholder="Write your chapter content in Markdown..."
+                      placeholder="Write your answer in Markdown..."
                     />
                   )}
                 </div>
@@ -404,10 +460,10 @@ export const EditLecture = () => {
                 </button>
                 <button
                   onClick={handleSaveEdit}
-                  disabled={updateChapter.isLoading || !editingTitle.trim()}
+                  disabled={updateQuestion.isLoading || createQuestion.isLoading || !editingQuestion.trim()}
                   className="px-4 py-2 bg-primary-600 hover:bg-primary-700 disabled:bg-primary-400 text-white font-medium rounded-lg transition-colors"
                 >
-                  {updateChapter.isLoading ? 'Saving...' : 'Save Chapter'}
+                  {(updateQuestion.isLoading || createQuestion.isLoading) ? 'Saving...' : 'Save Chapter'}
                 </button>
               </div>
             </div>

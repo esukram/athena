@@ -193,7 +193,7 @@ export const GlobalSearch = () => {
                     }`}
                   >
                     <div className="font-medium text-on-surface mb-1">
-                      {highlightMatches(chapter.title, debouncedQuery)}
+                      {highlightMatches(chapter.firstQuestion?.question || 'Untitled', debouncedQuery)}
                     </div>
                     <div className="flex items-center gap-2 text-xs text-on-surface-variant">
                       <span>{lectureMap.get(chapter.lectureId) || 'Unknown Lecture'}</span>

@@ -12,6 +12,8 @@ import {
   type ChapterRepository,
   type Lecture,
   type LectureRepository,
+  type Question,
+  type QuestionRepository,
   appRouter,
   createContext,
 } from '@athena/api';
@@ -58,28 +60,47 @@ function createChapterRepository(): ChapterRepository {
         .prepare('SELECT * FROM chapters WHERE lectureId = ? ORDER BY "order"')
         .all(lectureId) as Chapter[];
     },
-    search: (query: string): Chapter[] => {
+    search: (query: string): (Chapter & { firstQuestion?: Question })[] => {
       if (!query.trim()) return [];
       
       const tokens = query.toLowerCase().split(/\s+/).filter(Boolean);
       if (tokens.length === 0) return [];
       
-      // Build WHERE clause for each token matching title OR association
-      const conditions = tokens.map(() => 
-        '(LOWER(title) LIKE ? OR LOWER(association) LIKE ?)'
+      // Search in questions (question text) and chapters (association)
+      const questionConditions = tokens.map(() => 
+        'LOWER(q.question) LIKE ?'
       ).join(' AND ');
       
-      const params = tokens.flatMap(token => [`%${token}%`, `%${token}%`]);
+      const associationConditions = tokens.map(() => 
+        'LOWER(c.association) LIKE ?'
+      ).join(' AND ');
       
-      return db
-        .prepare(`SELECT * FROM chapters WHERE ${conditions} ORDER BY "order"`)
-        .all(...params) as Chapter[];
+      const questionParams = tokens.map(token => `%${token}%`);
+      const associationParams = tokens.map(token => `%${token}%`);
+      
+      // Get chapters that match via their first question or association
+      const chapters = db
+        .prepare(`
+          SELECT DISTINCT c.* FROM chapters c
+          LEFT JOIN questions q ON q.chapterId = c.id AND q."order" = 0
+          WHERE (${questionConditions}) OR (${associationConditions})
+          ORDER BY c."order"
+        `)
+        .all(...questionParams, ...associationParams) as Chapter[];
+      
+      // Attach first question to each chapter
+      return chapters.map(chapter => {
+        const firstQuestion = db
+          .prepare('SELECT * FROM questions WHERE chapterId = ? ORDER BY "order" LIMIT 1')
+          .get(chapter.id) as Question | undefined;
+        return { ...chapter, firstQuestion };
+      });
     },
     create: (chapter: Omit<Chapter, 'id'>): Chapter => {
       const id = crypto.randomUUID();
       db.prepare(
-        'INSERT INTO chapters (id, lectureId, title, body, association, "order") VALUES (?, ?, ?, ?, ?, ?)',
-      ).run(id, chapter.lectureId, chapter.title, chapter.body, chapter.association, chapter.order);
+        'INSERT INTO chapters (id, lectureId, association, "order") VALUES (?, ?, ?, ?)',
+      ).run(id, chapter.lectureId, chapter.association, chapter.order);
       return { id, ...chapter };
     },
     update: (
@@ -92,12 +113,52 @@ function createChapterRepository(): ChapterRepository {
       if (!existing) return undefined;
       const updated = { ...existing, ...chapter };
       db.prepare(
-        'UPDATE chapters SET title = ?, body = ?, association = ?, "order" = ? WHERE id = ?',
-      ).run(updated.title, updated.body, updated.association, updated.order, id);
+        'UPDATE chapters SET association = ?, "order" = ? WHERE id = ?',
+      ).run(updated.association, updated.order, id);
       return updated;
     },
     delete: (id: string): boolean => {
       const result = db.prepare('DELETE FROM chapters WHERE id = ?').run(id);
+      return result.changes > 0;
+    },
+  };
+}
+
+function createQuestionRepository(): QuestionRepository {
+  return {
+    getByChapterId: (chapterId: string): Question[] => {
+      return db
+        .prepare('SELECT * FROM questions WHERE chapterId = ? ORDER BY "order"')
+        .all(chapterId) as Question[];
+    },
+    getFirstByChapterId: (chapterId: string): Question | undefined => {
+      return db
+        .prepare('SELECT * FROM questions WHERE chapterId = ? ORDER BY "order" LIMIT 1')
+        .get(chapterId) as Question | undefined;
+    },
+    create: (question: Omit<Question, 'id'>): Question => {
+      const id = crypto.randomUUID();
+      db.prepare(
+        'INSERT INTO questions (id, chapterId, question, answer, "order") VALUES (?, ?, ?, ?, ?)',
+      ).run(id, question.chapterId, question.question, question.answer, question.order);
+      return { id, ...question };
+    },
+    update: (
+      id: string,
+      question: Partial<Omit<Question, 'id'>>,
+    ): Question | undefined => {
+      const existing = db
+        .prepare('SELECT * FROM questions WHERE id = ?')
+        .get(id) as Question | undefined;
+      if (!existing) return undefined;
+      const updated = { ...existing, ...question };
+      db.prepare(
+        'UPDATE questions SET question = ?, answer = ?, "order" = ? WHERE id = ?',
+      ).run(updated.question, updated.answer, updated.order, id);
+      return updated;
+    },
+    delete: (id: string): boolean => {
+      const result = db.prepare('DELETE FROM questions WHERE id = ?').run(id);
       return result.changes > 0;
     },
   };
@@ -114,12 +175,13 @@ async function main() {
 
   const lectureRepository = createLectureRepository();
   const chapterRepository = createChapterRepository();
+  const questionRepository = createQuestionRepository();
 
   await server.register(fastifyTRPCPlugin, {
     prefix: '/trpc',
     trpcOptions: {
       router: appRouter,
-      createContext: createContext({ lectureRepository, chapterRepository }),
+      createContext: createContext({ lectureRepository, chapterRepository, questionRepository }),
     },
   });
 

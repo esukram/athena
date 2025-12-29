@@ -14,33 +14,72 @@ export const ChapterMenu = ({ chapter, lectureId }: ChapterMenuProps) => {
   const [editModalOpen, setEditModalOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
+  // Fetch first question for this chapter
+  const firstQuestionQuery = trpc.questions.getFirstQuestion.useQuery(
+    { chapterId: chapter.id },
+    { enabled: !!chapter.id }
+  );
+  const firstQuestion = firstQuestionQuery.data;
+
   // Edit form state
-  const [editingTitle, setEditingTitle] = useState(chapter.title);
-  const [editingBody, setEditingBody] = useState(chapter.body);
+  const [editingQuestion, setEditingQuestion] = useState('');
+  const [editingAnswer, setEditingAnswer] = useState('');
   const [editingAssociation, setEditingAssociation] = useState(chapter.association);
   const [showPreview, setShowPreview] = useState(false);
 
   const updateChapter = trpc.chapters.updateChapter.useMutation({
     onSuccess: () => {
       utils.chapters.getChapters.invalidate({ lectureId });
+    },
+  });
+
+  const updateQuestion = trpc.questions.updateQuestion.useMutation({
+    onSuccess: () => {
+      utils.questions.getFirstQuestion.invalidate({ chapterId: chapter.id });
+      setEditModalOpen(false);
+      setShowPreview(false);
+    },
+  });
+
+  const createQuestion = trpc.questions.createQuestion.useMutation({
+    onSuccess: () => {
+      utils.questions.getFirstQuestion.invalidate({ chapterId: chapter.id });
       setEditModalOpen(false);
       setShowPreview(false);
     },
   });
 
   const handleSaveEdit = () => {
-    if (!editingTitle.trim()) return;
-    updateChapter.mutate({
-      id: chapter.id,
-      title: editingTitle.trim(),
-      body: editingBody,
-      association: editingAssociation,
-    });
+    if (!editingQuestion.trim()) return;
+    
+    // Update chapter association if changed
+    if (editingAssociation !== chapter.association) {
+      updateChapter.mutate({
+        id: chapter.id,
+        association: editingAssociation,
+      });
+    }
+    
+    // Update or create the first question
+    if (firstQuestion) {
+      updateQuestion.mutate({
+        id: firstQuestion.id,
+        question: editingQuestion.trim(),
+        answer: editingAnswer,
+      });
+    } else {
+      createQuestion.mutate({
+        chapterId: chapter.id,
+        question: editingQuestion.trim(),
+        answer: editingAnswer,
+        order: 0,
+      });
+    }
   };
 
   const handleOpenEdit = () => {
-    setEditingTitle(chapter.title);
-    setEditingBody(chapter.body);
+    setEditingQuestion(firstQuestion?.question || '');
+    setEditingAnswer(firstQuestion?.answer || '');
     setEditingAssociation(chapter.association);
     setShowPreview(false);
     setMenuOpen(false);
@@ -49,8 +88,8 @@ export const ChapterMenu = ({ chapter, lectureId }: ChapterMenuProps) => {
 
   const handleCancelEdit = () => {
     setEditModalOpen(false);
-    setEditingTitle(chapter.title);
-    setEditingBody(chapter.body);
+    setEditingQuestion(firstQuestion?.question || '');
+    setEditingAnswer(firstQuestion?.answer || '');
     setEditingAssociation(chapter.association);
     setShowPreview(false);
   };
@@ -134,14 +173,14 @@ export const ChapterMenu = ({ chapter, lectureId }: ChapterMenuProps) => {
             <div className="p-6 space-y-4 overflow-y-auto flex-1">
               <div>
                 <label className="block text-sm font-medium text-on-surface mb-2">
-                  Chapter Title
+                  Question
                 </label>
                 <input
                   type="text"
-                  value={editingTitle}
-                  onChange={(e) => setEditingTitle(e.target.value)}
+                  value={editingQuestion}
+                  onChange={(e) => setEditingQuestion(e.target.value)}
                   className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
-                  placeholder="Chapter title"
+                  placeholder="Enter question"
                 />
               </div>
 
@@ -161,7 +200,7 @@ export const ChapterMenu = ({ chapter, lectureId }: ChapterMenuProps) => {
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <label className="block text-sm font-medium text-on-surface">
-                    Content (Markdown)
+                    Answer (Markdown)
                   </label>
                   <button
                     type="button"
@@ -175,27 +214,27 @@ export const ChapterMenu = ({ chapter, lectureId }: ChapterMenuProps) => {
 
                 {showPreview ? (
                   <div className="w-full min-h-[300px] px-4 py-3 rounded-lg border border-gray-300 bg-white prose prose-sm max-w-none overflow-y-auto">
-                    {editingBody ? (
-                      <ReactMarkdown>{editingBody}</ReactMarkdown>
+                    {editingAnswer ? (
+                      <ReactMarkdown>{editingAnswer}</ReactMarkdown>
                     ) : (
                       <p className="text-gray-400 italic">No content yet</p>
                     )}
                   </div>
                 ) : (
                   <textarea
-                    value={editingBody}
-                    onChange={(e) => setEditingBody(e.target.value)}
+                    value={editingAnswer}
+                    onChange={(e) => setEditingAnswer(e.target.value)}
                     rows={12}
                     className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none font-mono text-sm resize-none"
-                    placeholder="Write your chapter content in Markdown..."
+                    placeholder="Write your answer in Markdown..."
                   />
                 )}
               </div>
 
-              {updateChapter.error && (
+              {(updateQuestion.error || createQuestion.error) && (
                 <div className="rounded-lg bg-red-50 px-4 py-3 border border-red-200">
                   <p className="text-sm text-error">
-                    Error: {updateChapter.error.message}
+                    Error: {updateQuestion.error?.message || createQuestion.error?.message}
                   </p>
                 </div>
               )}
@@ -210,10 +249,10 @@ export const ChapterMenu = ({ chapter, lectureId }: ChapterMenuProps) => {
               </button>
               <button
                 onClick={handleSaveEdit}
-                disabled={updateChapter.isLoading || !editingTitle.trim()}
+                disabled={updateQuestion.isLoading || createQuestion.isLoading || !editingQuestion.trim()}
                 className="px-4 py-2 bg-primary-600 hover:bg-primary-700 disabled:bg-primary-400 text-white font-medium rounded-lg transition-colors"
               >
-                {updateChapter.isLoading ? 'Saving...' : 'Save Chapter'}
+                {(updateQuestion.isLoading || createQuestion.isLoading) ? 'Saving...' : 'Save Chapter'}
               </button>
             </div>
           </div>

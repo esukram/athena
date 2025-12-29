@@ -3,6 +3,7 @@ export {
   createContext,
   type LectureRepository,
   type ChapterRepository,
+  type QuestionRepository,
   type AppContext,
 } from './trpc';
-export type { Lecture, Chapter } from './types';
+export type { Lecture, Chapter, Question } from './types';

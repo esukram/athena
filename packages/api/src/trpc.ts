@@ -2,7 +2,7 @@ import { ZodError } from 'zod';
 
 import { initTRPC } from '@trpc/server';
 
-import type { Chapter, Lecture } from './types';
+import type { Chapter, Lecture, Question } from './types';
 
 export interface LectureRepository {
   getAll: () => Lecture[];
@@ -14,7 +14,7 @@ export interface LectureRepository {
 
 export interface ChapterRepository {
   getByLectureId: (lectureId: string) => Chapter[];
-  search: (query: string) => Chapter[];
+  search: (query: string) => (Chapter & { firstQuestion?: Question })[];
   create: (chapter: Omit<Chapter, 'id'>) => Chapter;
   update: (
     id: string,
@@ -23,9 +23,21 @@ export interface ChapterRepository {
   delete: (id: string) => boolean;
 }
 
+export interface QuestionRepository {
+  getByChapterId: (chapterId: string) => Question[];
+  getFirstByChapterId: (chapterId: string) => Question | undefined;
+  create: (question: Omit<Question, 'id'>) => Question;
+  update: (
+    id: string,
+    question: Partial<Omit<Question, 'id'>>,
+  ) => Question | undefined;
+  delete: (id: string) => boolean;
+}
+
 export interface AppContext {
   lectureRepository: LectureRepository;
   chapterRepository: ChapterRepository;
+  questionRepository: QuestionRepository;
 }
 
 export const createContext = (deps: AppContext) => async () => {

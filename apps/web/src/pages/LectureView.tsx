@@ -6,6 +6,7 @@ import { Search, X } from 'lucide-react';
 
 import { trpc } from '../utils/trpc';
 import { AppHeader } from '../components/AppHeader';
+import type { Question } from '@athena/api';
 import { ChapterMenu } from '../components/ChapterMenu';
 import { Accordion } from '../components/Accordion';
 
@@ -27,6 +28,19 @@ export const LectureView = () => {
 
   const chapters = chaptersQuery.data || [];
 
+  // Fetch first question for each chapter
+  const firstQuestionsQueries = trpc.useQueries((t) =>
+    chapters.map((chapter) =>
+      t.questions.getFirstQuestion({ chapterId: chapter.id })
+    )
+  );
+
+  // Build a map of chapterId -> firstQuestion
+  const firstQuestionMap = new Map<string, Question | undefined>();
+  chapters.forEach((chapter, index) => {
+    firstQuestionMap.set(chapter.id, firstQuestionsQueries[index]?.data);
+  });
+
   // Set selected chapter based on URL chapterId parameter
   useEffect(() => {
     if (chapters.length > 0) {
@@ -46,10 +60,11 @@ export const LectureView = () => {
     if (!searchQuery.trim()) return chapters;
     const tokens = searchQuery.toLowerCase().split(/\s+/).filter(Boolean);
     return chapters.filter((chapter) => {
-      const title = chapter.title.toLowerCase();
-      return tokens.every((token) => title.includes(token));
+      const firstQuestion = firstQuestionMap.get(chapter.id);
+      const questionText = (firstQuestion?.question || '').toLowerCase();
+      return tokens.every((token) => questionText.includes(token));
     });
-  }, [chapters, searchQuery]);
+  }, [chapters, searchQuery, firstQuestionMap]);
 
   // Highlight matching tokens in text
   const highlightMatches = (text: string, query: string) => {
@@ -142,6 +157,7 @@ export const LectureView = () => {
 
   const lecture = lectureQuery.data;
   const currentChapter = chapters[selectedChapterIndex];
+  const currentFirstQuestion = currentChapter ? firstQuestionMap.get(currentChapter.id) : undefined;
 
   return (
     <div className="min-h-screen bg-background">
@@ -244,11 +260,13 @@ export const LectureView = () => {
                       >
                         <span className="text-sm">
                           {chapter.order + 1}.{' '}
-                          {searchQuery.trim() ? (
-                            highlightMatches(chapter.title, searchQuery)
-                          ) : (
-                            chapter.title
-                          )}
+                          {(() => {
+                            const firstQ = firstQuestionMap.get(chapter.id);
+                            const displayText = firstQ?.question || 'Untitled';
+                            return searchQuery.trim()
+                              ? highlightMatches(displayText, searchQuery)
+                              : displayText;
+                          })()}
                         </span>
                       </button>
                     );
@@ -263,7 +281,7 @@ export const LectureView = () => {
                 <>
                   <div className="flex justify-between items-start mb-6">
                     <h2 className="text-2xl font-bold text-on-background">
-                      {currentChapter.title}
+                      {currentFirstQuestion?.question || 'Untitled'}
                     </h2>
                     <div className="flex items-center gap-2">
                       {currentChapter.association && (
@@ -274,9 +292,9 @@ export const LectureView = () => {
                       <ChapterMenu chapter={currentChapter} lectureId={id!} />
                     </div>
                   </div>
-                  {currentChapter.body ? (
+                  {currentFirstQuestion?.answer ? (
                     <div className="prose prose-lg max-w-none">
-                      <ReactMarkdown>{currentChapter.body}</ReactMarkdown>
+                      <ReactMarkdown>{currentFirstQuestion.answer}</ReactMarkdown>
                     </div>
                   ) : (
                     <p className="text-on-surface-variant italic">

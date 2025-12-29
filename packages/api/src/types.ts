@@ -7,8 +7,14 @@ export interface Lecture {
 export interface Chapter {
   id: string;
   lectureId: string;
-  title: string;
-  body: string;
   association: string;
+  order: number;
+}
+
+export interface Question {
+  id: string;
+  chapterId: string;
+  question: string;
+  answer: string;
   order: number;
 }
