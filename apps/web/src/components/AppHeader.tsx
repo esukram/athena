@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 
+import { GlobalSearch } from './GlobalSearch';
 import appHeaderBg from '../../assets/app-header.png';
 
 export const AppHeader = () => {
@@ -17,6 +18,7 @@ export const AppHeader = () => {
         </Link>
 
         <nav className="flex items-center gap-6">
+          <GlobalSearch />
           <Link
             to="/"
             className="hidden sm:block text-base font-medium text-on-surface hover:text-primary-600 transition-colors"

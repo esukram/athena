@@ -8,6 +8,11 @@ export const chaptersRouter = router({
     .query(({ ctx, input }) => {
       return ctx.chapterRepository.getByLectureId(input.lectureId);
     }),
+  searchChapters: publicProcedure
+    .input(z.object({ query: z.string() }))
+    .query(({ ctx, input }) => {
+      return ctx.chapterRepository.search(input.query);
+    }),
   createChapter: publicProcedure
     .input(
       z.object({

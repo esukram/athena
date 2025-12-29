@@ -58,6 +58,23 @@ function createChapterRepository(): ChapterRepository {
         .prepare('SELECT * FROM chapters WHERE lectureId = ? ORDER BY "order"')
         .all(lectureId) as Chapter[];
     },
+    search: (query: string): Chapter[] => {
+      if (!query.trim()) return [];
+      
+      const tokens = query.toLowerCase().split(/\s+/).filter(Boolean);
+      if (tokens.length === 0) return [];
+      
+      // Build WHERE clause for each token matching title OR association
+      const conditions = tokens.map(() => 
+        '(LOWER(title) LIKE ? OR LOWER(association) LIKE ?)'
+      ).join(' AND ');
+      
+      const params = tokens.flatMap(token => [`%${token}%`, `%${token}%`]);
+      
+      return db
+        .prepare(`SELECT * FROM chapters WHERE ${conditions} ORDER BY "order"`)
+        .all(...params) as Chapter[];
+    },
     create: (chapter: Omit<Chapter, 'id'>): Chapter => {
       const id = crypto.randomUUID();
       db.prepare(
