@@ -1,7 +1,7 @@
-import ReactMarkdown from 'react-markdown';
 import { useEffect, useRef, useState } from 'react';
 import type { Chapter } from '@athena/api';
 import { trpc } from '../utils/trpc';
+import { EditChapterModal, type EditingQuestion } from './EditChapterModal';
 
 interface ChapterMenuProps {
   chapter: Chapter;
@@ -14,18 +14,43 @@ export const ChapterMenu = ({ chapter, lectureId }: ChapterMenuProps) => {
   const [editModalOpen, setEditModalOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  // Fetch first question for this chapter
-  const firstQuestionQuery = trpc.questions.getFirstQuestion.useQuery(
-    { chapterId: chapter.id },
-    { enabled: !!chapter.id }
-  );
-  const firstQuestion = firstQuestionQuery.data;
-
   // Edit form state
-  const [editingQuestion, setEditingQuestion] = useState('');
-  const [editingAnswer, setEditingAnswer] = useState('');
   const [editingAssociation, setEditingAssociation] = useState(chapter.association);
-  const [showPreview, setShowPreview] = useState(false);
+  const [editingQuestions, setEditingQuestions] = useState<EditingQuestion[]>([]);
+
+  // Fetch all questions for this chapter
+  const chapterQuestionsQuery = trpc.questions.getQuestions.useQuery(
+    { chapterId: chapter.id },
+    { enabled: editModalOpen }
+  );
+
+  // Sync fetched questions to editing state when modal opens
+  useEffect(() => {
+    if (editModalOpen && chapterQuestionsQuery.data !== undefined) {
+      const questions = chapterQuestionsQuery.data;
+      if (questions.length > 0) {
+        setEditingQuestions(
+          questions.map((q, index) => ({
+            id: q.id,
+            question: q.question,
+            answer: q.answer,
+            order: q.order,
+            isExpanded: index === 0,
+            showPreview: false,
+          }))
+        );
+      } else {
+        setEditingQuestions([{
+          id: null,
+          question: '',
+          answer: '',
+          order: 0,
+          isExpanded: true,
+          showPreview: false,
+        }]);
+      }
+    }
+  }, [editModalOpen, chapterQuestionsQuery.data]);
 
   const updateChapter = trpc.chapters.updateChapter.useMutation({
     onSuccess: () => {
@@ -36,22 +61,28 @@ export const ChapterMenu = ({ chapter, lectureId }: ChapterMenuProps) => {
   const updateQuestion = trpc.questions.updateQuestion.useMutation({
     onSuccess: () => {
       utils.questions.getFirstQuestion.invalidate({ chapterId: chapter.id });
-      setEditModalOpen(false);
-      setShowPreview(false);
+      utils.questions.getQuestions.invalidate({ chapterId: chapter.id });
     },
   });
 
   const createQuestion = trpc.questions.createQuestion.useMutation({
     onSuccess: () => {
       utils.questions.getFirstQuestion.invalidate({ chapterId: chapter.id });
-      setEditModalOpen(false);
-      setShowPreview(false);
+      utils.questions.getQuestions.invalidate({ chapterId: chapter.id });
     },
   });
 
-  const handleSaveEdit = () => {
-    if (!editingQuestion.trim()) return;
-    
+  const deleteQuestion = trpc.questions.deleteQuestion.useMutation({
+    onSuccess: () => {
+      utils.questions.getFirstQuestion.invalidate({ chapterId: chapter.id });
+      utils.questions.getQuestions.invalidate({ chapterId: chapter.id });
+    },
+  });
+
+  const handleSaveEdit = async () => {
+    const hasValidQuestion = editingQuestions.some(q => q.question.trim());
+    if (!hasValidQuestion) return;
+
     // Update chapter association if changed
     if (editingAssociation !== chapter.association) {
       updateChapter.mutate({
@@ -59,39 +90,79 @@ export const ChapterMenu = ({ chapter, lectureId }: ChapterMenuProps) => {
         association: editingAssociation,
       });
     }
-    
-    // Update or create the first question
-    if (firstQuestion) {
-      updateQuestion.mutate({
-        id: firstQuestion.id,
-        question: editingQuestion.trim(),
-        answer: editingAnswer,
-      });
-    } else {
-      createQuestion.mutate({
-        chapterId: chapter.id,
-        question: editingQuestion.trim(),
-        answer: editingAnswer,
-        order: 0,
-      });
+
+    // Save all questions
+    for (const eq of editingQuestions) {
+      if (!eq.question.trim()) continue;
+
+      if (eq.id) {
+        updateQuestion.mutate({
+          id: eq.id,
+          question: eq.question.trim(),
+          answer: eq.answer,
+          order: eq.order,
+        });
+      } else {
+        createQuestion.mutate({
+          chapterId: chapter.id,
+          question: eq.question.trim(),
+          answer: eq.answer,
+          order: eq.order,
+        });
+      }
     }
+
+    handleCancelEdit();
   };
 
   const handleOpenEdit = () => {
-    setEditingQuestion(firstQuestion?.question || '');
-    setEditingAnswer(firstQuestion?.answer || '');
     setEditingAssociation(chapter.association);
-    setShowPreview(false);
+    setEditingQuestions([]);
     setMenuOpen(false);
     setEditModalOpen(true);
   };
 
   const handleCancelEdit = () => {
     setEditModalOpen(false);
-    setEditingQuestion(firstQuestion?.question || '');
-    setEditingAnswer(firstQuestion?.answer || '');
     setEditingAssociation(chapter.association);
-    setShowPreview(false);
+    setEditingQuestions([]);
+  };
+
+  const handleAddQuestion = () => {
+    const maxOrder = editingQuestions.length > 0
+      ? Math.max(...editingQuestions.map(q => q.order))
+      : -1;
+    setEditingQuestions([
+      ...editingQuestions.map(q => ({ ...q, isExpanded: false })),
+      {
+        id: null,
+        question: '',
+        answer: '',
+        order: maxOrder + 1,
+        isExpanded: true,
+        showPreview: false,
+      },
+    ]);
+  };
+
+  const handleUpdateEditingQuestion = (index: number, updates: Partial<EditingQuestion>) => {
+    setEditingQuestions(prev =>
+      prev.map((q, i) => (i === index ? { ...q, ...updates } : q))
+    );
+  };
+
+  const handleToggleQuestionExpanded = (index: number) => {
+    setEditingQuestions(prev =>
+      prev.map((q, i) => ({ ...q, isExpanded: i === index ? !q.isExpanded : false }))
+    );
+  };
+
+  const handleDeleteEditingQuestion = (index: number) => {
+    const question = editingQuestions[index];
+    if (question.id) {
+      deleteQuestion.mutate({ id: question.id });
+    }
+    setEditingQuestions(prev => prev.filter((_, i) => i !== index));
   };
 
   useEffect(() => {
@@ -162,101 +233,18 @@ export const ChapterMenu = ({ chapter, lectureId }: ChapterMenuProps) => {
 
       {/* Chapter Edit Modal */}
       {editModalOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col">
-            <div className="p-6 border-b border-gray-200">
-              <h3 className="text-xl font-semibold text-on-surface">
-                Edit Chapter
-              </h3>
-            </div>
-
-            <div className="p-6 space-y-4 overflow-y-auto flex-1">
-              <div>
-                <label className="block text-sm font-medium text-on-surface mb-2">
-                  Question
-                </label>
-                <input
-                  type="text"
-                  value={editingQuestion}
-                  onChange={(e) => setEditingQuestion(e.target.value)}
-                  className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
-                  placeholder="Enter question"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-on-surface mb-2">
-                  Association
-                </label>
-                <input
-                  type="text"
-                  value={editingAssociation}
-                  onChange={(e) => setEditingAssociation(e.target.value)}
-                  className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
-                  placeholder="Enter association"
-                />
-              </div>
-
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <label className="block text-sm font-medium text-on-surface">
-                    Answer (Markdown)
-                  </label>
-                  <button
-                    type="button"
-                    tabIndex={-1}
-                    onClick={() => setShowPreview(!showPreview)}
-                    className="text-sm text-primary-600 hover:text-primary-700"
-                  >
-                    {showPreview ? 'Edit' : 'Preview'}
-                  </button>
-                </div>
-
-                {showPreview ? (
-                  <div className="w-full min-h-[300px] px-4 py-3 rounded-lg border border-gray-300 bg-white prose prose-sm max-w-none overflow-y-auto">
-                    {editingAnswer ? (
-                      <ReactMarkdown>{editingAnswer}</ReactMarkdown>
-                    ) : (
-                      <p className="text-gray-400 italic">No content yet</p>
-                    )}
-                  </div>
-                ) : (
-                  <textarea
-                    value={editingAnswer}
-                    onChange={(e) => setEditingAnswer(e.target.value)}
-                    rows={12}
-                    className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none font-mono text-sm resize-none"
-                    placeholder="Write your answer in Markdown..."
-                  />
-                )}
-              </div>
-
-              {(updateQuestion.error || createQuestion.error) && (
-                <div className="rounded-lg bg-red-50 px-4 py-3 border border-red-200">
-                  <p className="text-sm text-error">
-                    Error: {updateQuestion.error?.message || createQuestion.error?.message}
-                  </p>
-                </div>
-              )}
-            </div>
-
-            <div className="p-6 border-t border-gray-200 flex gap-3 justify-end">
-              <button
-                onClick={handleCancelEdit}
-                className="px-4 py-2 rounded-lg border border-gray-300 text-on-surface hover:bg-gray-50 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSaveEdit}
-                disabled={updateQuestion.isLoading || createQuestion.isLoading || !editingQuestion.trim()}
-                className="px-4 py-2 bg-primary-600 hover:bg-primary-700 disabled:bg-primary-400 text-white font-medium rounded-lg transition-colors"
-              >
-                {(updateQuestion.isLoading || createQuestion.isLoading) ? 'Saving...' : 'Save Chapter'}
-              </button>
-            </div>
-          </div>
-        </div>
+        <EditChapterModal
+          association={editingAssociation}
+          questions={editingQuestions}
+          isSaving={updateQuestion.isLoading || createQuestion.isLoading}
+          onAssociationChange={setEditingAssociation}
+          onAddQuestion={handleAddQuestion}
+          onUpdateQuestion={handleUpdateEditingQuestion}
+          onToggleQuestionExpanded={handleToggleQuestionExpanded}
+          onDeleteQuestion={handleDeleteEditingQuestion}
+          onSave={handleSaveEdit}
+          onCancel={handleCancelEdit}
+        />
       )}
     </>
   );
