@@ -58,7 +58,7 @@
     "confirmDeleteChapter": "Möchten Sie dieses Kapitel wirklich löschen?"
   },
   "lectureTrain": {
-    "backToLectures": "Zurück zu den Fachen",
+    "backToLectures": "Zurück zu den Fächern",
     "noChaptersYet": "Dieses Fach hat noch keine Kapitel.",
     "addChapters": "Kapitel hinzufügen",
     "searchChapters": "Kapitel suchen...",
@@ -77,6 +77,10 @@
   },
   "chapterMenu": {
     "editChapter": "Kapitel bearbeiten" 
+  },
+  "accordion": {
+    "readMore": "Mehr lesen",
+    "showLess": "Weniger anzeigen"
   },
   "editChapterModal": {
     "editChapter": "Kapitel bearbeiten",

@@ -78,6 +78,10 @@
   "chapterMenu": {
     "editChapter": "Edit Chapter"
   },
+  "accordion": {
+    "readMore": "Read More",
+    "showLess": "Show Less"
+  },
   "editChapterModal": {
     "editChapter": "Edit Chapter",
     "association": "Association",

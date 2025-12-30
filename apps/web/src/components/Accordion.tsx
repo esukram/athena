@@ -1,4 +1,5 @@
 import { ChevronDown, ChevronUp } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 import React, { ReactNode, useState } from 'react';
 
@@ -13,6 +14,7 @@ export const Accordion: React.FC<AccordionProps> = ({
   description = '',
   children,
 }) => {
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
 
   const shortDescription =
@@ -36,10 +38,10 @@ export const Accordion: React.FC<AccordionProps> = ({
             </p>
           )}
           {isOpen && (
-            <p className="text-primary font-medium text-sm mt-1">Show Less</p>
+            <p className="text-primary font-medium text-sm mt-1">{t('accordion.showLess')}</p>
           )}
           {!isOpen && (
-            <p className="text-primary font-medium text-sm mt-1">Read More</p>
+            <p className="text-primary font-medium text-sm mt-1">{t('accordion.readMore')}</p>
           )}
         </div>
         <div className="ml-4 mt-2 text-on-surface-variant">
