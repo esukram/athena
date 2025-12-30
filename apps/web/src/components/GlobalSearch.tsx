@@ -104,7 +104,7 @@ export const GlobalSearch = () => {
   }, []);
 
   const handleResultClick = (lectureId: string, chapterId: string) => {
-    navigate(`/lecture/${lectureId}/${chapterId}`);
+    navigate(`/learn/${lectureId}/${chapterId}`);
     setIsOpen(false);
     setQuery('');
   };
