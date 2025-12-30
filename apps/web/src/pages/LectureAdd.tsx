@@ -31,7 +31,7 @@ export const AddLecture = () => {
 
       <main className="container mx-auto px-4 py-8 md:py-12">
         <div className="mb-8">
-          <h2 className="text-4xl font-bold text-on-background mb-2">
+          <h2 className="text-2xl font-bold text-on-background mb-2">
             Add New Lecture
           </h2>
           <p className="text-lg text-on-surface-variant">
