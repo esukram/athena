@@ -28,6 +28,9 @@ COPY --from=builder --chown=athena:nodejs /app/apps/web/dist ./public
 # Setup directories
 RUN mkdir -p /data && chown -R athena:nodejs /data
 
+# Cleanup build artifacts
+RUN find /app -name ".turbo" -type d -exec rm -rf {} +
+
 USER athena
 VOLUME /data
 EXPOSE 4000
