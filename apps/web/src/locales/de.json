@@ -1,0 +1,101 @@
+{
+  "common": {
+    "loading": "Lädt...",
+    "error": "Fehler",
+    "cancel": "Abbrechen",
+    "save": "Speichern",
+    "delete": "Löschen",
+    "edit": "Bearbeiten",
+    "add": "Hinzufügen",
+    "back": "Zurück",
+    "previous": "Zurück",
+    "next": "Weiter",
+    "search": "Suchen",
+    "untitled": "Ohne Titel"
+  },
+  "header": {
+    "addLecture": "Fach hinzufügen"
+  },
+  "language": {
+    "german": "Deutsch",
+    "english": "English"
+  },
+  "overview": {
+    "availableLectures": "Verfügbare Fächer",
+    "exploreCollection": "Entdecken Sie unsere Sammlung an Lerninhalten",
+    "errorLoading": "Fehler beim Laden der Fächer"
+  },
+  "lectureCard": {
+    "learn": "Lernen",
+    "train": "Trainieren"
+  },
+  "lectureMenu": {
+    "editLecture": "Fach bearbeiten",
+    "deleteLecture": "Fach löschen",
+    "confirmDelete": "Möchten Sie \"{{title}}\" wirklich löschen?"
+  },
+  "lectureAdd": {
+    "title": "Neues Fach hinzufügen",
+    "subtitle": "Erstellen Sie ein neues Fach",
+    "titleLabel": "Titel",
+    "titlePlaceholder": "Titel des Faches eingeben",
+    "descriptionLabel": "Beschreibung",
+    "descriptionPlaceholder": "Beschreibung des Faches eingeben",
+    "createLecture": "Fach erstellen",
+    "creating": "Wird erstellt..."
+  },
+  "lectureEdit": {
+    "lectureNotFound": "Fach nicht gefunden",
+    "backToOverview": "Zurück zur Übersicht",
+    "saveChanges": "Änderungen speichern",
+    "saving": "Wird gespeichert...",
+    "savedSuccessfully": "Fach erfolgreich aktualisiert!",
+    "chapters": "Kapitel",
+    "newChapterQuestion": "Neue Kapitelfrage",
+    "adding": "Wird hinzugefügt...",
+    "loadingChapters": "Kapitel werden geladen...",
+    "noChaptersYet": "Noch keine Kapitel. Fügen Sie oben Ihr erstes Kapitel hinzu.",
+    "confirmDeleteChapter": "Möchten Sie dieses Kapitel wirklich löschen?"
+  },
+  "lectureTrain": {
+    "backToLectures": "Zurück zu den Fächern",
+    "noChaptersYet": "Dieses Fach hat noch keine Kapitel.",
+    "addChapters": "Kapitel hinzufügen",
+    "searchChapters": "Kapitel suchen...",
+    "noChaptersFound": "Keine Kapitel gefunden",
+    "noAnswerYet": "Noch keine Antwort.",
+    "noContentYet": "Dieses Kapitel hat noch keinen Inhalt.",
+    "selectAChapter": "Wählen Sie ein Kapitel"
+  },
+  "globalSearch": {
+    "searchChapters": "Kapitel suchen...",
+    "searching": "Suche...",
+    "noResults": "Keine Ergebnisse gefunden",
+    "unknownLecture": "Unbekanntes Fach",
+    "closeSearch": "Suche schließen",
+    "openSearch": "Suche öffnen"
+  },
+  "chapterMenu": {
+    "editChapter": "Kapitel bearbeiten" 
+  },
+  "accordion": {
+    "readMore": "Mehr lesen",
+    "showLess": "Weniger anzeigen"
+  },
+  "editChapterModal": {
+    "editChapter": "Kapitel bearbeiten",
+    "association": "Zuordnung",
+    "associationPlaceholder": "Zuordnung eingeben",
+    "questions": "Fragen",
+    "addQuestion": "Frage hinzufügen",
+    "question": "Frage",
+    "questionPlaceholder": "Frage eingeben",
+    "answerMarkdown": "Antwort (Markdown)",
+    "preview": "Vorschau",
+    "noContentYet": "Noch kein Inhalt",
+    "newQuestion": "Neue Frage",
+    "saveChapter": "Kapitel speichern",
+    "deleteQuestion": "Frage löschen",
+    "answerPlaceholder": "Schreiben Sie Ihre Antwort in Markdown..."
+  }
+}

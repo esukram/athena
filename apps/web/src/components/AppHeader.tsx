@@ -1,9 +1,13 @@
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 
 import appHeaderBg from '../../assets/app-header.png';
 import { GlobalSearch } from './GlobalSearch';
+import { LanguageSelector } from './LanguageSelector';
 
 export const AppHeader = () => {
+  const { t } = useTranslation();
+
   return (
     <header className="sticky top-0 z-50 w-full border-b border-gray-200 bg-surface shadow-sm">
       <div className="container mx-auto flex items-center justify-between px-4 py-4">
@@ -20,24 +24,18 @@ export const AppHeader = () => {
           </h1>
         </Link>
 
-        <nav className="flex items-center gap-6">
+        <nav className="flex items-center gap-4">
           <GlobalSearch />
-          {/*
-          <Link
-            to="/"
-            className="hidden sm:block text-base font-medium text-on-surface hover:text-primary-600 transition-colors"
-          >
-            Overview
-          </Link>
-          */}
           <Link
             to="/add-lecture"
             className="text-base font-medium text-white bg-primary-600 hover:bg-primary-700 px-4 py-2 rounded-lg transition-colors"
           >
-            Add Lecture
+            {t('header.addLecture')}
           </Link>
+          <LanguageSelector />
         </nav>
       </div>
     </header>
   );
 };
+

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { useEffect, useState } from 'react';
@@ -14,6 +15,7 @@ import {
 import { trpc } from '../utils/trpc';
 
 export const EditLecture = () => {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const utils = trpc.useUtils();
@@ -301,7 +303,7 @@ export const EditLecture = () => {
   };
 
   const handleDeleteChapter = (chapterId: string) => {
-    if (confirm('Are you sure you want to delete this chapter?')) {
+    if (confirm(t('lectureEdit.confirmDeleteChapter'))) {
       deleteChapter.mutate({ id: chapterId });
     }
   };
@@ -311,7 +313,7 @@ export const EditLecture = () => {
       <div className="min-h-screen bg-background">
         <AppHeader />
         <main className="container mx-auto px-4 py-8">
-          <p className="text-on-surface-variant">Loading...</p>
+          <p className="text-on-surface-variant">{t('common.loading')}</p>
         </main>
       </div>
     );
@@ -322,12 +324,12 @@ export const EditLecture = () => {
       <div className="min-h-screen bg-background">
         <AppHeader />
         <main className="container mx-auto px-4 py-8">
-          <p className="text-error">Lecture not found</p>
+          <p className="text-error">{t('lectureEdit.lectureNotFound')}</p>
           <button
             onClick={() => navigate('/')}
             className="mt-4 px-4 py-2 rounded-lg bg-primary-600 text-white hover:bg-primary-700"
           >
-            Back to Overview
+            {t('lectureEdit.backToOverview')}
           </button>
         </main>
       </div>
@@ -347,7 +349,7 @@ export const EditLecture = () => {
                   htmlFor="title"
                   className="block text-sm font-medium text-on-surface mb-2"
                 >
-                  Title
+                  {t('lectureAdd.titleLabel')}
                 </label>
                 <input
                   type="text"
@@ -356,7 +358,7 @@ export const EditLecture = () => {
                   onChange={(e) => setTitle(e.target.value)}
                   required
                   className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-colors"
-                  placeholder="Enter lecture title"
+                  placeholder={t('lectureAdd.titlePlaceholder')}
                 />
               </div>
 
@@ -365,7 +367,7 @@ export const EditLecture = () => {
                   htmlFor="description"
                   className="block text-sm font-medium text-on-surface mb-2"
                 >
-                  Description
+                  {t('lectureAdd.descriptionLabel')}
                 </label>
                 <textarea
                   id="description"
@@ -374,7 +376,7 @@ export const EditLecture = () => {
                   required
                   rows={4}
                   className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-colors resize-none"
-                  placeholder="Enter lecture description"
+                  placeholder={t('lectureAdd.descriptionPlaceholder')}
                 />
               </div>
 
@@ -389,7 +391,7 @@ export const EditLecture = () => {
               {updateLecture.isSuccess && (
                 <div className="rounded-lg bg-green-50 px-4 py-3 border border-green-200">
                   <p className="text-sm text-green-700">
-                    Lecture updated successfully!
+                    {t('lectureEdit.savedSuccessfully')}
                   </p>
                 </div>
               )}
@@ -400,14 +402,14 @@ export const EditLecture = () => {
                   disabled={updateLecture.isLoading}
                   className="flex-1 bg-primary-600 hover:bg-primary-700 disabled:bg-primary-400 text-white font-medium py-3 px-6 rounded-lg transition-colors"
                 >
-                  {updateLecture.isLoading ? 'Saving...' : 'Save Changes'}
+                  {updateLecture.isLoading ? t('lectureEdit.saving') : t('lectureEdit.saveChanges')}
                 </button>
                 <button
                   type="button"
                   onClick={() => navigate('/')}
                   className="px-6 py-3 rounded-lg border border-gray-300 text-on-surface hover:bg-gray-50 transition-colors"
                 >
-                  Back
+                  {t('common.back')}
                 </button>
               </div>
             </form>
@@ -417,7 +419,7 @@ export const EditLecture = () => {
         <div className="grid gap-8">
           {/* Chapters Section */}
           <Card className="space-y-6">
-            <h3 className="text-xl font-semibold text-on-surface">Chapters</h3>
+            <h3 className="text-xl font-semibold text-on-surface">{t('lectureEdit.chapters')}</h3>
 
             {/* Add Chapter Form */}
             <form onSubmit={handleAddChapter} className="flex gap-3">
@@ -425,7 +427,7 @@ export const EditLecture = () => {
                 type="text"
                 value={newChapterQuestion}
                 onChange={(e) => setNewChapterQuestion(e.target.value)}
-                placeholder="New chapter question"
+                placeholder={t('lectureEdit.newChapterQuestion')}
                 className="flex-1 px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-colors"
               />
               <button
@@ -433,7 +435,7 @@ export const EditLecture = () => {
                 disabled={createChapter.isLoading || !newChapterQuestion.trim()}
                 className="px-4 py-2 bg-primary-600 hover:bg-primary-700 disabled:bg-primary-400 text-white font-medium rounded-lg transition-colors"
               >
-                {createChapter.isLoading ? 'Adding...' : 'Add'}
+                {createChapter.isLoading ? t('lectureEdit.adding') : t('common.add')}
               </button>
             </form>
 
@@ -450,10 +452,10 @@ export const EditLecture = () => {
               {chaptersQuery.isLoading ||
               (chapters.length > 0 &&
                 firstQuestionsQueries.some((q) => q.isLoading)) ? (
-                <p className="text-on-surface-variant">Loading chapters...</p>
+                <p className="text-on-surface-variant">{t('lectureEdit.loadingChapters')}</p>
               ) : chapters.length === 0 ? (
                 <p className="text-on-surface-variant text-center py-8">
-                  No chapters yet. Add your first chapter above.
+                  {t('lectureEdit.noChaptersYet')}
                 </p>
               ) : (
                 chapters.map((chapter) => {
@@ -468,20 +470,20 @@ export const EditLecture = () => {
                           {chapter.order + 1}
                         </span>
                         <span className="flex-1 text-on-surface font-medium">
-                          {firstQuestion?.question || 'Untitled'}
+                          {firstQuestion?.question || t('common.untitled')}
                         </span>
                         <button
                           onClick={() => handleStartEdit(chapter)}
                           className="px-3 py-1.5 text-sm text-primary-600 hover:bg-primary-50 rounded transition-colors"
                         >
-                          Edit
+                          {t('common.edit')}
                         </button>
                         <button
                           onClick={() => handleDeleteChapter(chapter.id)}
                           disabled={deleteChapter.isLoading}
                           className="px-3 py-1.5 text-sm text-red-600 hover:bg-red-50 rounded transition-colors"
                         >
-                          Delete
+                          {t('common.delete')}
                         </button>
                       </div>
                       {firstQuestion?.answer && (

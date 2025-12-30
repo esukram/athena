@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next';
+
 import { useEffect, useRef, useState } from 'react';
 
 import type { Chapter } from '@athena/api';
@@ -11,6 +13,7 @@ interface ChapterMenuProps {
 }
 
 export const ChapterMenu = ({ chapter, lectureId }: ChapterMenuProps) => {
+  const { t } = useTranslation();
   const utils = trpc.useUtils();
   const [menuOpen, setMenuOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
@@ -244,7 +247,7 @@ export const ChapterMenu = ({ chapter, lectureId }: ChapterMenuProps) => {
               }}
               className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 transition-colors"
             >
-              Edit Chapter
+              {t('chapterMenu.editChapter')}
             </button>
           </div>
         )}
@@ -269,3 +272,4 @@ export const ChapterMenu = ({ chapter, lectureId }: ChapterMenuProps) => {
     </>
   );
 };
+

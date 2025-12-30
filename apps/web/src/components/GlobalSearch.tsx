@@ -1,4 +1,5 @@
 import { Search, X } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
 import { useEffect, useRef, useState } from 'react';
@@ -6,6 +7,7 @@ import { useEffect, useRef, useState } from 'react';
 import { trpc } from '../utils/trpc';
 
 export const GlobalSearch = () => {
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
@@ -160,7 +162,7 @@ export const GlobalSearch = () => {
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search chapters..."
+            placeholder={t('globalSearch.searchChapters')}
             className="w-48 sm:w-64 px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white text-on-surface"
           />
           <button
@@ -169,7 +171,7 @@ export const GlobalSearch = () => {
               setQuery('');
             }}
             className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors text-on-surface-variant hover:text-on-surface"
-            aria-label="Close search"
+            aria-label={t('globalSearch.closeSearch')}
           >
             <X size={18} />
           </button>
@@ -178,10 +180,10 @@ export const GlobalSearch = () => {
         <button
           onClick={() => setIsOpen(true)}
           className="flex items-center gap-2 text-base font-medium text-on-surface hover:text-primary-600 transition-colors"
-          aria-label="Open search"
+          aria-label={t('globalSearch.openSearch')}
         >
           <Search size={18} />
-          <span className="hidden sm:inline">Search</span>
+          <span className="hidden sm:inline">{t('common.search')}</span>
         </button>
       )}
 
@@ -190,11 +192,11 @@ export const GlobalSearch = () => {
         <div className="absolute top-full left-0 mt-2 w-80 sm:w-96 max-h-96 bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden z-50">
           {searchQuery.isLoading || query !== debouncedQuery ? (
             <div className="p-4 text-sm text-on-surface-variant">
-              Searching...
+              {t('globalSearch.searching')}
             </div>
           ) : results.length === 0 ? (
             <div className="p-4 text-sm text-on-surface-variant">
-              No results found
+              {t('globalSearch.noResults')}
             </div>
           ) : (
             <ul className="divide-y divide-gray-100 max-h-80 overflow-y-auto">
@@ -211,13 +213,15 @@ export const GlobalSearch = () => {
                   >
                     <div className="font-medium text-on-surface mb-1">
                       {highlightMatches(
-                        chapter.firstQuestion?.question || 'Untitled',
+                        chapter.firstQuestion?.question ||
+                          t('common.untitled'),
                         debouncedQuery,
                       )}
                     </div>
                     <div className="flex items-center gap-2 text-xs text-on-surface-variant">
                       <span>
-                        {lectureMap.get(chapter.lectureId) || 'Unknown Lecture'}
+                        {lectureMap.get(chapter.lectureId) ||
+                          t('globalSearch.unknownLecture')}
                       </span>
                       {chapter.association && (
                         <>
@@ -241,3 +245,4 @@ export const GlobalSearch = () => {
     </div>
   );
 };
+
