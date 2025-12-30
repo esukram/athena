@@ -181,12 +181,12 @@ export const EditLecture = () => {
   const handleAddChapter = (e: React.FormEvent) => {
     e.preventDefault();
     if (!id || !newChapterQuestion.trim()) return;
-    
+
     // Calculate the next order number for the new chapter
     const chapters = chaptersQuery.data || [];
     const maxOrder =
       chapters.length > 0 ? Math.max(...chapters.map((c) => c.order)) : -1;
-    
+
     // Create a temporary chapter object (not saved to DB yet)
     const tempChapter: Chapter = {
       id: '', // Empty ID indicates a new chapter
@@ -194,7 +194,7 @@ export const EditLecture = () => {
       order: maxOrder + 1,
       association: '',
     };
-    
+
     // Open the modal for the new chapter
     setEditingChapter(tempChapter);
     setIsCreatingNewChapter(true);
@@ -440,7 +440,9 @@ export const EditLecture = () => {
                   disabled={updateLecture.isLoading}
                   className="flex-1 bg-primary-600 hover:bg-primary-700 disabled:bg-primary-400 text-white font-medium py-3 px-6 rounded-lg transition-colors"
                 >
-                  {updateLecture.isLoading ? t('lectureEdit.saving') : t('lectureEdit.saveChanges')}
+                  {updateLecture.isLoading
+                    ? t('lectureEdit.saving')
+                    : t('lectureEdit.saveChanges')}
                 </button>
                 <button
                   type="button"
@@ -457,7 +459,9 @@ export const EditLecture = () => {
         <div className="grid gap-8">
           {/* Chapters Section */}
           <Card className="space-y-6">
-            <h3 className="text-xl font-semibold text-on-surface">{t('lectureEdit.chapters')}</h3>
+            <h3 className="text-xl font-semibold text-on-surface">
+              {t('lectureEdit.chapters')}
+            </h3>
 
             {/* Add Chapter Form */}
             <form onSubmit={handleAddChapter} className="flex gap-3">
@@ -473,7 +477,9 @@ export const EditLecture = () => {
                 disabled={createChapter.isLoading || !newChapterQuestion.trim()}
                 className="px-4 py-2 bg-primary-600 hover:bg-primary-700 disabled:bg-primary-400 text-white font-medium rounded-lg transition-colors"
               >
-                {createChapter.isLoading ? t('lectureEdit.adding') : t('common.add')}
+                {createChapter.isLoading
+                  ? t('lectureEdit.adding')
+                  : t('common.add')}
               </button>
             </form>
 
@@ -490,7 +496,9 @@ export const EditLecture = () => {
               {chaptersQuery.isLoading ||
               (chapters.length > 0 &&
                 firstQuestionsQueries.some((q) => q.isLoading)) ? (
-                <p className="text-on-surface-variant">{t('lectureEdit.loadingChapters')}</p>
+                <p className="text-on-surface-variant">
+                  {t('lectureEdit.loadingChapters')}
+                </p>
               ) : chapters.length === 0 ? (
                 <p className="text-on-surface-variant text-center py-8">
                   {t('lectureEdit.noChaptersYet')}

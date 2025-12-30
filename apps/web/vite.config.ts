@@ -5,7 +5,14 @@ import react from '@vitejs/plugin-react';
 
 export default defineConfig(({ command }) => ({
   base: command === 'build' ? './' : '/',
-  assetsInclude: ['**/*.png', '**/*.jpg', '**/*.jpeg', '**/*.gif', '**/*.webp', '**/*.svg'],
+  assetsInclude: [
+    '**/*.png',
+    '**/*.jpg',
+    '**/*.jpeg',
+    '**/*.gif',
+    '**/*.webp',
+    '**/*.svg',
+  ],
   plugins: [react(), tailwindcss()],
   server: {
     hmr: {

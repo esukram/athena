@@ -1,6 +1,6 @@
 import { Search, X } from 'lucide-react';
-import ReactMarkdown from 'react-markdown';
 import { useTranslation } from 'react-i18next';
+import ReactMarkdown from 'react-markdown';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -232,7 +232,11 @@ export const LectureTrain = () => {
                     }
                   }}
                   className="p-1 rounded-lg hover:bg-gray-100 transition-colors text-on-surface-variant hover:text-on-surface"
-                  aria-label={isSearchOpen ? t('globalSearch.closeSearch') : t('globalSearch.openSearch')}
+                  aria-label={
+                    isSearchOpen
+                      ? t('globalSearch.closeSearch')
+                      : t('globalSearch.openSearch')
+                  }
                 >
                   {isSearchOpen ? <X size={18} /> : <Search size={18} />}
                 </button>
@@ -282,7 +286,8 @@ export const LectureTrain = () => {
                           {chapter.order + 1}.{' '}
                           {(() => {
                             const firstQ = firstQuestionMap.get(chapter.id);
-                            const displayText = firstQ?.question || t('common.untitled');
+                            const displayText =
+                              firstQ?.question || t('common.untitled');
                             return searchQuery.trim()
                               ? highlightMatches(displayText, searchQuery)
                               : displayText;
@@ -383,7 +388,9 @@ export const LectureTrain = () => {
                   </div>
                 </>
               ) : (
-                <p className="text-on-surface-variant">{t('lectureTrain.selectAChapter')}</p>
+                <p className="text-on-surface-variant">
+                  {t('lectureTrain.selectAChapter')}
+                </p>
               )}
             </div>
           </div>

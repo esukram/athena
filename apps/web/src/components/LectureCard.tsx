@@ -50,4 +50,3 @@ export const LectureCard = ({ lecture }: { lecture: Lecture }) => {
     </div>
   );
 };
-

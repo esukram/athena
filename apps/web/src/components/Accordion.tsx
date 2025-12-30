@@ -38,10 +38,14 @@ export const Accordion: React.FC<AccordionProps> = ({
             </p>
           )}
           {isOpen && (
-            <p className="text-primary font-medium text-sm mt-1">{t('accordion.showLess')}</p>
+            <p className="text-primary font-medium text-sm mt-1">
+              {t('accordion.showLess')}
+            </p>
           )}
           {!isOpen && (
-            <p className="text-primary font-medium text-sm mt-1">{t('accordion.readMore')}</p>
+            <p className="text-primary font-medium text-sm mt-1">
+              {t('accordion.readMore')}
+            </p>
           )}
         </div>
         <div className="ml-4 mt-2 text-on-surface-variant">

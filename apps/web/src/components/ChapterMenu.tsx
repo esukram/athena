@@ -272,4 +272,3 @@ export const ChapterMenu = ({ chapter, lectureId }: ChapterMenuProps) => {
     </>
   );
 };
-

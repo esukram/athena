@@ -1,6 +1,6 @@
 import { ChevronDown, ChevronUp, Plus, Trash2 } from 'lucide-react';
-import ReactMarkdown from 'react-markdown';
 import { useTranslation } from 'react-i18next';
+import ReactMarkdown from 'react-markdown';
 
 import { useEffect, useRef, useState } from 'react';
 
@@ -44,7 +44,9 @@ export const EditChapterModal = ({
   const canSave = questions.some((q) => q.question.trim());
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
-  const [lastUsedAssociation, setLastUsedAssociation] = useState<string | null>(null);
+  const [lastUsedAssociation, setLastUsedAssociation] = useState<string | null>(
+    null,
+  );
   const inputRef = useRef<HTMLInputElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
 
@@ -60,7 +62,8 @@ export const EditChapterModal = ({
   const filteredSuggestions = existingAssociations
     .filter(
       (a) =>
-        a.toLowerCase().includes(association.toLowerCase()) && a !== association,
+        a.toLowerCase().includes(association.toLowerCase()) &&
+        a !== association,
     )
     .sort((a, b) => {
       // Place last used association at the top
@@ -250,7 +253,9 @@ export const EditChapterModal = ({
                             })
                           }
                           className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
-                          placeholder={t('editChapterModal.questionPlaceholder')}
+                          placeholder={t(
+                            'editChapterModal.questionPlaceholder',
+                          )}
                         />
                       </div>
 
@@ -295,7 +300,9 @@ export const EditChapterModal = ({
                             }
                             rows={8}
                             className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none font-mono text-sm resize-none"
-                            placeholder={t('editChapterModal.answerPlaceholder')}
+                            placeholder={t(
+                              'editChapterModal.answerPlaceholder',
+                            )}
                           />
                         )}
                       </div>
@@ -326,4 +333,3 @@ export const EditChapterModal = ({
     </div>
   );
 };
-

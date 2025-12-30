@@ -213,8 +213,7 @@ export const GlobalSearch = () => {
                   >
                     <div className="font-medium text-on-surface mb-1">
                       {highlightMatches(
-                        chapter.firstQuestion?.question ||
-                          t('common.untitled'),
+                        chapter.firstQuestion?.question || t('common.untitled'),
                         debouncedQuery,
                       )}
                     </div>
@@ -245,4 +244,3 @@ export const GlobalSearch = () => {
     </div>
   );
 };
-

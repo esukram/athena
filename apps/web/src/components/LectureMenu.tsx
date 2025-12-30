@@ -94,4 +94,3 @@ export const LectureMenu = ({ lecture }: LectureMenuProps) => {
     </div>
   );
 };
-
