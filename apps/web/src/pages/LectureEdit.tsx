@@ -215,13 +215,19 @@ export const EditLecture = () => {
     const hasValidQuestion = editingQuestions.some((q) => q.question.trim());
     if (!hasValidQuestion) return;
 
+    // Capture chapter ID before closing modal
+    const chapterId = editingChapter.id;
+
     // Update chapter association if changed
     if (editingAssociation !== editingChapter.association) {
       updateChapter.mutate({
-        id: editingChapter.id,
+        id: chapterId,
         association: editingAssociation,
       });
     }
+
+    // Collect all mutation promises
+    const mutationPromises: Promise<unknown>[] = [];
 
     // Save all questions
     for (const eq of editingQuestions) {
@@ -229,22 +235,32 @@ export const EditLecture = () => {
 
       if (eq.id) {
         // Update existing question
-        updateQuestion.mutate({
-          id: eq.id,
-          question: eq.question.trim(),
-          answer: eq.answer,
-          order: eq.order,
-        });
+        mutationPromises.push(
+          updateQuestion.mutateAsync({
+            id: eq.id,
+            question: eq.question.trim(),
+            answer: eq.answer,
+            order: eq.order,
+          }),
+        );
       } else {
         // Create new question
-        createQuestion.mutate({
-          chapterId: editingChapter.id,
-          question: eq.question.trim(),
-          answer: eq.answer,
-          order: eq.order,
-        });
+        mutationPromises.push(
+          createQuestion.mutateAsync({
+            chapterId: chapterId,
+            question: eq.question.trim(),
+            answer: eq.answer,
+            order: eq.order,
+          }),
+        );
       }
     }
+
+    // Wait for all mutations to complete
+    await Promise.all(mutationPromises);
+
+    // Invalidate first question query for this chapter to update the list
+    await utils.questions.getFirstQuestion.invalidate({ chapterId });
 
     // Close modal after saving
     handleCancelEdit();
