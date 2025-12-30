@@ -1,17 +1,19 @@
-import { useEffect, useRef, useState } from 'react';
+import ReactCountryFlag from 'react-country-flag';
 import { useTranslation } from 'react-i18next';
+
+import { useEffect, useRef, useState } from 'react';
 
 type Language = 'de' | 'en';
 
 interface LanguageOption {
   code: Language;
-  flag: string;
+  countryCode: string;
   label: string;
 }
 
 const languages: LanguageOption[] = [
-  { code: 'de', flag: '🇩🇪', label: 'language.german' },
-  { code: 'en', flag: '🇬🇧', label: 'language.english' },
+  { code: 'de', countryCode: 'DE', label: 'language.german' },
+  { code: 'en', countryCode: 'GB', label: 'language.english' },
 ];
 
 export const LanguageSelector = () => {
@@ -41,17 +43,21 @@ export const LanguageSelector = () => {
     <div className="relative" ref={menuRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-primary-50 transition-colors text-lg"
+        className="flex items-center justify-center w-10 h-10 rounded-lg hover:bg-primary-50 transition-colors"
         aria-label="Select language"
         aria-expanded={isOpen}
         aria-haspopup="listbox"
       >
-        <span>{currentLanguage.flag}</span>
+        <ReactCountryFlag
+          countryCode={currentLanguage.countryCode}
+          svg
+          style={{ width: '1.5em', height: '1.5em' }}
+        />
       </button>
 
       {isOpen && (
         <div
-          className="absolute right-0 mt-1 w-40 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50"
+          className="absolute right-0 mt-1 w-44 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50"
           role="listbox"
         >
           {languages.map((lang) => (
@@ -66,7 +72,11 @@ export const LanguageSelector = () => {
               role="option"
               aria-selected={lang.code === i18n.language}
             >
-              <span className="text-lg">{lang.flag}</span>
+              <ReactCountryFlag
+                countryCode={lang.countryCode}
+                svg
+                style={{ width: '1.25em', height: '1.25em' }}
+              />
               <span>{t(lang.label)}</span>
             </button>
           ))}
@@ -75,3 +85,4 @@ export const LanguageSelector = () => {
     </div>
   );
 };
+
