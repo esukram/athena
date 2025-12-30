@@ -3,50 +3,38 @@ ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 RUN corepack enable
 
-# Prune the workspace to the minimum needed for each app
 FROM base AS builder
-
-# Set working directory
 WORKDIR /app
 COPY . .
 RUN CI=true pnpm install --frozen-lockfile
-
-# Build everything
 RUN pnpm build
+RUN pnpm deploy --filter-prod=server --prod /prod/server --legacy
 
-# Runner stage
 FROM base AS runner
 RUN groupadd --system --gid 1001 nodejs && \
     useradd --system --uid 1001 --gid nodejs athena
 
 WORKDIR /app
 
-# Install production dependencies only (running as root)
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
-COPY apps/server/package.json ./apps/server/package.json
-COPY apps/web/package.json ./apps/web/package.json
-COPY packages/api/package.json ./packages/api/package.json
-COPY packages/typescript-config/package.json ./packages/typescript-config/package.json
+# Copy the deployed server (includes prod dependencies)
+COPY --from=builder --chown=athena:nodejs /prod/server ./
 
-RUN pnpm install --prod --frozen-lockfile
+# Copy compiled code
+COPY --from=builder --chown=athena:nodejs /app/apps/server/dist ./dist
 
-# Copy built server artifacts
-COPY --from=builder /app/apps/server/dist ./apps/server/dist
-COPY --from=builder /app/packages/api/dist ./packages/api/dist
-# Copy built web artifacts
-COPY --from=builder /app/apps/web/dist ./apps/server/public
+# Copy web assets
+COPY --from=builder --chown=athena:nodejs /app/apps/web/dist ./public
 
-# Setup directories and define volume for SQLite
-RUN mkdir -p /data /pnpm && chown -R athena:nodejs /app /data /pnpm
+# Setup directories
+RUN mkdir -p /data && chown -R athena:nodejs /data
+
+# Cleanup build artifacts
+RUN find /app -name ".turbo" -type d -exec rm -rf {} +
 
 USER athena
-
 VOLUME /data
-
 EXPOSE 4000
-
 ENV NODE_ENV=production
-ENV DB_PATH=/data/athena.db
+ENV DB_PATH=/data
 
-# Run the server
-CMD ["node", "apps/server/dist/index.js"]
+CMD ["node", "dist/index.js"]
