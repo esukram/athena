@@ -44,14 +44,32 @@ export const EditChapterModal = ({
   const canSave = questions.some((q) => q.question.trim());
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
+  const [lastUsedAssociation, setLastUsedAssociation] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
 
-  // Filter suggestions based on current input
-  const filteredSuggestions = existingAssociations.filter(
-    (a) =>
-      a.toLowerCase().includes(association.toLowerCase()) && a !== association,
-  );
+  // Load last used association from localStorage on mount
+  useEffect(() => {
+    const saved = localStorage.getItem('lastUsedAssociation');
+    if (saved) {
+      setLastUsedAssociation(saved);
+    }
+  }, []);
+
+  // Filter and sort suggestions based on current input
+  const filteredSuggestions = existingAssociations
+    .filter(
+      (a) =>
+        a.toLowerCase().includes(association.toLowerCase()) && a !== association,
+    )
+    .sort((a, b) => {
+      // Place last used association at the top
+      if (lastUsedAssociation) {
+        if (a === lastUsedAssociation) return -1;
+        if (b === lastUsedAssociation) return 1;
+      }
+      return 0;
+    });
 
   // Close suggestions when clicking outside
   useEffect(() => {
@@ -98,6 +116,15 @@ export const EditChapterModal = ({
     setShowSuggestions(false);
     setHighlightedIndex(-1);
     inputRef.current?.focus();
+  };
+
+  const handleSave = () => {
+    // Save the association to localStorage for future use
+    if (association.trim()) {
+      localStorage.setItem('lastUsedAssociation', association.trim());
+      setLastUsedAssociation(association.trim());
+    }
+    onSave();
   };
 
   return (
@@ -288,7 +315,7 @@ export const EditChapterModal = ({
             {t('common.cancel')}
           </button>
           <button
-            onClick={onSave}
+            onClick={handleSave}
             disabled={isSaving || !canSave}
             className="min-w-[7rem] px-4 py-2 bg-primary-600 hover:bg-primary-700 disabled:bg-primary-400 text-white font-medium rounded-lg transition-colors"
           >
