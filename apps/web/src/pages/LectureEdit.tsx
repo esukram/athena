@@ -26,19 +26,23 @@ export const EditLecture = () => {
 
   const [newChapterQuestion, setNewChapterQuestion] = useState('');
   const [editingChapter, setEditingChapter] = useState<Chapter | null>(null);
+  const [isCreatingNewChapter, setIsCreatingNewChapter] = useState(false);
   const [editingAssociation, setEditingAssociation] = useState('');
   const [editingQuestions, setEditingQuestions] = useState<EditingQuestion[]>(
     [],
   );
 
-  // Fetch questions for the editing chapter
+  // Fetch questions for the editing chapter (only for existing chapters)
   const chapterQuestionsQuery = trpc.questions.getQuestions.useQuery(
     { chapterId: editingChapter?.id || '' },
-    { enabled: !!editingChapter?.id },
+    { enabled: !!editingChapter?.id && !isCreatingNewChapter },
   );
 
-  // Sync fetched questions to editing state when modal opens
+  // Sync fetched questions to editing state when modal opens (only for existing chapters)
   useEffect(() => {
+    // Skip for new chapters - they're pre-populated in handleAddChapter
+    if (isCreatingNewChapter) return;
+
     if (editingChapter && chapterQuestionsQuery.data !== undefined) {
       const questions = chapterQuestionsQuery.data;
       if (questions.length > 0) {
@@ -55,7 +59,6 @@ export const EditLecture = () => {
         );
       } else if (editingQuestions.length === 0) {
         // No questions in DB and none set locally (existing chapter with no questions)
-        // For new chapters, questions are pre-populated in createChapter.onSuccess
         setEditingQuestions([
           {
             id: null,
@@ -68,7 +71,7 @@ export const EditLecture = () => {
         ]);
       }
     }
-  }, [editingChapter?.id, chapterQuestionsQuery.data]);
+  }, [editingChapter?.id, chapterQuestionsQuery.data, isCreatingNewChapter]);
 
   const lectureQuery = trpc.lectures.getLecture.useQuery(
     { id: id! },
@@ -116,23 +119,8 @@ export const EditLecture = () => {
   });
 
   const createChapter = trpc.chapters.createChapter.useMutation({
-    onSuccess: (newChapter) => {
+    onSuccess: () => {
       utils.chapters.getChapters.invalidate({ lectureId: id! });
-      // Open edit dialog for the new chapter with the entered question
-      setEditingChapter(newChapter);
-      setEditingAssociation(newChapter.association);
-      // Pre-populate the first question with the entered text
-      setEditingQuestions([
-        {
-          id: null,
-          question: newChapterQuestion,
-          answer: '',
-          order: 0,
-          isExpanded: true,
-          showPreview: false,
-        },
-      ]);
-      setNewChapterQuestion('');
     },
   });
 
@@ -193,17 +181,41 @@ export const EditLecture = () => {
   const handleAddChapter = (e: React.FormEvent) => {
     e.preventDefault();
     if (!id || !newChapterQuestion.trim()) return;
+    
+    // Calculate the next order number for the new chapter
     const chapters = chaptersQuery.data || [];
     const maxOrder =
       chapters.length > 0 ? Math.max(...chapters.map((c) => c.order)) : -1;
-    createChapter.mutate({
+    
+    // Create a temporary chapter object (not saved to DB yet)
+    const tempChapter: Chapter = {
+      id: '', // Empty ID indicates a new chapter
       lectureId: id,
       order: maxOrder + 1,
-    });
+      association: '',
+    };
+    
+    // Open the modal for the new chapter
+    setEditingChapter(tempChapter);
+    setIsCreatingNewChapter(true);
+    setEditingAssociation('');
+    // Pre-populate with the entered question
+    setEditingQuestions([
+      {
+        id: null,
+        question: newChapterQuestion,
+        answer: '',
+        order: 0,
+        isExpanded: true,
+        showPreview: false,
+      },
+    ]);
+    setNewChapterQuestion('');
   };
 
   const handleStartEdit = async (chapter: Chapter) => {
     setEditingChapter(chapter);
+    setIsCreatingNewChapter(false); // Ensure we're in edit mode, not create mode
     setEditingAssociation(chapter.association);
     setEditingQuestions([]); // Will be populated by useEffect when query loads
   };
@@ -215,15 +227,24 @@ export const EditLecture = () => {
     const hasValidQuestion = editingQuestions.some((q) => q.question.trim());
     if (!hasValidQuestion) return;
 
-    // Capture chapter ID before closing modal
-    const chapterId = editingChapter.id;
+    let chapterId = editingChapter.id;
 
-    // Update chapter association if changed
-    if (editingAssociation !== editingChapter.association) {
-      updateChapter.mutate({
-        id: chapterId,
+    // If creating a new chapter, save it to the database first
+    if (isCreatingNewChapter) {
+      const newChapter = await createChapter.mutateAsync({
+        lectureId: editingChapter.lectureId,
+        order: editingChapter.order,
         association: editingAssociation,
       });
+      chapterId = newChapter.id;
+    } else {
+      // Update chapter association if changed (only for existing chapters)
+      if (editingAssociation !== editingChapter.association) {
+        updateChapter.mutate({
+          id: chapterId,
+          association: editingAssociation,
+        });
+      }
     }
 
     // Collect all mutation promises
@@ -268,6 +289,7 @@ export const EditLecture = () => {
 
   const handleCancelEdit = () => {
     setEditingChapter(null);
+    setIsCreatingNewChapter(false);
     setEditingAssociation('');
     setEditingQuestions([]);
   };
