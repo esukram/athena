@@ -72,7 +72,7 @@ export const LectureMenu = ({ lecture }: LectureMenuProps) => {
             onClick={(e) => {
               e.stopPropagation();
               setMenuOpen(false);
-              navigate(`/lecture/${lecture.id}/edit`);
+              navigate(`/edit/${lecture.id}`);
             }}
             className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 transition-colors"
           >
