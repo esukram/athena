@@ -283,16 +283,16 @@ export const EditChapterModal = ({
         <div className="p-6 border-t border-gray-200 flex gap-3 justify-end">
           <button
             onClick={onCancel}
-            className="px-4 py-2 rounded-lg border border-gray-300 text-on-surface hover:bg-gray-50 transition-colors"
+            className="min-w-[7rem] px-4 py-2 rounded-lg border border-gray-300 text-on-surface hover:bg-gray-50 transition-colors"
           >
             {t('common.cancel')}
           </button>
           <button
             onClick={onSave}
             disabled={isSaving || !canSave}
-            className="px-4 py-2 bg-primary-600 hover:bg-primary-700 disabled:bg-primary-400 text-white font-medium rounded-lg transition-colors"
+            className="min-w-[7rem] px-4 py-2 bg-primary-600 hover:bg-primary-700 disabled:bg-primary-400 text-white font-medium rounded-lg transition-colors"
           >
-            {isSaving ? t('common.loading') : t('editChapterModal.saveChapter')}
+            {isSaving ? t('common.loading') : t('common.save')}
           </button>
         </div>
       </div>
