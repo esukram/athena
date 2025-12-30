@@ -1,5 +1,6 @@
 import { Search, X } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
+import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -11,6 +12,7 @@ import { AppHeader } from '../components/AppHeader';
 import { trpc } from '../utils/trpc';
 
 export const LectureTrain = () => {
+  const { t } = useTranslation();
   const { id, chapterId } = useParams<{ id: string; chapterId?: string }>();
   const navigate = useNavigate();
   const [selectedChapterIndex, setSelectedChapterIndex] = useState(0);
@@ -148,7 +150,7 @@ export const LectureTrain = () => {
       <div className="min-h-screen bg-background">
         <AppHeader />
         <main className="container mx-auto px-4 py-8">
-          <p className="text-on-surface-variant">Loading...</p>
+          <p className="text-on-surface-variant">{t('common.loading')}</p>
         </main>
       </div>
     );
@@ -159,12 +161,12 @@ export const LectureTrain = () => {
       <div className="min-h-screen bg-background">
         <AppHeader />
         <main className="container mx-auto px-4 py-8">
-          <p className="text-error">Lecture not found</p>
+          <p className="text-error">{t('lectureEdit.lectureNotFound')}</p>
           <button
             onClick={() => navigate('/')}
             className="mt-4 px-4 py-2 rounded-lg bg-primary-600 text-white hover:bg-primary-700"
           >
-            Back to Overview
+            {t('lectureEdit.backToOverview')}
           </button>
         </main>
       </div>
@@ -197,7 +199,7 @@ export const LectureTrain = () => {
             >
               <path d="m15 18-6-6 6-6" />
             </svg>
-            Back to Lectures
+            {t('lectureTrain.backToLectures')}
           </button>
           <Accordion title={lecture.title} description={lecture.description} />
         </div>
@@ -205,13 +207,13 @@ export const LectureTrain = () => {
         {chapters.length === 0 ? (
           <div className="bg-surface rounded-xl shadow-md p-8 text-center">
             <p className="text-on-surface-variant mb-4">
-              This lecture has no chapters yet.
+              {t('lectureTrain.noChaptersYet')}
             </p>
             <button
               onClick={() => navigate(`/edit/${id}`)}
               className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors"
             >
-              Add Chapters
+              {t('lectureTrain.addChapters')}
             </button>
           </div>
         ) : (
@@ -220,7 +222,7 @@ export const LectureTrain = () => {
             <div className="min-w-0 overflow-hidden bg-surface-container-low rounded-xl shadow-md p-4 h-fit lg:sticky lg:top-8">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-sm font-semibold text-on-surface-variant uppercase tracking-wide">
-                  Chapters
+                  {t('lectureEdit.chapters')}
                 </h3>
                 <button
                   onClick={() => {
@@ -230,7 +232,7 @@ export const LectureTrain = () => {
                     }
                   }}
                   className="p-1 rounded-lg hover:bg-gray-100 transition-colors text-on-surface-variant hover:text-on-surface"
-                  aria-label={isSearchOpen ? 'Close search' : 'Search chapters'}
+                  aria-label={isSearchOpen ? t('globalSearch.closeSearch') : t('globalSearch.openSearch')}
                 >
                   {isSearchOpen ? <X size={18} /> : <Search size={18} />}
                 </button>
@@ -242,7 +244,7 @@ export const LectureTrain = () => {
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search chapters..."
+                    placeholder={t('lectureTrain.searchChapters')}
                     className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white text-on-surface"
                   />
                 </div>
@@ -252,7 +254,7 @@ export const LectureTrain = () => {
               >
                 {filteredChapters.length === 0 ? (
                   <p className="text-sm text-on-surface-variant italic px-3 py-2">
-                    No chapters found
+                    {t('lectureTrain.noChaptersFound')}
                   </p>
                 ) : (
                   filteredChapters.map((chapter) => {
@@ -280,7 +282,7 @@ export const LectureTrain = () => {
                           {chapter.order + 1}.{' '}
                           {(() => {
                             const firstQ = firstQuestionMap.get(chapter.id);
-                            const displayText = firstQ?.question || 'Untitled';
+                            const displayText = firstQ?.question || t('common.untitled');
                             return searchQuery.trim()
                               ? highlightMatches(displayText, searchQuery)
                               : displayText;
@@ -316,7 +318,7 @@ export const LectureTrain = () => {
                             </div>
                           ) : (
                             <p className="text-on-surface-variant italic">
-                              No answer yet.
+                              {t('lectureTrain.noAnswerYet')}
                             </p>
                           )}
                         </Accordion>
@@ -324,7 +326,7 @@ export const LectureTrain = () => {
                     </div>
                   ) : (
                     <p className="text-on-surface-variant italic">
-                      This chapter has no content yet.
+                      {t('lectureTrain.noContentYet')}
                     </p>
                   )}
 
@@ -352,7 +354,7 @@ export const LectureTrain = () => {
                       >
                         <path d="m15 18-6-6 6-6" />
                       </svg>
-                      Previous
+                      {t('common.previous')}
                     </button>
                     <button
                       onClick={() =>
@@ -363,7 +365,7 @@ export const LectureTrain = () => {
                       disabled={selectedChapterIndex === chapters.length - 1}
                       className="px-4 py-2 text-primary-600 hover:bg-primary-50 disabled:text-gray-400 disabled:hover:bg-transparent rounded-lg transition-colors flex items-center gap-2"
                     >
-                      Next
+                      {t('common.next')}
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         width="20"
@@ -381,7 +383,7 @@ export const LectureTrain = () => {
                   </div>
                 </>
               ) : (
-                <p className="text-on-surface-variant">Select a chapter</p>
+                <p className="text-on-surface-variant">{t('lectureTrain.selectAChapter')}</p>
               )}
             </div>
           </div>

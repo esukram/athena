@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
 import { useEffect, useRef, useState } from 'react';
@@ -11,6 +12,7 @@ interface LectureMenuProps {
 }
 
 export const LectureMenu = ({ lecture }: LectureMenuProps) => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const utils = trpc.useUtils();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -23,7 +25,7 @@ export const LectureMenu = ({ lecture }: LectureMenuProps) => {
   });
 
   const handleDelete = () => {
-    if (confirm(`Are you sure you want to delete "${lecture.title}"?`)) {
+    if (confirm(t('lectureMenu.confirmDelete', { title: lecture.title }))) {
       setMenuOpen(false);
       deleteLecture.mutate({ id: lecture.id });
     }
@@ -76,7 +78,7 @@ export const LectureMenu = ({ lecture }: LectureMenuProps) => {
             }}
             className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 transition-colors"
           >
-            Edit Lecture
+            {t('lectureMenu.editLecture')}
           </button>
           <button
             onClick={(e) => {
@@ -85,10 +87,11 @@ export const LectureMenu = ({ lecture }: LectureMenuProps) => {
             }}
             className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 transition-colors"
           >
-            Delete Lecture
+            {t('lectureMenu.deleteLecture')}
           </button>
         </div>
       )}
     </div>
   );
 };
+

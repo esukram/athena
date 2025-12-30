@@ -1,0 +1,97 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "add": "Add",
+    "back": "Back",
+    "previous": "Previous",
+    "next": "Next",
+    "search": "Search",
+    "untitled": "Untitled"
+  },
+  "header": {
+    "addLecture": "Add Lecture"
+  },
+  "language": {
+    "german": "Deutsch",
+    "english": "English"
+  },
+  "overview": {
+    "availableLectures": "Available Lectures",
+    "exploreCollection": "Explore our collection of educational content",
+    "errorLoading": "Error loading lectures"
+  },
+  "lectureCard": {
+    "learn": "Learn",
+    "train": "Train"
+  },
+  "lectureMenu": {
+    "editLecture": "Edit Lecture",
+    "deleteLecture": "Delete Lecture",
+    "confirmDelete": "Are you sure you want to delete \"{{title}}\"?"
+  },
+  "lectureAdd": {
+    "title": "Add New Lecture",
+    "subtitle": "Create a new lecture",
+    "titleLabel": "Title",
+    "titlePlaceholder": "Enter lecture title",
+    "descriptionLabel": "Description",
+    "descriptionPlaceholder": "Enter lecture description",
+    "createLecture": "Create Lecture",
+    "creating": "Creating..."
+  },
+  "lectureEdit": {
+    "lectureNotFound": "Lecture not found",
+    "backToOverview": "Back to Overview",
+    "saveChanges": "Save Changes",
+    "saving": "Saving...",
+    "savedSuccessfully": "Lecture updated successfully!",
+    "chapters": "Chapters",
+    "newChapterQuestion": "New chapter question",
+    "adding": "Adding...",
+    "loadingChapters": "Loading chapters...",
+    "noChaptersYet": "No chapters yet. Add your first chapter above.",
+    "confirmDeleteChapter": "Are you sure you want to delete this chapter?"
+  },
+  "lectureTrain": {
+    "backToLectures": "Back to Lectures",
+    "noChaptersYet": "This lecture has no chapters yet.",
+    "addChapters": "Add Chapters",
+    "searchChapters": "Search chapters...",
+    "noChaptersFound": "No chapters found",
+    "noAnswerYet": "No answer yet.",
+    "noContentYet": "This chapter has no content yet.",
+    "selectAChapter": "Select a chapter"
+  },
+  "globalSearch": {
+    "searchChapters": "Search chapters...",
+    "searching": "Searching...",
+    "noResults": "No results found",
+    "unknownLecture": "Unknown Lecture",
+    "closeSearch": "Close search",
+    "openSearch": "Open search"
+  },
+  "chapterMenu": {
+    "editChapter": "Edit Chapter"
+  },
+  "editChapterModal": {
+    "editChapter": "Edit Chapter",
+    "association": "Association",
+    "associationPlaceholder": "Enter association",
+    "questions": "Questions",
+    "addQuestion": "Add Question",
+    "question": "Question",
+    "questionPlaceholder": "Enter question",
+    "answerMarkdown": "Answer (Markdown)",
+    "preview": "Preview",
+    "noContentYet": "No content yet",
+    "newQuestion": "New Question",
+    "saveChapter": "Save Chapter",
+    "deleteQuestion": "Delete question",
+    "answerPlaceholder": "Write your answer in Markdown..."
+  }
+}

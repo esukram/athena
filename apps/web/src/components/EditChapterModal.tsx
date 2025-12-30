@@ -1,5 +1,6 @@
 import { ChevronDown, ChevronUp, Plus, Trash2 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
+import { useTranslation } from 'react-i18next';
 
 import { useEffect, useRef, useState } from 'react';
 
@@ -39,6 +40,7 @@ export const EditChapterModal = ({
   onSave,
   onCancel,
 }: EditChapterModalProps) => {
+  const { t } = useTranslation();
   const canSave = questions.some((q) => q.question.trim());
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
@@ -103,14 +105,14 @@ export const EditChapterModal = ({
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col">
         <div className="p-6 border-b border-gray-200">
           <h3 className="text-xl font-semibold text-on-surface">
-            Edit Chapter
+            {t('editChapterModal.editChapter')}
           </h3>
         </div>
 
         <div className="p-6 space-y-4 overflow-y-auto flex-1">
           <div className="relative">
             <label className="block text-sm font-medium text-on-surface mb-2">
-              Association
+              {t('editChapterModal.association')}
             </label>
             <input
               ref={inputRef}
@@ -124,7 +126,7 @@ export const EditChapterModal = ({
               onFocus={() => setShowSuggestions(true)}
               onKeyDown={handleKeyDown}
               className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
-              placeholder="Enter association"
+              placeholder={t('editChapterModal.associationPlaceholder')}
             />
             {showSuggestions && filteredSuggestions.length > 0 && (
               <div
@@ -151,7 +153,7 @@ export const EditChapterModal = ({
           <div>
             <div className="flex items-center justify-between mb-3">
               <label className="block text-sm font-medium text-on-surface">
-                Questions
+                {t('editChapterModal.questions')}
               </label>
               <button
                 type="button"
@@ -159,7 +161,7 @@ export const EditChapterModal = ({
                 className="flex items-center gap-1 px-3 py-1.5 text-sm text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
               >
                 <Plus size={16} />
-                Add Question
+                {t('editChapterModal.addQuestion')}
               </button>
             </div>
 
@@ -180,7 +182,7 @@ export const EditChapterModal = ({
                         {index + 1}
                       </span>
                       <span className="text-on-surface font-medium truncate">
-                        {eq.question || 'New Question'}
+                        {eq.question || t('editChapterModal.newQuestion')}
                       </span>
                     </div>
                     <div className="flex items-center gap-2 ml-2">
@@ -192,7 +194,7 @@ export const EditChapterModal = ({
                             onDeleteQuestion(index);
                           }}
                           className="p-1 text-red-500 hover:bg-red-50 rounded transition-colors"
-                          title="Delete question"
+                          title={t('editChapterModal.deleteQuestion')}
                         >
                           <Trash2 size={16} />
                         </button>
@@ -210,7 +212,7 @@ export const EditChapterModal = ({
                     <div className="p-4 space-y-4 border-t border-gray-200">
                       <div>
                         <label className="block text-sm font-medium text-on-surface mb-2">
-                          Question
+                          {t('editChapterModal.question')}
                         </label>
                         <input
                           type="text"
@@ -221,14 +223,14 @@ export const EditChapterModal = ({
                             })
                           }
                           className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
-                          placeholder="Enter question"
+                          placeholder={t('editChapterModal.questionPlaceholder')}
                         />
                       </div>
 
                       <div>
                         <div className="flex items-center justify-between mb-2">
                           <label className="block text-sm font-medium text-on-surface">
-                            Answer (Markdown)
+                            {t('editChapterModal.answerMarkdown')}
                           </label>
                           <button
                             type="button"
@@ -240,7 +242,9 @@ export const EditChapterModal = ({
                             }
                             className="text-sm text-primary-600 hover:text-primary-700"
                           >
-                            {eq.showPreview ? 'Edit' : 'Preview'}
+                            {eq.showPreview
+                              ? t('common.edit')
+                              : t('editChapterModal.preview')}
                           </button>
                         </div>
 
@@ -250,7 +254,7 @@ export const EditChapterModal = ({
                               <ReactMarkdown>{eq.answer}</ReactMarkdown>
                             ) : (
                               <p className="text-gray-400 italic">
-                                No content yet
+                                {t('editChapterModal.noContentYet')}
                               </p>
                             )}
                           </div>
@@ -264,7 +268,7 @@ export const EditChapterModal = ({
                             }
                             rows={8}
                             className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none font-mono text-sm resize-none"
-                            placeholder="Write your answer in Markdown..."
+                            placeholder={t('editChapterModal.answerPlaceholder')}
                           />
                         )}
                       </div>
@@ -281,17 +285,18 @@ export const EditChapterModal = ({
             onClick={onCancel}
             className="px-4 py-2 rounded-lg border border-gray-300 text-on-surface hover:bg-gray-50 transition-colors"
           >
-            Cancel
+            {t('common.cancel')}
           </button>
           <button
             onClick={onSave}
             disabled={isSaving || !canSave}
             className="px-4 py-2 bg-primary-600 hover:bg-primary-700 disabled:bg-primary-400 text-white font-medium rounded-lg transition-colors"
           >
-            {isSaving ? 'Saving...' : 'Save Chapter'}
+            {isSaving ? t('common.loading') : t('editChapterModal.saveChapter')}
           </button>
         </div>
       </div>
     </div>
   );
 };
+
