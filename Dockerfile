@@ -6,7 +6,7 @@ RUN corepack enable
 FROM base AS builder
 WORKDIR /app
 COPY . .
-RUN CI=true canvas_binary_host_mirror=https://github.com/Automattic/node-canvas/releases/download/v2.11.2 pnpm install --frozen-lockfile
+RUN CI=true pnpm install --frozen-lockfile
 RUN pnpm build
 RUN pnpm deploy --filter=server --prod /prod/server --legacy
 
