@@ -74,7 +74,7 @@ export const LanguageSelector = () => {
               <img
                 src={lang.flag}
                 alt=""
-                className="w-5 h-5 object-cover rounded-sm"
+                className="w-7 h-5 object-cover rounded-sm"
               />
               <span>{t(lang.label)}</span>
             </button>
