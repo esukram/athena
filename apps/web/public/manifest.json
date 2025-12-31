@@ -1,6 +1,6 @@
 {
-  "name": "Athna - The Learning App",
-  "short_name": "Athna",
+  "name": "Athena - The Learning App",
+  "short_name": "Athena",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#ffffff",
