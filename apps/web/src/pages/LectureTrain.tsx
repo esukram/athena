@@ -13,7 +13,11 @@ import { trpc } from '../utils/trpc';
 
 export const LectureTrain = () => {
   const { t } = useTranslation();
-  const { id, chapterId, questionId } = useParams<{ id: string; chapterId?: string; questionId?: string }>();
+  const { id, chapterId, questionId } = useParams<{
+    id: string;
+    chapterId?: string;
+    questionId?: string;
+  }>();
   const navigate = useNavigate();
   const [selectedChapterIndex, setSelectedChapterIndex] = useState(0);
   const [selectedQuestionIndex, setSelectedQuestionIndex] = useState(0);
@@ -35,16 +39,18 @@ export const LectureTrain = () => {
   const chapters = chaptersQuery.data || [];
 
   // Fetch all first questions for this lecture in a single call
-  const firstQuestionsQuery = trpc.questions.getFirstQuestionsByLecture.useQuery(
-    { lectureId: id! },
-    { enabled: !!id },
-  );
+  const firstQuestionsQuery =
+    trpc.questions.getFirstQuestionsByLecture.useQuery(
+      { lectureId: id! },
+      { enabled: !!id },
+    );
 
   // Fetch chapter IDs that have any annotated questions
-  const annotatedChapterIdsQuery = trpc.questions.getAnnotatedChapterIdsByLecture.useQuery(
-    { lectureId: id! },
-    { enabled: !!id },
-  );
+  const annotatedChapterIdsQuery =
+    trpc.questions.getAnnotatedChapterIdsByLecture.useQuery(
+      { lectureId: id! },
+      { enabled: !!id },
+    );
 
   // Build a Set of chapter IDs that have annotated questions (for owl display)
   const annotatedChapterIds = useMemo(() => {
@@ -54,11 +60,12 @@ export const LectureTrain = () => {
   // Build a map of chapterId -> firstQuestion
   const firstQuestionMap = new Map<string, Question | undefined>();
   if (firstQuestionsQuery.data) {
-    for (const [chapterId, question] of Object.entries(firstQuestionsQuery.data)) {
+    for (const [chapterId, question] of Object.entries(
+      firstQuestionsQuery.data,
+    )) {
       firstQuestionMap.set(chapterId, question);
     }
   }
-
 
   // Track which lecture has been sorted to preserve order during annotation toggles
   const sortedLectureIdRef = useRef<string | null>(null);
@@ -113,7 +120,9 @@ export const LectureTrain = () => {
   useEffect(() => {
     if (currentChapterQuestions.length > 0) {
       if (questionId) {
-        const index = currentChapterQuestions.findIndex((q) => q.id === questionId);
+        const index = currentChapterQuestions.findIndex(
+          (q) => q.id === questionId,
+        );
         if (index !== -1) {
           setSelectedQuestionIndex(index);
         } else {
@@ -181,7 +190,11 @@ export const LectureTrain = () => {
   }, [selectedChapterIndex]);
 
   // Navigation helper functions
-  const navigateToQuestion = (chapterIndex: number, questionIndex: number, questions?: typeof currentChapterQuestions) => {
+  const navigateToQuestion = (
+    chapterIndex: number,
+    questionIndex: number,
+    questions?: typeof currentChapterQuestions,
+  ) => {
     const chapter = sortedChapters[chapterIndex];
     if (chapter && questions && questions[questionIndex]) {
       navigate(`/train/${id}/${chapter.id}/${questions[questionIndex].id}`);
@@ -194,7 +207,11 @@ export const LectureTrain = () => {
   const handleNextQuestion = () => {
     if (selectedQuestionIndex < currentChapterQuestions.length - 1) {
       // Next question in same chapter
-      navigateToQuestion(selectedChapterIndex, selectedQuestionIndex + 1, currentChapterQuestions);
+      navigateToQuestion(
+        selectedChapterIndex,
+        selectedQuestionIndex + 1,
+        currentChapterQuestions,
+      );
     } else if (selectedChapterIndex < sortedChapters.length - 1) {
       // First question of next chapter
       navigateToQuestion(selectedChapterIndex + 1, 0);
@@ -204,7 +221,11 @@ export const LectureTrain = () => {
   const handlePrevQuestion = () => {
     if (selectedQuestionIndex > 0) {
       // Previous question in same chapter
-      navigateToQuestion(selectedChapterIndex, selectedQuestionIndex - 1, currentChapterQuestions);
+      navigateToQuestion(
+        selectedChapterIndex,
+        selectedQuestionIndex - 1,
+        currentChapterQuestions,
+      );
     } else if (selectedChapterIndex > 0) {
       // Last question of previous chapter - will be handled after fetch
       const prevChapter = sortedChapters[selectedChapterIndex - 1];
@@ -215,13 +236,18 @@ export const LectureTrain = () => {
   // Handle __last__ special questionId to navigate to last question of a chapter
   useEffect(() => {
     if (questionId === '__last__' && currentChapterQuestions.length > 0) {
-      const lastQuestion = currentChapterQuestions[currentChapterQuestions.length - 1];
-      navigate(`/train/${id}/${currentChapter?.id}/${lastQuestion.id}`, { replace: true });
+      const lastQuestion =
+        currentChapterQuestions[currentChapterQuestions.length - 1];
+      navigate(`/train/${id}/${currentChapter?.id}/${lastQuestion.id}`, {
+        replace: true,
+      });
     }
   }, [questionId, currentChapterQuestions, id, currentChapter?.id, navigate]);
 
-  const isFirstQuestion = selectedChapterIndex === 0 && selectedQuestionIndex === 0;
-  const isLastQuestion = selectedChapterIndex === sortedChapters.length - 1 && 
+  const isFirstQuestion =
+    selectedChapterIndex === 0 && selectedQuestionIndex === 0;
+  const isLastQuestion =
+    selectedChapterIndex === sortedChapters.length - 1 &&
     selectedQuestionIndex === currentChapterQuestions.length - 1;
 
   useEffect(() => {
@@ -238,7 +264,16 @@ export const LectureTrain = () => {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [sortedChapters, selectedChapterIndex, selectedQuestionIndex, currentChapterQuestions, id, navigate, isFirstQuestion, isLastQuestion]);
+  }, [
+    sortedChapters,
+    selectedChapterIndex,
+    selectedQuestionIndex,
+    currentChapterQuestions,
+    id,
+    navigate,
+    isFirstQuestion,
+    isLastQuestion,
+  ]);
 
   const utils = trpc.useContext();
   const updateQuestion = trpc.questions.updateQuestion.useMutation({
@@ -429,12 +464,16 @@ export const LectureTrain = () => {
                   {currentChapterQuestions.length > 0 ? (
                     <div className="space-y-4">
                       {(() => {
-                        const question = currentChapterQuestions[selectedQuestionIndex];
+                        const question =
+                          currentChapterQuestions[selectedQuestionIndex];
                         if (!question) return null;
                         return (
                           <div key={question.id}>
                             <div className="text-sm text-on-surface-variant">
-                              {t('lectureTrain.questionProgress', { current: selectedQuestionIndex + 1, total: currentChapterQuestions.length })}
+                              {t('lectureTrain.questionProgress', {
+                                current: selectedQuestionIndex + 1,
+                                total: currentChapterQuestions.length,
+                              })}
                             </div>
                             <Accordion
                               title={question.question}
@@ -473,7 +512,9 @@ export const LectureTrain = () => {
                               {question.answer ? (
                                 <div>
                                   <div className="prose prose-lg max-w-none">
-                                    <ReactMarkdown>{question.answer}</ReactMarkdown>
+                                    <ReactMarkdown>
+                                      {question.answer}
+                                    </ReactMarkdown>
                                   </div>
                                 </div>
                               ) : (

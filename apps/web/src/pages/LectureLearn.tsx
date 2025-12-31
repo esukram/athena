@@ -35,15 +35,18 @@ export const LectureLearn = () => {
   const chapters = chaptersQuery.data || [];
 
   // Fetch all first questions for this lecture in a single call
-  const firstQuestionsQuery = trpc.questions.getFirstQuestionsByLecture.useQuery(
-    { lectureId: id! },
-    { enabled: !!id },
-  );
+  const firstQuestionsQuery =
+    trpc.questions.getFirstQuestionsByLecture.useQuery(
+      { lectureId: id! },
+      { enabled: !!id },
+    );
 
   // Build a map of chapterId -> firstQuestion
   const firstQuestionMap = new Map<string, Question | undefined>();
   if (firstQuestionsQuery.data) {
-    for (const [chapterId, question] of Object.entries(firstQuestionsQuery.data)) {
+    for (const [chapterId, question] of Object.entries(
+      firstQuestionsQuery.data,
+    )) {
       firstQuestionMap.set(chapterId, question);
     }
   }

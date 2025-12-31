@@ -21,7 +21,9 @@ export const questionsRouter = router({
   getAnnotatedChapterIdsByLecture: publicProcedure
     .input(z.object({ lectureId: z.string() }))
     .query(({ ctx, input }) => {
-      return ctx.questionRepository.getAnnotatedChapterIdsByLecture(input.lectureId);
+      return ctx.questionRepository.getAnnotatedChapterIdsByLecture(
+        input.lectureId,
+      );
     }),
   createQuestion: publicProcedure
     .input(

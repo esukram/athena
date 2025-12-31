@@ -29,7 +29,9 @@ export const Accordion: React.FC<AccordionProps> = ({
       : description;
 
   return (
-    <div className={`rounded-xl bg-surface-container overflow-hidden ${noShadow ? '' : 'shadow-md'}`}>
+    <div
+      className={`rounded-xl bg-surface-container overflow-hidden ${noShadow ? '' : 'shadow-md'}`}
+    >
       <div
         role="button"
         tabIndex={0}
@@ -44,9 +46,9 @@ export const Accordion: React.FC<AccordionProps> = ({
       >
         <div className="flex-1">
           <h1 className="text-2xl font-bold text-on-background mb-2">
-          {leftIcon && (
-            <span onClick={(e) => e.stopPropagation()}>{leftIcon}</span>
-          )}
+            {leftIcon && (
+              <span onClick={(e) => e.stopPropagation()}>{leftIcon}</span>
+            )}
             {title}
           </h1>
           {!isOpen && (
@@ -71,7 +73,9 @@ export const Accordion: React.FC<AccordionProps> = ({
       </div>
 
       {isOpen && (
-        <div className={`${noPadding ? 'px-2 pb-2' : 'px-6 pb-6'} bg-surface-container text-on-surface text-base`}>
+        <div
+          className={`${noPadding ? 'px-2 pb-2' : 'px-6 pb-6'} bg-surface-container text-on-surface text-base`}
+        >
           {children || <p className="whitespace-pre-wrap">{description}</p>}
         </div>
       )}

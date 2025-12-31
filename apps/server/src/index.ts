@@ -17,8 +17,8 @@ import {
   createContext,
 } from '@athena/api';
 
-import { runMigrations } from './migration.js';
 import { db } from './db.js';
+import { runMigrations } from './migration.js';
 
 function createLectureRepository(): LectureRepository {
   return {
