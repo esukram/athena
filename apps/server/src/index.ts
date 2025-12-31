@@ -17,6 +17,7 @@ import {
   createContext,
 } from '@athena/api';
 
+import { runMigrations } from './migration.js';
 import { db } from './db.js';
 
 function createLectureRepository(): LectureRepository {
@@ -206,6 +207,9 @@ async function main() {
   await server.register(cors, {
     origin: true, // Allow all origins for dev simplicity
   });
+
+  // Run migrations
+  runMigrations(db);
 
   const lectureRepository = createLectureRepository();
   const chapterRepository = createChapterRepository();

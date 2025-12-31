@@ -130,6 +130,53 @@ export const EditChapterModal = ({
     onSave();
   };
 
+  const handleAnswerKeyDown = (
+    e: React.KeyboardEvent<HTMLTextAreaElement>,
+    index: number,
+    currentAnswer: string,
+  ) => {
+    if (e.key === 'Enter' && !e.shiftKey && !e.ctrlKey && !e.metaKey) {
+      e.preventDefault();
+      const textarea = e.currentTarget;
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const value = currentAnswer || '';
+      const newValue =
+        value.substring(0, start) + '\n\n' + value.substring(end);
+
+      onUpdateQuestion(index, { answer: newValue });
+
+      setTimeout(() => {
+        textarea.selectionStart = textarea.selectionEnd = start + 2;
+      }, 0);
+    }
+  };
+
+  // Global keyboard shortcuts
+  useEffect(() => {
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      // Don't trigger if the event was already handled (e.g. by input suggestion selection)
+      if (e.defaultPrevented) return;
+
+      if (e.key === 'Escape') {
+        if (showSuggestions) {
+          setShowSuggestions(false);
+          setHighlightedIndex(-1);
+        } else {
+          onCancel();
+        }
+      } else if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+        if (canSave && !isSaving) {
+          e.preventDefault();
+          handleSave();
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleGlobalKeyDown);
+    return () => document.removeEventListener('keydown', handleGlobalKeyDown);
+  }, [showSuggestions, canSave, isSaving, onCancel, handleSave]);
+
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col">
@@ -298,6 +345,9 @@ export const EditChapterModal = ({
                                 answer: e.target.value,
                               })
                             }
+                            onKeyDown={(e) =>
+                              handleAnswerKeyDown(e, index, eq.answer)
+                            }
                             rows={8}
                             className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none font-mono text-sm resize-none"
                             placeholder={t(
@@ -317,6 +367,7 @@ export const EditChapterModal = ({
         <div className="p-6 border-t border-gray-200 flex gap-3 justify-end">
           <button
             onClick={onCancel}
+            title={`${t('common.cancel')} (Esc)`}
             className="min-w-[7rem] px-4 py-2 rounded-lg border border-gray-300 text-on-surface hover:bg-gray-50 transition-colors"
           >
             {t('common.cancel')}
@@ -324,9 +375,10 @@ export const EditChapterModal = ({
           <button
             onClick={handleSave}
             disabled={isSaving || !canSave}
+            title={`${t('common.save')} (Ctrl+Enter)`}
             className="min-w-[7rem] px-4 py-2 bg-primary-600 hover:bg-primary-700 disabled:bg-primary-400 text-white font-medium rounded-lg transition-colors"
           >
-            {isSaving ? t('common.loading') : t('common.save')}
+            {isSaving ? t('common.saving') : t('common.save')}
           </button>
         </div>
       </div>

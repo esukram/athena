@@ -4,31 +4,4 @@ import path from 'path';
 const dbDir = process.env.DB_PATH || path.join(process.cwd(), '../../');
 export const db: DatabaseType = new Database(dbDir + '/athena.db');
 
-db.exec(`
-  CREATE TABLE IF NOT EXISTS lectures (
-    id TEXT PRIMARY KEY,
-    title TEXT NOT NULL,
-    description TEXT NOT NULL
-  )
-`);
 
-db.exec(`
-  CREATE TABLE IF NOT EXISTS chapters (
-    id TEXT PRIMARY KEY,
-    lectureId TEXT NOT NULL,
-    association TEXT NOT NULL DEFAULT '',
-    "order" INTEGER NOT NULL,
-    FOREIGN KEY (lectureId) REFERENCES lectures(id) ON DELETE CASCADE
-  )
-`);
-
-db.exec(`
-  CREATE TABLE IF NOT EXISTS questions (
-    id TEXT PRIMARY KEY,
-    chapterId TEXT NOT NULL,
-    question TEXT NOT NULL,
-    answer TEXT NOT NULL DEFAULT '',
-    "order" INTEGER NOT NULL,
-    FOREIGN KEY (chapterId) REFERENCES chapters(id) ON DELETE CASCADE
-  )
-`);

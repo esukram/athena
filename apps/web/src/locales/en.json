@@ -11,7 +11,8 @@
     "previous": "Previous",
     "next": "Next",
     "search": "Search",
-    "untitled": "Untitled"
+    "untitled": "Untitled",
+    "saving": "Saving..."
   },
   "header": {
     "addLecture": "Add Lecture"
