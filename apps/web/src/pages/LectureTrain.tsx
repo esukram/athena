@@ -347,7 +347,10 @@ export const LectureTrain = () => {
                                 : t('lectureTrain.annotate')
                             }
                           >
-                            <span className="text-lg">🦉</span>
+                            <span className={`text-lg ${
+                              // @ts-ignore
+                              question.isAnnotated ? '' : 'grayscale'
+                            }`}>🦉</span>
                           </button>
                           <Accordion title={question.question}>
                             {question.answer ? (
