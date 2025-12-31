@@ -3,5 +3,3 @@ import path from 'path';
 
 const dbDir = process.env.DB_PATH || path.join(process.cwd(), '../../');
 export const db: DatabaseType = new Database(dbDir + '/athena.db');
-
-
