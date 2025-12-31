@@ -334,11 +334,11 @@ export const LectureTrain = () => {
                                 isAnnotated: !question.isAnnotated,
                               });
                             }}
-                            className={`absolute top-2 left-2 z-10 p-1 rounded-full transition-colors ${
+                            className={`absolute top-1 left-1 z-10 p-1 rounded-full transition-all hover:scale-110 ${
                               // @ts-ignore
                               question.isAnnotated
-                                ? 'bg-primary-100 text-primary-700'
-                                : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
+                                ? ''
+                                : 'opacity-50 hover:opacity-100'
                             }`}
                             title={
                               // @ts-ignore
