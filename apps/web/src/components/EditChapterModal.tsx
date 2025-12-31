@@ -130,6 +130,28 @@ export const EditChapterModal = ({
     onSave();
   };
 
+  const handleAnswerKeyDown = (
+    e: React.KeyboardEvent<HTMLTextAreaElement>,
+    index: number,
+    currentAnswer: string,
+  ) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      const textarea = e.currentTarget;
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const value = currentAnswer || '';
+      const newValue =
+        value.substring(0, start) + '\n\n' + value.substring(end);
+
+      onUpdateQuestion(index, { answer: newValue });
+
+      setTimeout(() => {
+        textarea.selectionStart = textarea.selectionEnd = start + 2;
+      }, 0);
+    }
+  };
+
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col">
@@ -297,6 +319,9 @@ export const EditChapterModal = ({
                               onUpdateQuestion(index, {
                                 answer: e.target.value,
                               })
+                            }
+                            onKeyDown={(e) =>
+                              handleAnswerKeyDown(e, index, eq.answer)
                             }
                             rows={8}
                             className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none font-mono text-sm resize-none"
