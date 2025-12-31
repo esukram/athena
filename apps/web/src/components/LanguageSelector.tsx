@@ -2,6 +2,9 @@ import { useTranslation } from 'react-i18next';
 
 import { useEffect, useRef, useState } from 'react';
 
+import flagDe from '../../assets/flags/de.svg';
+import flagGb from '../../assets/flags/gb.svg';
+
 type Language = 'de' | 'en';
 
 interface LanguageOption {
@@ -11,8 +14,8 @@ interface LanguageOption {
 }
 
 const languages: LanguageOption[] = [
-  { code: 'de', flag: '/flags/de.svg', label: 'language.german' },
-  { code: 'en', flag: '/flags/gb.svg', label: 'language.english' },
+  { code: 'de', flag: flagDe, label: 'language.german' },
+  { code: 'en', flag: flagGb, label: 'language.english' },
 ];
 
 export const LanguageSelector = () => {
