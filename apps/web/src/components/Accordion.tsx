@@ -26,14 +26,22 @@ export const Accordion: React.FC<AccordionProps> = ({
 
   return (
     <div className="rounded-xl shadow-md bg-surface-container overflow-hidden">
-      <button
+      <div
+        role="button"
+        tabIndex={0}
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-start justify-between p-6 text-left"
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            setIsOpen(!isOpen);
+          }
+        }}
+        className="w-full flex items-start justify-between p-6 text-left cursor-pointer"
       >
         <div className="flex-1">
           <h1 className="text-2xl font-bold text-on-background mb-2">
           {leftIcon && (
-            <span>{leftIcon}</span>
+            <span onClick={(e) => e.stopPropagation()}>{leftIcon}</span>
           )}
             {title}
           </h1>
@@ -56,7 +64,7 @@ export const Accordion: React.FC<AccordionProps> = ({
         <div className="ml-4 mt-2 text-on-surface-variant">
           {isOpen ? <ChevronUp size={24} /> : <ChevronDown size={24} />}
         </div>
-      </button>
+      </div>
 
       {isOpen && (
         <div className="px-6 pb-6 bg-surface-container text-on-surface text-base">
