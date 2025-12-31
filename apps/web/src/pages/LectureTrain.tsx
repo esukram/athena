@@ -45,7 +45,7 @@ export const LectureTrain = () => {
     { enabled: !!id },
   );
 
-  // Build a Set of chapter IDs that have annotated questions
+  // Build a Set of chapter IDs that have annotated questions (for owl display)
   const annotatedChapterIds = useMemo(() => {
     return new Set(annotatedChapterIdsQuery.data || []);
   }, [annotatedChapterIdsQuery.data]);
@@ -58,18 +58,33 @@ export const LectureTrain = () => {
     }
   }
 
-  // Sort chapters: annotated questions first, then by original order
-  const sortedChapters = useMemo(() => {
-    return [...chapters].sort((a, b) => {
-      const aAnnotated = annotatedChapterIds.has(a.id) ? 1 : 0;
-      const bAnnotated = annotatedChapterIds.has(b.id) ? 1 : 0;
-      // Sort annotated first (descending), then by original order (ascending)
-      if (bAnnotated !== aAnnotated) {
-        return bAnnotated - aAnnotated;
-      }
-      return a.order - b.order;
-    });
-  }, [chapters, annotatedChapterIds]);
+
+  // Track which lecture has been sorted to preserve order during annotation toggles
+  const sortedLectureIdRef = useRef<string | null>(null);
+  const [sortedChapters, setSortedChapters] = useState<typeof chapters>([]);
+
+  // Sort chapters only on initial load for each lecture
+  useEffect(() => {
+    // Only sort when we have data and haven't sorted this lecture yet
+    if (
+      chapters.length > 0 &&
+      annotatedChapterIdsQuery.data !== undefined &&
+      sortedLectureIdRef.current !== id
+    ) {
+      const initialAnnotatedSet = new Set(annotatedChapterIdsQuery.data);
+      const sorted = [...chapters].sort((a, b) => {
+        const aAnnotated = initialAnnotatedSet.has(a.id) ? 1 : 0;
+        const bAnnotated = initialAnnotatedSet.has(b.id) ? 1 : 0;
+        // Sort annotated first (descending), then by original order (ascending)
+        if (bAnnotated !== aAnnotated) {
+          return bAnnotated - aAnnotated;
+        }
+        return a.order - b.order;
+      });
+      setSortedChapters(sorted);
+      sortedLectureIdRef.current = id!;
+    }
+  }, [id, chapters, annotatedChapterIdsQuery.data]);
 
   // Set selected chapter based on URL chapterId parameter
   useEffect(() => {
