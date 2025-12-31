@@ -98,18 +98,22 @@ export const EditLecture = () => {
 
   const chapters = chaptersQuery.data || [];
 
-  // Fetch first question for each chapter (must be before early returns)
-  const firstQuestionsQueries = trpc.useQueries((t) =>
-    chapters.map((chapter) =>
-      t.questions.getFirstQuestion({ chapterId: chapter.id }),
-    ),
-  );
+  // Fetch all first questions for this lecture in a single call
+  const firstQuestionsQuery =
+    trpc.questions.getFirstQuestionsByLecture.useQuery(
+      { lectureId: id! },
+      { enabled: !!id },
+    );
 
   // Build a map of chapterId -> firstQuestion
   const firstQuestionMap = new Map<string, Question | undefined>();
-  chapters.forEach((chapter, index) => {
-    firstQuestionMap.set(chapter.id, firstQuestionsQueries[index]?.data);
-  });
+  if (firstQuestionsQuery.data) {
+    for (const [chapterId, question] of Object.entries(
+      firstQuestionsQuery.data,
+    )) {
+      firstQuestionMap.set(chapterId, question);
+    }
+  }
 
   const updateLecture = trpc.lectures.updateLecture.useMutation({
     onSuccess: () => {
@@ -136,9 +140,7 @@ export const EditLecture = () => {
       utils.questions.getQuestions.invalidate({
         chapterId: editingChapter?.id || '',
       });
-      utils.questions.getFirstQuestion.invalidate({
-        chapterId: editingChapter?.id || '',
-      });
+      utils.questions.getFirstQuestionsByLecture.invalidate({ lectureId: id! });
     },
   });
 
@@ -148,9 +150,7 @@ export const EditLecture = () => {
       utils.questions.getQuestions.invalidate({
         chapterId: editingChapter?.id || '',
       });
-      utils.questions.getFirstQuestion.invalidate({
-        chapterId: editingChapter?.id || '',
-      });
+      utils.questions.getFirstQuestionsByLecture.invalidate({ lectureId: id! });
     },
   });
 
@@ -160,9 +160,7 @@ export const EditLecture = () => {
       utils.questions.getQuestions.invalidate({
         chapterId: editingChapter?.id || '',
       });
-      utils.questions.getFirstQuestion.invalidate({
-        chapterId: editingChapter?.id || '',
-      });
+      utils.questions.getFirstQuestionsByLecture.invalidate({ lectureId: id! });
     },
   });
 
@@ -281,7 +279,9 @@ export const EditLecture = () => {
     await Promise.all(mutationPromises);
 
     // Invalidate first question query for this chapter to update the list
-    await utils.questions.getFirstQuestion.invalidate({ chapterId });
+    await utils.questions.getFirstQuestionsByLecture.invalidate({
+      lectureId: id!,
+    });
 
     // Close modal after saving
     handleCancelEdit();
@@ -493,9 +493,7 @@ export const EditLecture = () => {
 
             {/* Chapters List */}
             <div className="space-y-3">
-              {chaptersQuery.isLoading ||
-              (chapters.length > 0 &&
-                firstQuestionsQueries.some((q) => q.isLoading)) ? (
+              {chaptersQuery.isLoading || firstQuestionsQuery.isLoading ? (
                 <p className="text-on-surface-variant">
                   {t('lectureEdit.loadingChapters')}
                 </p>

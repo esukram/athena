@@ -32,7 +32,10 @@ export default function App() {
             <Route path="/" element={<Overview />} />
             <Route path="/add-lecture" element={<AddLecture />} />
             <Route path="/edit/:id" element={<EditLecture />} />
-            <Route path="/train/:id/:chapterId?" element={<LectureTrain />} />
+            <Route
+              path="/train/:id/:chapterId?/:questionId?"
+              element={<LectureTrain />}
+            />
             <Route path="/learn/:id/:chapterId?" element={<LectureLearn />} />
           </Routes>
         </HashRouter>

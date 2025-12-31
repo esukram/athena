@@ -27,6 +27,8 @@ export interface ChapterRepository {
 export interface QuestionRepository {
   getByChapterId: (chapterId: string) => Question[];
   getFirstByChapterId: (chapterId: string) => Question | undefined;
+  getFirstByLectureId: (lectureId: string) => Record<string, Question>;
+  getAnnotatedChapterIdsByLecture: (lectureId: string) => string[];
   create: (question: Omit<Question, 'id'>) => Question;
   update: (
     id: string,

@@ -17,4 +17,5 @@ export interface Question {
   question: string;
   answer: string;
   order: number;
+  isAnnotated: boolean;
 }

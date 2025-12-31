@@ -34,18 +34,22 @@ export const LectureLearn = () => {
 
   const chapters = chaptersQuery.data || [];
 
-  // Fetch first question for each chapter
-  const firstQuestionsQueries = trpc.useQueries((t) =>
-    chapters.map((chapter) =>
-      t.questions.getFirstQuestion({ chapterId: chapter.id }),
-    ),
-  );
+  // Fetch all first questions for this lecture in a single call
+  const firstQuestionsQuery =
+    trpc.questions.getFirstQuestionsByLecture.useQuery(
+      { lectureId: id! },
+      { enabled: !!id },
+    );
 
   // Build a map of chapterId -> firstQuestion
   const firstQuestionMap = new Map<string, Question | undefined>();
-  chapters.forEach((chapter, index) => {
-    firstQuestionMap.set(chapter.id, firstQuestionsQueries[index]?.data);
-  });
+  if (firstQuestionsQuery.data) {
+    for (const [chapterId, question] of Object.entries(
+      firstQuestionsQuery.data,
+    )) {
+      firstQuestionMap.set(chapterId, question);
+    }
+  }
 
   // Set selected chapter based on URL chapterId parameter
   useEffect(() => {

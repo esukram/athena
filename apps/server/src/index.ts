@@ -17,8 +17,8 @@ import {
   createContext,
 } from '@athena/api';
 
-import { runMigrations } from './migration.js';
 import { db } from './db.js';
+import { runMigrations } from './migration.js';
 
 function createLectureRepository(): LectureRepository {
   return {
@@ -165,16 +165,47 @@ function createQuestionRepository(): QuestionRepository {
         )
         .get(chapterId) as Question | undefined;
     },
+    getFirstByLectureId: (lectureId: string): Record<string, Question> => {
+      // Get all chapters for this lecture, then get first question for each
+      const rows = db
+        .prepare(
+          `SELECT q.* FROM questions q
+           INNER JOIN (
+             SELECT chapterId, MIN("order") as minOrder
+             FROM questions
+             WHERE chapterId IN (SELECT id FROM chapters WHERE lectureId = ?)
+             GROUP BY chapterId
+           ) first ON q.chapterId = first.chapterId AND q."order" = first.minOrder`,
+        )
+        .all(lectureId) as Question[];
+
+      const result: Record<string, Question> = {};
+      for (const question of rows) {
+        result[question.chapterId] = question;
+      }
+      return result;
+    },
+    getAnnotatedChapterIdsByLecture: (lectureId: string): string[] => {
+      const rows = db
+        .prepare(
+          `SELECT DISTINCT q.chapterId FROM questions q
+           INNER JOIN chapters c ON q.chapterId = c.id
+           WHERE c.lectureId = ? AND q.isAnnotated = 1`,
+        )
+        .all(lectureId) as { chapterId: string }[];
+      return rows.map((row) => row.chapterId);
+    },
     create: (question: Omit<Question, 'id'>): Question => {
       const id = crypto.randomUUID();
       db.prepare(
-        'INSERT INTO questions (id, chapterId, question, answer, "order") VALUES (?, ?, ?, ?, ?)',
+        'INSERT INTO questions (id, chapterId, question, answer, "order", isAnnotated) VALUES (?, ?, ?, ?, ?, ?)',
       ).run(
         id,
         question.chapterId,
         question.question,
         question.answer,
         question.order,
+        question.isAnnotated ? 1 : 0,
       );
       return { id, ...question };
     },
@@ -188,8 +219,19 @@ function createQuestionRepository(): QuestionRepository {
       if (!existing) return undefined;
       const updated = { ...existing, ...question };
       db.prepare(
-        'UPDATE questions SET question = ?, answer = ?, "order" = ? WHERE id = ?',
-      ).run(updated.question, updated.answer, updated.order, id);
+        'UPDATE questions SET question = ?, answer = ?, "order" = ?, isAnnotated = ? WHERE id = ?',
+      ).run(
+        updated.question,
+        updated.answer,
+        updated.order,
+        // Ensure boolean/number compatibility
+        question.isAnnotated !== undefined
+          ? question.isAnnotated
+            ? 1
+            : 0
+          : existing.isAnnotated,
+        id,
+      );
       return updated;
     },
     delete: (id: string): boolean => {

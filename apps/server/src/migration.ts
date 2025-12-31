@@ -67,6 +67,28 @@ export function runMigrations(db: Database) {
         )
       `);
     },
+    // Migration 2: Add isAnnotated to questions
+    (db: Database) => {
+      db.prepare(
+        'ALTER TABLE questions ADD COLUMN isAnnotated INTEGER NOT NULL DEFAULT 0',
+      ).run();
+    },
+    // Migration 3: Add indices for optimization
+    (db: Database) => {
+      db.exec(`
+        CREATE INDEX IF NOT EXISTS idx_chapters_lectureId ON chapters(lectureId);
+        CREATE INDEX IF NOT EXISTS idx_questions_chapterId_order ON questions(chapterId, "order");
+      `);
+      // Optimize chapter sorting
+      db.exec(`
+        DROP INDEX IF EXISTS idx_chapters_lectureId;
+        CREATE INDEX IF NOT EXISTS idx_chapters_lectureId_order ON chapters(lectureId, "order");
+      `);
+      // Add index for associations
+      db.exec(`
+        CREATE INDEX IF NOT EXISTS idx_chapters_association ON chapters(association);
+      `);
+    },
   ];
 
   for (let i = currentVersion; i < migrations.length; i++) {
