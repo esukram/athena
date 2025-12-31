@@ -378,7 +378,7 @@ export const EditChapterModal = ({
             title={`${t('common.save')} (Ctrl+Enter)`}
             className="min-w-[7rem] px-4 py-2 bg-primary-600 hover:bg-primary-700 disabled:bg-primary-400 text-white font-medium rounded-lg transition-colors"
           >
-            {isSaving ? t('common.loading') : t('common.save')}
+            {isSaving ? t('common.saving') : t('common.save')}
           </button>
         </div>
       </div>

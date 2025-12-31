@@ -11,7 +11,8 @@
     "previous": "Zurück",
     "next": "Weiter",
     "search": "Suchen",
-    "untitled": "Ohne Titel"
+    "untitled": "Ohne Titel",
+    "saving": "Wird gespeichert..."
   },
   "header": {
     "addLecture": "Fach hinzufügen"
