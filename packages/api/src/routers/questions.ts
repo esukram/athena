@@ -18,6 +18,11 @@ export const questionsRouter = router({
     .query(({ ctx, input }) => {
       return ctx.questionRepository.getFirstByLectureId(input.lectureId);
     }),
+  getAnnotatedChapterIdsByLecture: publicProcedure
+    .input(z.object({ lectureId: z.string() }))
+    .query(({ ctx, input }) => {
+      return ctx.questionRepository.getAnnotatedChapterIdsByLecture(input.lectureId);
+    }),
   createQuestion: publicProcedure
     .input(
       z.object({

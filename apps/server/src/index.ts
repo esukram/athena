@@ -185,6 +185,16 @@ function createQuestionRepository(): QuestionRepository {
       }
       return result;
     },
+    getAnnotatedChapterIdsByLecture: (lectureId: string): string[] => {
+      const rows = db
+        .prepare(
+          `SELECT DISTINCT q.chapterId FROM questions q
+           INNER JOIN chapters c ON q.chapterId = c.id
+           WHERE c.lectureId = ? AND q.isAnnotated = 1`,
+        )
+        .all(lectureId) as { chapterId: string }[];
+      return rows.map((row) => row.chapterId);
+    },
     create: (question: Omit<Question, 'id'>): Question => {
       const id = crypto.randomUUID();
       db.prepare(

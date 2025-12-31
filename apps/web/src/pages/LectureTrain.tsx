@@ -39,6 +39,17 @@ export const LectureTrain = () => {
     { enabled: !!id },
   );
 
+  // Fetch chapter IDs that have any annotated questions
+  const annotatedChapterIdsQuery = trpc.questions.getAnnotatedChapterIdsByLecture.useQuery(
+    { lectureId: id! },
+    { enabled: !!id },
+  );
+
+  // Build a Set of chapter IDs that have annotated questions
+  const annotatedChapterIds = useMemo(() => {
+    return new Set(annotatedChapterIdsQuery.data || []);
+  }, [annotatedChapterIdsQuery.data]);
+
   // Build a map of chapterId -> firstQuestion
   const firstQuestionMap = new Map<string, Question | undefined>();
   if (firstQuestionsQuery.data) {
@@ -50,15 +61,15 @@ export const LectureTrain = () => {
   // Sort chapters: annotated questions first, then by original order
   const sortedChapters = useMemo(() => {
     return [...chapters].sort((a, b) => {
-      const aAnnotated = firstQuestionMap.get(a.id)?.isAnnotated ? 1 : 0;
-      const bAnnotated = firstQuestionMap.get(b.id)?.isAnnotated ? 1 : 0;
+      const aAnnotated = annotatedChapterIds.has(a.id) ? 1 : 0;
+      const bAnnotated = annotatedChapterIds.has(b.id) ? 1 : 0;
       // Sort annotated first (descending), then by original order (ascending)
       if (bAnnotated !== aAnnotated) {
         return bAnnotated - aAnnotated;
       }
       return a.order - b.order;
     });
-  }, [chapters, firstQuestionMap]);
+  }, [chapters, annotatedChapterIds]);
 
   // Set selected chapter based on URL chapterId parameter
   useEffect(() => {
@@ -164,6 +175,9 @@ export const LectureTrain = () => {
     onSuccess: () => {
       utils.questions.getQuestions.invalidate({
         chapterId: currentChapter?.id,
+      });
+      utils.questions.getAnnotatedChapterIdsByLecture.invalidate({
+        lectureId: id,
       });
     },
   });
@@ -315,7 +329,7 @@ export const LectureTrain = () => {
                               ? highlightMatches(displayText, searchQuery)
                               : displayText;
                           })()}
-                          {firstQuestionMap.get(chapter.id)?.isAnnotated ? (
+                          {annotatedChapterIds.has(chapter.id) ? (
                             <span className="ml-1">🦉</span>
                           ) : null}
                         </span>
