@@ -8,6 +8,7 @@ interface AccordionProps {
   description?: string;
   children?: ReactNode;
   leftIcon?: ReactNode;
+  noShadow?: boolean;
 }
 
 export const Accordion: React.FC<AccordionProps> = ({
@@ -15,6 +16,7 @@ export const Accordion: React.FC<AccordionProps> = ({
   description = '',
   children,
   leftIcon,
+  noShadow = false,
 }) => {
   const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
@@ -25,7 +27,7 @@ export const Accordion: React.FC<AccordionProps> = ({
       : description;
 
   return (
-    <div className="rounded-xl shadow-md bg-surface-container overflow-hidden">
+    <div className={`rounded-xl bg-surface-container overflow-hidden ${noShadow ? '' : 'shadow-md'}`}>
       <div
         role="button"
         tabIndex={0}

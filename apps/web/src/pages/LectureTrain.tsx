@@ -438,6 +438,7 @@ export const LectureTrain = () => {
                             </div>
                             <Accordion
                               title={question.question}
+                              noShadow
                               leftIcon={
                                 <button
                                   onClick={(e) => {
