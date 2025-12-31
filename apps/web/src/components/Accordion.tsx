@@ -7,12 +7,14 @@ interface AccordionProps {
   title: string;
   description?: string;
   children?: ReactNode;
+  leftIcon?: ReactNode;
 }
 
 export const Accordion: React.FC<AccordionProps> = ({
   title,
   description = '',
   children,
+  leftIcon,
 }) => {
   const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
@@ -28,6 +30,9 @@ export const Accordion: React.FC<AccordionProps> = ({
         onClick={() => setIsOpen(!isOpen)}
         className="w-full flex items-start justify-between p-6 text-left"
       >
+        {leftIcon && (
+          <div className="mr-1 shrink-0">{leftIcon}</div>
+        )}
         <div className="flex-1">
           <h1 className="text-2xl font-bold text-on-background mb-2">
             {title}

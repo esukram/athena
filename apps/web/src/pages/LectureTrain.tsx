@@ -325,45 +325,49 @@ export const LectureTrain = () => {
                   {currentChapterQuestions.length > 0 ? (
                     <div className="space-y-4">
                       {currentChapterQuestions.map((question) => (
-                        <div key={question.id} className="relative">
-                          <button
-                            onClick={() => {
-                              updateQuestion.mutate({
-                                id: question.id,
-                                // @ts-ignore
-                                isAnnotated: !question.isAnnotated,
-                              });
-                            }}
-                            className={`absolute top-1 left-1 z-10 p-1 rounded-full transition-all hover:scale-110 ${
-                              // @ts-ignore
-                              question.isAnnotated
-                                ? ''
-                                : 'opacity-50 hover:opacity-100'
-                            }`}
-                            title={
-                              // @ts-ignore
-                              question.isAnnotated
-                                ? t('lectureTrain.annotated')
-                                : t('lectureTrain.annotate')
-                            }
-                          >
-                            <span className={`text-lg ${
-                              // @ts-ignore
-                              question.isAnnotated ? '' : 'grayscale'
-                            }`}>🦉</span>
-                          </button>
-                          <Accordion title={question.question}>
-                            {question.answer ? (
-                              <div className="prose prose-lg max-w-none">
-                                <ReactMarkdown>{question.answer}</ReactMarkdown>
-                              </div>
-                            ) : (
-                              <p className="text-on-surface-variant italic">
-                                {t('lectureTrain.noAnswerYet')}
-                              </p>
-                            )}
-                          </Accordion>
-                        </div>
+                        <Accordion
+                          key={question.id}
+                          title={question.question}
+                          leftIcon={
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                updateQuestion.mutate({
+                                  id: question.id,
+                                  isAnnotated: !question.isAnnotated,
+                                });
+                              }}
+                              className={`p-1 rounded-full transition-all hover:scale-110 ${
+                                question.isAnnotated
+                                  ? ''
+                                  : 'opacity-50 hover:opacity-100'
+                              }`}
+                              title={
+                                question.isAnnotated
+                                  ? t('lectureTrain.annotated')
+                                  : t('lectureTrain.annotate')
+                              }
+                            >
+                              <span
+                                className={`text-xl ${
+                                  question.isAnnotated ? '' : 'grayscale'
+                                }`}
+                              >
+                                🦉
+                              </span>
+                            </button>
+                          }
+                        >
+                          {question.answer ? (
+                            <div className="prose prose-lg max-w-none">
+                              <ReactMarkdown>{question.answer}</ReactMarkdown>
+                            </div>
+                          ) : (
+                            <p className="text-on-surface-variant italic">
+                              {t('lectureTrain.noAnswerYet')}
+                            </p>
+                          )}
+                        </Accordion>
                       ))}
                     </div>
                   ) : (
