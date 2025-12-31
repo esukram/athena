@@ -286,9 +286,9 @@ export const LectureTrain = () => {
     <div className="min-h-screen bg-background">
       <AppHeader />
 
-      <main className="container mx-auto px-4 py-8 md:py-12">
+      <main className="container mx-auto px-4 py-4 md:py-12">
         {/* Lecture Header */}
-        <div className="mb-8">
+        <div className="mb-4 lg:mb-8">
           <button
             onClick={() => navigate('/')}
             className="text-primary-600 hover:text-primary-700 text-sm mb-4 flex items-center gap-1"
@@ -324,7 +324,7 @@ export const LectureTrain = () => {
             </button>
           </div>
         ) : (
-          <div className="grid gap-8 lg:grid-cols-[280px_1fr]">
+          <div className="grid gap-4 lg:gap-8 lg:grid-cols-[280px_1fr]">
             {/* Chapter Navigation */}
             <div className="min-w-0 overflow-hidden bg-surface-container-low rounded-xl shadow-md p-4 h-fit lg:sticky lg:top-8">
               <div className="flex items-center justify-between mb-4">
