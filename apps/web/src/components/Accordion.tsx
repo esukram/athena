@@ -30,20 +30,20 @@ export const Accordion: React.FC<AccordionProps> = ({
         onClick={() => setIsOpen(!isOpen)}
         className="w-full flex items-start justify-between p-6 text-left"
       >
-        {leftIcon && (
-          <div className="mr-1 shrink-0">{leftIcon}</div>
-        )}
         <div className="flex-1">
           <h1 className="text-2xl font-bold text-on-background mb-2">
+          {leftIcon && (
+            <span>{leftIcon}</span>
+          )}
             {title}
           </h1>
           {!isOpen && (
-            <p className="text-on-surface-variant text-base mt-2">
+            <p className="text-on-surface-variant text-base mt-2 clear-left">
               {shortDescription}
             </p>
           )}
           {isOpen && (
-            <p className="text-primary font-medium text-sm mt-1">
+            <p className="text-primary font-medium text-sm mt-1 clear-left">
               {t('accordion.showLess')}
             </p>
           )}

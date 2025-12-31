@@ -291,7 +291,7 @@ export const LectureTrain = () => {
                             : 'text-on-surface hover:bg-gray-100'
                         }`}
                       >
-                        <span className="text-sm break-words">
+                        <span className="text-sm wrap-break-words">
                           {chapter.order + 1}.{' '}
                           {(() => {
                             const firstQ = firstQuestionMap.get(chapter.id);
