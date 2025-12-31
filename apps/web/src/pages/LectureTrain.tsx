@@ -47,11 +47,24 @@ export const LectureTrain = () => {
     }
   }
 
+  // Sort chapters: annotated questions first, then by original order
+  const sortedChapters = useMemo(() => {
+    return [...chapters].sort((a, b) => {
+      const aAnnotated = firstQuestionMap.get(a.id)?.isAnnotated ? 1 : 0;
+      const bAnnotated = firstQuestionMap.get(b.id)?.isAnnotated ? 1 : 0;
+      // Sort annotated first (descending), then by original order (ascending)
+      if (bAnnotated !== aAnnotated) {
+        return bAnnotated - aAnnotated;
+      }
+      return a.order - b.order;
+    });
+  }, [chapters, firstQuestionMap]);
+
   // Set selected chapter based on URL chapterId parameter
   useEffect(() => {
-    if (chapters.length > 0) {
+    if (sortedChapters.length > 0) {
       if (chapterId) {
-        const index = chapters.findIndex((c) => c.id === chapterId);
+        const index = sortedChapters.findIndex((c) => c.id === chapterId);
         if (index !== -1) {
           setSelectedChapterIndex(index);
         }
@@ -59,18 +72,18 @@ export const LectureTrain = () => {
         setSelectedChapterIndex(0);
       }
     }
-  }, [chapterId, chapters]);
+  }, [chapterId, sortedChapters]);
 
   // Tokenized search filter
   const filteredChapters = useMemo(() => {
-    if (!searchQuery.trim()) return chapters;
+    if (!searchQuery.trim()) return sortedChapters;
     const tokens = searchQuery.toLowerCase().split(/\s+/).filter(Boolean);
-    return chapters.filter((chapter) => {
+    return sortedChapters.filter((chapter) => {
       const firstQuestion = firstQuestionMap.get(chapter.id);
       const questionText = (firstQuestion?.question || '').toLowerCase();
       return tokens.every((token) => questionText.includes(token));
     });
-  }, [chapters, searchQuery, firstQuestionMap]);
+  }, [sortedChapters, searchQuery, firstQuestionMap]);
 
   // Highlight matching tokens in text
   const highlightMatches = (text: string, query: string) => {
@@ -123,23 +136,23 @@ export const LectureTrain = () => {
 
       if (event.key === 'ArrowRight') {
         const nextIndex = selectedChapterIndex + 1;
-        if (nextIndex < chapters.length) {
-          navigate(`/train/${id}/${chapters[nextIndex].id}`);
+        if (nextIndex < sortedChapters.length) {
+          navigate(`/train/${id}/${sortedChapters[nextIndex].id}`);
         }
       } else if (event.key === 'ArrowLeft') {
         const prevIndex = selectedChapterIndex - 1;
         if (prevIndex >= 0) {
-          navigate(`/train/${id}/${chapters[prevIndex].id}`);
+          navigate(`/train/${id}/${sortedChapters[prevIndex].id}`);
         }
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [chapters, selectedChapterIndex, id, navigate]);
+  }, [sortedChapters, selectedChapterIndex, id, navigate]);
 
   // Fetch all questions for the current chapter
-  const currentChapter = chapters[selectedChapterIndex];
+  const currentChapter = sortedChapters[selectedChapterIndex];
   const currentChapterQuestionsQuery = trpc.questions.getQuestions.useQuery(
     { chapterId: currentChapter?.id || '' },
     { enabled: !!currentChapter?.id },
@@ -264,7 +277,7 @@ export const LectureTrain = () => {
                 </div>
               )}
               <nav
-                className={`space-y-1 ${chapters.length > 10 ? 'max-h-96 overflow-y-auto' : ''}`}
+                className={`space-y-1 ${sortedChapters.length > 10 ? 'max-h-96 overflow-y-auto' : ''}`}
               >
                 {filteredChapters.length === 0 ? (
                   <p className="text-sm text-on-surface-variant italic px-3 py-2">
@@ -272,7 +285,7 @@ export const LectureTrain = () => {
                   </p>
                 ) : (
                   filteredChapters.map((chapter) => {
-                    const originalIndex = chapters.findIndex(
+                    const originalIndex = sortedChapters.findIndex(
                       (c) => c.id === chapter.id,
                     );
                     return (
@@ -302,6 +315,9 @@ export const LectureTrain = () => {
                               ? highlightMatches(displayText, searchQuery)
                               : displayText;
                           })()}
+                          {firstQuestionMap.get(chapter.id)?.isAnnotated ? (
+                            <span className="ml-1">🦉</span>
+                          ) : null}
                         </span>
                       </button>
                     );
@@ -382,7 +398,7 @@ export const LectureTrain = () => {
                     <button
                       onClick={() =>
                         navigate(
-                          `/train/${id}/${chapters[selectedChapterIndex - 1].id}`,
+                          `/train/${id}/${sortedChapters[selectedChapterIndex - 1].id}`,
                         )
                       }
                       disabled={selectedChapterIndex === 0}
@@ -406,10 +422,10 @@ export const LectureTrain = () => {
                     <button
                       onClick={() =>
                         navigate(
-                          `/train/${id}/${chapters[selectedChapterIndex + 1].id}`,
+                          `/train/${id}/${sortedChapters[selectedChapterIndex + 1].id}`,
                         )
                       }
-                      disabled={selectedChapterIndex === chapters.length - 1}
+                      disabled={selectedChapterIndex === sortedChapters.length - 1}
                       className="px-4 py-2 text-primary-600 hover:bg-primary-50 disabled:text-gray-400 disabled:hover:bg-transparent rounded-lg transition-colors flex items-center gap-2"
                     >
                       {t('common.next')}
