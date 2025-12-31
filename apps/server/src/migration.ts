@@ -67,6 +67,12 @@ export function runMigrations(db: Database) {
         )
       `);
     },
+    // Migration 2: Add isAnnotated to questions
+    (db: Database) => {
+      db.prepare(
+        'ALTER TABLE questions ADD COLUMN isAnnotated INTEGER NOT NULL DEFAULT 0',
+      ).run();
+    },
   ];
 
   for (let i = currentVersion; i < migrations.length; i++) {

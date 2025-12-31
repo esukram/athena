@@ -23,7 +23,7 @@ export const questionsRouter = router({
       }),
     )
     .mutation(({ ctx, input }) => {
-      return ctx.questionRepository.create(input);
+      return ctx.questionRepository.create({ ...input, isAnnotated: false });
     }),
   updateQuestion: publicProcedure
     .input(
@@ -32,6 +32,7 @@ export const questionsRouter = router({
         question: z.string().min(1).optional(),
         answer: z.string().optional(),
         order: z.number().int().min(0).optional(),
+        isAnnotated: z.boolean().optional(),
       }),
     )
     .mutation(({ ctx, input }) => {

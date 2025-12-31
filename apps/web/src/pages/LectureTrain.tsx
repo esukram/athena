@@ -145,6 +145,15 @@ export const LectureTrain = () => {
   );
   const currentChapterQuestions = currentChapterQuestionsQuery.data || [];
 
+  const utils = trpc.useContext();
+  const updateQuestion = trpc.questions.updateQuestion.useMutation({
+    onSuccess: () => {
+      utils.questions.getQuestions.invalidate({
+        chapterId: currentChapter?.id,
+      });
+    },
+  });
+
   if (lectureQuery.isLoading || chaptersQuery.isLoading) {
     return (
       <div className="min-h-screen bg-background">
@@ -316,17 +325,42 @@ export const LectureTrain = () => {
                   {currentChapterQuestions.length > 0 ? (
                     <div className="space-y-4">
                       {currentChapterQuestions.map((question) => (
-                        <Accordion key={question.id} title={question.question}>
-                          {question.answer ? (
-                            <div className="prose prose-lg max-w-none">
-                              <ReactMarkdown>{question.answer}</ReactMarkdown>
-                            </div>
-                          ) : (
-                            <p className="text-on-surface-variant italic">
-                              {t('lectureTrain.noAnswerYet')}
-                            </p>
-                          )}
-                        </Accordion>
+                        <div key={question.id} className="relative">
+                          <button
+                            onClick={() => {
+                              updateQuestion.mutate({
+                                id: question.id,
+                                // @ts-ignore
+                                isAnnotated: !question.isAnnotated,
+                              });
+                            }}
+                            className={`absolute top-2 left-2 z-10 p-1 rounded-full transition-colors ${
+                              // @ts-ignore
+                              question.isAnnotated
+                                ? 'bg-primary-100 text-primary-700'
+                                : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
+                            }`}
+                            title={
+                              // @ts-ignore
+                              question.isAnnotated
+                                ? t('lectureTrain.annotated')
+                                : t('lectureTrain.annotate')
+                            }
+                          >
+                            <span className="text-lg">🦉</span>
+                          </button>
+                          <Accordion title={question.question}>
+                            {question.answer ? (
+                              <div className="prose prose-lg max-w-none">
+                                <ReactMarkdown>{question.answer}</ReactMarkdown>
+                              </div>
+                            ) : (
+                              <p className="text-on-surface-variant italic">
+                                {t('lectureTrain.noAnswerYet')}
+                              </p>
+                            )}
+                          </Accordion>
+                        </div>
                       ))}
                     </div>
                   ) : (

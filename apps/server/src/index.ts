@@ -168,13 +168,14 @@ function createQuestionRepository(): QuestionRepository {
     create: (question: Omit<Question, 'id'>): Question => {
       const id = crypto.randomUUID();
       db.prepare(
-        'INSERT INTO questions (id, chapterId, question, answer, "order") VALUES (?, ?, ?, ?, ?)',
+        'INSERT INTO questions (id, chapterId, question, answer, "order", isAnnotated) VALUES (?, ?, ?, ?, ?, ?)',
       ).run(
         id,
         question.chapterId,
         question.question,
         question.answer,
         question.order,
+        question.isAnnotated ? 1 : 0,
       );
       return { id, ...question };
     },
@@ -188,8 +189,19 @@ function createQuestionRepository(): QuestionRepository {
       if (!existing) return undefined;
       const updated = { ...existing, ...question };
       db.prepare(
-        'UPDATE questions SET question = ?, answer = ?, "order" = ? WHERE id = ?',
-      ).run(updated.question, updated.answer, updated.order, id);
+        'UPDATE questions SET question = ?, answer = ?, "order" = ?, isAnnotated = ? WHERE id = ?',
+      ).run(
+        updated.question,
+        updated.answer,
+        updated.order,
+        // Ensure boolean/number compatibility
+        question.isAnnotated !== undefined
+          ? question.isAnnotated
+            ? 1
+            : 0
+          : existing.isAnnotated,
+        id,
+      );
       return updated;
     },
     delete: (id: string): boolean => {
