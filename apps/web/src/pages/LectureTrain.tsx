@@ -328,25 +328,36 @@ export const LectureTrain = () => {
                           }
                         }}
                         onClick={() => navigate(`/train/${id}/${chapter.id}`)}
-                        className={`w-full text-left px-3 py-2 rounded-lg transition-colors ${
+                        className={`w-full text-left px-3 py-2 rounded-lg transition-all duration-200 ${
+                          annotatedChapterIds.has(chapter.id)
+                            ? 'border-l-4 border-amber-400 bg-linear-to-r from-amber-50 to-transparent'
+                            : ''
+                        } ${
                           selectedChapterIndex === originalIndex
-                            ? 'bg-primary-100 text-primary-700 font-medium'
+                            ? 'bg-primary-100 text-primary-700 shadow-sm'
                             : 'text-on-surface hover:bg-gray-100'
                         }`}
                       >
-                        <span className="text-sm wrap-break-words">
-                          {chapter.order + 1}.{' '}
-                          {(() => {
-                            const firstQ = firstQuestionMap.get(chapter.id);
-                            const displayText =
-                              firstQ?.question || t('common.untitled');
-                            return searchQuery.trim()
-                              ? highlightMatches(displayText, searchQuery)
-                              : displayText;
-                          })()}
-                          {annotatedChapterIds.has(chapter.id) ? (
-                            <span className="ml-1">🦉</span>
-                          ) : null}
+                        <span className="text-sm wrap-break-words flex items-center gap-2">
+                          <span className="flex-1">
+                            {chapter.order + 1}.{' '}
+                            {(() => {
+                              const firstQ = firstQuestionMap.get(chapter.id);
+                              const displayText =
+                                firstQ?.question || t('common.untitled');
+                              return searchQuery.trim()
+                                ? highlightMatches(displayText, searchQuery)
+                                : displayText;
+                            })()}
+                          </span>
+                          {annotatedChapterIds.has(chapter.id) && (
+                            <span 
+                              className="shrink-0 text-amber-500" 
+                              title={t('lectureTrain.annotated')}
+                            >
+                              🦉
+                            </span>
+                          )}
                         </span>
                       </button>
                     );
