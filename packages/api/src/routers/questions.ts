@@ -13,6 +13,11 @@ export const questionsRouter = router({
     .query(({ ctx, input }) => {
       return ctx.questionRepository.getFirstByChapterId(input.chapterId);
     }),
+  getFirstQuestionsByLecture: publicProcedure
+    .input(z.object({ lectureId: z.string() }))
+    .query(({ ctx, input }) => {
+      return ctx.questionRepository.getFirstByLectureId(input.lectureId);
+    }),
   createQuestion: publicProcedure
     .input(
       z.object({

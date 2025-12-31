@@ -165,6 +165,26 @@ function createQuestionRepository(): QuestionRepository {
         )
         .get(chapterId) as Question | undefined;
     },
+    getFirstByLectureId: (lectureId: string): Record<string, Question> => {
+      // Get all chapters for this lecture, then get first question for each
+      const rows = db
+        .prepare(
+          `SELECT q.* FROM questions q
+           INNER JOIN (
+             SELECT chapterId, MIN("order") as minOrder
+             FROM questions
+             WHERE chapterId IN (SELECT id FROM chapters WHERE lectureId = ?)
+             GROUP BY chapterId
+           ) first ON q.chapterId = first.chapterId AND q."order" = first.minOrder`,
+        )
+        .all(lectureId) as Question[];
+
+      const result: Record<string, Question> = {};
+      for (const question of rows) {
+        result[question.chapterId] = question;
+      }
+      return result;
+    },
     create: (question: Omit<Question, 'id'>): Question => {
       const id = crypto.randomUUID();
       db.prepare(
