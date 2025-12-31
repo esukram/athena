@@ -135,7 +135,7 @@ export const EditChapterModal = ({
     index: number,
     currentAnswer: string,
   ) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === 'Enter' && !e.shiftKey && !e.ctrlKey && !e.metaKey) {
       e.preventDefault();
       const textarea = e.currentTarget;
       const start = textarea.selectionStart;
@@ -151,6 +151,31 @@ export const EditChapterModal = ({
       }, 0);
     }
   };
+
+  // Global keyboard shortcuts
+  useEffect(() => {
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      // Don't trigger if the event was already handled (e.g. by input suggestion selection)
+      if (e.defaultPrevented) return;
+
+      if (e.key === 'Escape') {
+        if (showSuggestions) {
+          setShowSuggestions(false);
+          setHighlightedIndex(-1);
+        } else {
+          onCancel();
+        }
+      } else if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+        if (canSave && !isSaving) {
+          e.preventDefault();
+          handleSave();
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleGlobalKeyDown);
+    return () => document.removeEventListener('keydown', handleGlobalKeyDown);
+  }, [showSuggestions, canSave, isSaving, onCancel, handleSave]);
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
@@ -342,6 +367,7 @@ export const EditChapterModal = ({
         <div className="p-6 border-t border-gray-200 flex gap-3 justify-end">
           <button
             onClick={onCancel}
+            title={`${t('common.cancel')} (Esc)`}
             className="min-w-[7rem] px-4 py-2 rounded-lg border border-gray-300 text-on-surface hover:bg-gray-50 transition-colors"
           >
             {t('common.cancel')}
@@ -349,6 +375,7 @@ export const EditChapterModal = ({
           <button
             onClick={handleSave}
             disabled={isSaving || !canSave}
+            title={`${t('common.save')} (Ctrl+Enter)`}
             className="min-w-[7rem] px-4 py-2 bg-primary-600 hover:bg-primary-700 disabled:bg-primary-400 text-white font-medium rounded-lg transition-colors"
           >
             {isSaving ? t('common.loading') : t('common.save')}
