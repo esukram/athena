@@ -68,7 +68,8 @@
     "noContentYet": "This chapter has no content yet.",
     "selectAChapter": "Select a chapter",
     "annotate": "Question not highlighted, click to highlight",
-    "annotated": "Question highlighted, click to unhighlight"
+    "annotated": "Question highlighted, click to unhighlight",
+    "questionProgress": "Question {{current}} of {{total}}"
   },
   "globalSearch": {
     "searchChapters": "Search chapters...",

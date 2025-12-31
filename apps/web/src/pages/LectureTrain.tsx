@@ -13,9 +13,10 @@ import { trpc } from '../utils/trpc';
 
 export const LectureTrain = () => {
   const { t } = useTranslation();
-  const { id, chapterId } = useParams<{ id: string; chapterId?: string }>();
+  const { id, chapterId, questionId } = useParams<{ id: string; chapterId?: string; questionId?: string }>();
   const navigate = useNavigate();
   const [selectedChapterIndex, setSelectedChapterIndex] = useState(0);
+  const [selectedQuestionIndex, setSelectedQuestionIndex] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -100,6 +101,30 @@ export const LectureTrain = () => {
     }
   }, [chapterId, sortedChapters]);
 
+  // Fetch all questions for the current chapter
+  const currentChapter = sortedChapters[selectedChapterIndex];
+  const currentChapterQuestionsQuery = trpc.questions.getQuestions.useQuery(
+    { chapterId: currentChapter?.id || '' },
+    { enabled: !!currentChapter?.id },
+  );
+  const currentChapterQuestions = currentChapterQuestionsQuery.data || [];
+
+  // Set selected question based on URL questionId parameter
+  useEffect(() => {
+    if (currentChapterQuestions.length > 0) {
+      if (questionId) {
+        const index = currentChapterQuestions.findIndex((q) => q.id === questionId);
+        if (index !== -1) {
+          setSelectedQuestionIndex(index);
+        } else {
+          setSelectedQuestionIndex(0);
+        }
+      } else {
+        setSelectedQuestionIndex(0);
+      }
+    }
+  }, [questionId, currentChapterQuestions]);
+
   // Tokenized search filter
   const filteredChapters = useMemo(() => {
     if (!searchQuery.trim()) return sortedChapters;
@@ -155,35 +180,65 @@ export const LectureTrain = () => {
     }
   }, [selectedChapterIndex]);
 
+  // Navigation helper functions
+  const navigateToQuestion = (chapterIndex: number, questionIndex: number, questions?: typeof currentChapterQuestions) => {
+    const chapter = sortedChapters[chapterIndex];
+    if (chapter && questions && questions[questionIndex]) {
+      navigate(`/train/${id}/${chapter.id}/${questions[questionIndex].id}`);
+    } else if (chapter) {
+      // Will load questions and default to first
+      navigate(`/train/${id}/${chapter.id}`);
+    }
+  };
+
+  const handleNextQuestion = () => {
+    if (selectedQuestionIndex < currentChapterQuestions.length - 1) {
+      // Next question in same chapter
+      navigateToQuestion(selectedChapterIndex, selectedQuestionIndex + 1, currentChapterQuestions);
+    } else if (selectedChapterIndex < sortedChapters.length - 1) {
+      // First question of next chapter
+      navigateToQuestion(selectedChapterIndex + 1, 0);
+    }
+  };
+
+  const handlePrevQuestion = () => {
+    if (selectedQuestionIndex > 0) {
+      // Previous question in same chapter
+      navigateToQuestion(selectedChapterIndex, selectedQuestionIndex - 1, currentChapterQuestions);
+    } else if (selectedChapterIndex > 0) {
+      // Last question of previous chapter - will be handled after fetch
+      const prevChapter = sortedChapters[selectedChapterIndex - 1];
+      navigate(`/train/${id}/${prevChapter.id}/__last__`);
+    }
+  };
+
+  // Handle __last__ special questionId to navigate to last question of a chapter
+  useEffect(() => {
+    if (questionId === '__last__' && currentChapterQuestions.length > 0) {
+      const lastQuestion = currentChapterQuestions[currentChapterQuestions.length - 1];
+      navigate(`/train/${id}/${currentChapter?.id}/${lastQuestion.id}`, { replace: true });
+    }
+  }, [questionId, currentChapterQuestions, id, currentChapter?.id, navigate]);
+
+  const isFirstQuestion = selectedChapterIndex === 0 && selectedQuestionIndex === 0;
+  const isLastQuestion = selectedChapterIndex === sortedChapters.length - 1 && 
+    selectedQuestionIndex === currentChapterQuestions.length - 1;
+
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       // Don't trigger navigation if search is focused
       if (document.activeElement === searchInputRef.current) return;
 
-      if (event.key === 'ArrowRight') {
-        const nextIndex = selectedChapterIndex + 1;
-        if (nextIndex < sortedChapters.length) {
-          navigate(`/train/${id}/${sortedChapters[nextIndex].id}`);
-        }
-      } else if (event.key === 'ArrowLeft') {
-        const prevIndex = selectedChapterIndex - 1;
-        if (prevIndex >= 0) {
-          navigate(`/train/${id}/${sortedChapters[prevIndex].id}`);
-        }
+      if (event.key === 'ArrowRight' && !isLastQuestion) {
+        handleNextQuestion();
+      } else if (event.key === 'ArrowLeft' && !isFirstQuestion) {
+        handlePrevQuestion();
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [sortedChapters, selectedChapterIndex, id, navigate]);
-
-  // Fetch all questions for the current chapter
-  const currentChapter = sortedChapters[selectedChapterIndex];
-  const currentChapterQuestionsQuery = trpc.questions.getQuestions.useQuery(
-    { chapterId: currentChapter?.id || '' },
-    { enabled: !!currentChapter?.id },
-  );
-  const currentChapterQuestions = currentChapterQuestionsQuery.data || [];
+  }, [sortedChapters, selectedChapterIndex, selectedQuestionIndex, currentChapterQuestions, id, navigate, isFirstQuestion, isLastQuestion]);
 
   const utils = trpc.useContext();
   const updateQuestion = trpc.questions.updateQuestion.useMutation({
@@ -350,14 +405,6 @@ export const LectureTrain = () => {
                                 : displayText;
                             })()}
                           </span>
-                          {annotatedChapterIds.has(chapter.id) && (
-                            <span 
-                              className="shrink-0 text-amber-500" 
-                              title={t('lectureTrain.annotated')}
-                            >
-                              🦉
-                            </span>
-                          )}
                         </span>
                       </button>
                     );
@@ -381,51 +428,59 @@ export const LectureTrain = () => {
 
                   {currentChapterQuestions.length > 0 ? (
                     <div className="space-y-4">
-                      {currentChapterQuestions.map((question) => (
-                        <Accordion
-                          key={question.id}
-                          title={question.question}
-                          leftIcon={
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                updateQuestion.mutate({
-                                  id: question.id,
-                                  isAnnotated: !question.isAnnotated,
-                                });
-                              }}
-                              className={`p-1 rounded-full transition-all hover:scale-110 ${
-                                question.isAnnotated
-                                  ? ''
-                                  : 'opacity-50 hover:opacity-100'
-                              }`}
-                              title={
-                                question.isAnnotated
-                                  ? t('lectureTrain.annotated')
-                                  : t('lectureTrain.annotate')
+                      {(() => {
+                        const question = currentChapterQuestions[selectedQuestionIndex];
+                        if (!question) return null;
+                        return (
+                          <div key={question.id}>
+                            <div className="text-sm text-on-surface-variant mb-4">
+                              {t('lectureTrain.questionProgress', { current: selectedQuestionIndex + 1, total: currentChapterQuestions.length })}
+                            </div>
+                            <Accordion
+                              title={question.question}
+                              leftIcon={
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    updateQuestion.mutate({
+                                      id: question.id,
+                                      isAnnotated: !question.isAnnotated,
+                                    });
+                                  }}
+                                  className={`p-1 rounded-full transition-all hover:scale-110 ${
+                                    question.isAnnotated
+                                      ? ''
+                                      : 'opacity-50 hover:opacity-100'
+                                  }`}
+                                  title={
+                                    question.isAnnotated
+                                      ? t('lectureTrain.annotated')
+                                      : t('lectureTrain.annotate')
+                                  }
+                                >
+                                  <span
+                                    className={`text-xl ${
+                                      question.isAnnotated ? '' : 'grayscale'
+                                    }`}
+                                  >
+                                    🦉
+                                  </span>
+                                </button>
                               }
                             >
-                              <span
-                                className={`text-xl ${
-                                  question.isAnnotated ? '' : 'grayscale'
-                                }`}
-                              >
-                                🦉
-                              </span>
-                            </button>
-                          }
-                        >
-                          {question.answer ? (
-                            <div className="prose prose-lg max-w-none">
-                              <ReactMarkdown>{question.answer}</ReactMarkdown>
-                            </div>
-                          ) : (
-                            <p className="text-on-surface-variant italic">
-                              {t('lectureTrain.noAnswerYet')}
-                            </p>
-                          )}
-                        </Accordion>
-                      ))}
+                              {question.answer ? (
+                                <div className="prose prose-lg max-w-none">
+                                  <ReactMarkdown>{question.answer}</ReactMarkdown>
+                                </div>
+                              ) : (
+                                <p className="text-on-surface-variant italic">
+                                  {t('lectureTrain.noAnswerYet')}
+                                </p>
+                              )}
+                            </Accordion>
+                          </div>
+                        );
+                      })()}
                     </div>
                   ) : (
                     <p className="text-on-surface-variant italic">
@@ -433,15 +488,11 @@ export const LectureTrain = () => {
                     </p>
                   )}
 
-                  {/* Chapter Navigation */}
+                  {/* Question Navigation */}
                   <div className="flex justify-between mt-12 pt-6 border-t border-gray-300">
                     <button
-                      onClick={() =>
-                        navigate(
-                          `/train/${id}/${sortedChapters[selectedChapterIndex - 1].id}`,
-                        )
-                      }
-                      disabled={selectedChapterIndex === 0}
+                      onClick={handlePrevQuestion}
+                      disabled={isFirstQuestion}
                       className="px-4 py-2 text-primary-600 hover:bg-primary-50 disabled:text-gray-400 disabled:hover:bg-transparent rounded-lg transition-colors flex items-center gap-2"
                     >
                       <svg
@@ -460,12 +511,8 @@ export const LectureTrain = () => {
                       {t('common.previous')}
                     </button>
                     <button
-                      onClick={() =>
-                        navigate(
-                          `/train/${id}/${sortedChapters[selectedChapterIndex + 1].id}`,
-                        )
-                      }
-                      disabled={selectedChapterIndex === sortedChapters.length - 1}
+                      onClick={handleNextQuestion}
+                      disabled={isLastQuestion}
                       className="px-4 py-2 text-primary-600 hover:bg-primary-50 disabled:text-gray-400 disabled:hover:bg-transparent rounded-lg transition-colors flex items-center gap-2"
                     >
                       {t('common.next')}

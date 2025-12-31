@@ -68,7 +68,8 @@
     "noContentYet": "Dieses Kapitel hat noch keinen Inhalt.",
     "selectAChapter": "Wählen Sie ein Kapitel",
     "annotate": "Frage nicht hervorgehoben, klicken um hervorzuheben",
-    "annotated": "Frage hervorgehoben, klicken um nicht hervorzuheben"
+    "annotated": "Frage hervorgehoben, klicken um nicht hervorzuheben",
+    "questionProgress": "Frage {{current}} von {{total}}"
   },
   "globalSearch": {
     "searchChapters": "Kapitel suchen...",
