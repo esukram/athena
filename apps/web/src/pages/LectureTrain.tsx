@@ -123,12 +123,12 @@ export const LectureTrain = () => {
       if (event.key === 'ArrowRight') {
         const nextIndex = selectedChapterIndex + 1;
         if (nextIndex < chapters.length) {
-          navigate(`/learn/${id}/${chapters[nextIndex].id}`);
+          navigate(`/train/${id}/${chapters[nextIndex].id}`);
         }
       } else if (event.key === 'ArrowLeft') {
         const prevIndex = selectedChapterIndex - 1;
         if (prevIndex >= 0) {
-          navigate(`/learn/${id}/${chapters[prevIndex].id}`);
+          navigate(`/train/${id}/${chapters[prevIndex].id}`);
         }
       }
     };
