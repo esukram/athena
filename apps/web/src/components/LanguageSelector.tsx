@@ -1,4 +1,3 @@
-import ReactCountryFlag from 'react-country-flag';
 import { useTranslation } from 'react-i18next';
 
 import { useEffect, useRef, useState } from 'react';
@@ -7,13 +6,13 @@ type Language = 'de' | 'en';
 
 interface LanguageOption {
   code: Language;
-  countryCode: string;
+  flag: string;
   label: string;
 }
 
 const languages: LanguageOption[] = [
-  { code: 'de', countryCode: 'DE', label: 'language.german' },
-  { code: 'en', countryCode: 'GB', label: 'language.english' },
+  { code: 'de', flag: '/flags/de.svg', label: 'language.german' },
+  { code: 'en', flag: '/flags/gb.svg', label: 'language.english' },
 ];
 
 export const LanguageSelector = () => {
@@ -48,10 +47,10 @@ export const LanguageSelector = () => {
         aria-expanded={isOpen}
         aria-haspopup="listbox"
       >
-        <ReactCountryFlag
-          countryCode={currentLanguage.countryCode}
-          svg
-          style={{ width: '1.5em', height: '1.5em' }}
+        <img
+          src={currentLanguage.flag}
+          alt=""
+          className="w-8 h-6 object-cover rounded-sm"
         />
       </button>
 
@@ -72,10 +71,10 @@ export const LanguageSelector = () => {
               role="option"
               aria-selected={lang.code === i18n.language}
             >
-              <ReactCountryFlag
-                countryCode={lang.countryCode}
-                svg
-                style={{ width: '1.25em', height: '1.25em' }}
+              <img
+                src={lang.flag}
+                alt=""
+                className="w-7 h-5 object-cover rounded-sm"
               />
               <span>{t(lang.label)}</span>
             </button>
