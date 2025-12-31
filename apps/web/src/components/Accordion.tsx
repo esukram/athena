@@ -9,6 +9,7 @@ interface AccordionProps {
   children?: ReactNode;
   leftIcon?: ReactNode;
   noShadow?: boolean;
+  noPadding?: boolean;
 }
 
 export const Accordion: React.FC<AccordionProps> = ({
@@ -17,6 +18,7 @@ export const Accordion: React.FC<AccordionProps> = ({
   children,
   leftIcon,
   noShadow = false,
+  noPadding = false,
 }) => {
   const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
@@ -38,7 +40,7 @@ export const Accordion: React.FC<AccordionProps> = ({
             setIsOpen(!isOpen);
           }
         }}
-        className="w-full flex items-start justify-between p-6 text-left cursor-pointer"
+        className={`w-full flex items-start justify-between ${noPadding ? 'p-0' : 'p-6'} text-left cursor-pointer`}
       >
         <div className="flex-1">
           <h1 className="text-2xl font-bold text-on-background mb-2">
@@ -69,7 +71,7 @@ export const Accordion: React.FC<AccordionProps> = ({
       </div>
 
       {isOpen && (
-        <div className="px-6 pb-6 bg-surface-container text-on-surface text-base">
+        <div className={`${noPadding ? 'px-2 pb-2' : 'px-6 pb-6'} bg-surface-container text-on-surface text-base`}>
           {children || <p className="whitespace-pre-wrap">{description}</p>}
         </div>
       )}

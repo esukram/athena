@@ -433,12 +433,13 @@ export const LectureTrain = () => {
                         if (!question) return null;
                         return (
                           <div key={question.id}>
-                            <div className="text-sm text-on-surface-variant mb-4">
+                            <div className="text-sm text-on-surface-variant">
                               {t('lectureTrain.questionProgress', { current: selectedQuestionIndex + 1, total: currentChapterQuestions.length })}
                             </div>
                             <Accordion
                               title={question.question}
                               noShadow
+                              noPadding
                               leftIcon={
                                 <button
                                   onClick={(e) => {
@@ -470,8 +471,10 @@ export const LectureTrain = () => {
                               }
                             >
                               {question.answer ? (
-                                <div className="prose prose-lg max-w-none">
-                                  <ReactMarkdown>{question.answer}</ReactMarkdown>
+                                <div>
+                                  <div className="prose prose-lg max-w-none">
+                                    <ReactMarkdown>{question.answer}</ReactMarkdown>
+                                  </div>
                                 </div>
                               ) : (
                                 <p className="text-on-surface-variant italic">
@@ -490,7 +493,7 @@ export const LectureTrain = () => {
                   )}
 
                   {/* Question Navigation */}
-                  <div className="flex justify-between mt-12 pt-6 border-t border-gray-300">
+                  <div className="flex justify-between mt-8 lg:mt-12 pt-4 lg:pt-6 border-t border-gray-300">
                     <button
                       onClick={handlePrevQuestion}
                       disabled={isFirstQuestion}
