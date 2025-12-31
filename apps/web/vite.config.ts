@@ -5,14 +5,7 @@ import react from '@vitejs/plugin-react';
 
 export default defineConfig(({ command }) => ({
   base: command === 'build' ? './' : '/',
-  assetsInclude: [
-    '**/*.png',
-    '**/*.jpg',
-    '**/*.jpeg',
-    '**/*.gif',
-    '**/*.webp',
-    '**/*.svg',
-  ],
+  assetsInclude: ['assets/**/*'],
   plugins: [react(), tailwindcss()],
   server: {
     hmr: {
@@ -24,5 +17,8 @@ export default defineConfig(({ command }) => ({
         changeOrigin: true,
       },
     },
+  },
+  build: {
+    assetsInlineLimit: 0,
   },
 }));
