@@ -15,7 +15,8 @@
     "saving": "Saving..."
   },
   "header": {
-    "addLecture": "Add Lecture"
+    "addLecture": "Add Lecture",
+    "menuLabel": "Menu"
   },
   "language": {
     "german": "Deutsch",
