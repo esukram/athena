@@ -112,4 +112,95 @@ test.describe('Lecture Overview', () => {
       page.getByRole('button', { name: en.lectureCard.train }),
     ).toHaveCount(mockLectures.length);
   });
+
+  test('Edit button navigates to edit page', async ({ page }) => {
+    const mockLectures = [
+      {
+        id: 'test-lecture-1',
+        title: 'Test Lecture',
+        description: 'Test description',
+      },
+    ];
+
+    // Mock getLectures
+    await page.route('**/api/trpc/lectures.getLectures*', async (route) => {
+      await route.fulfill({
+        json: {
+          result: {
+            data: mockLectures,
+          },
+        },
+      });
+    });
+
+    await page.goto('/');
+
+    // Wait for the lecture card to be visible
+    await expect(page.getByText('Test Lecture')).toBeVisible();
+
+    // Click the edit button
+    const editButton = page.getByTestId('lecture-edit-button');
+    await expect(editButton).toBeVisible();
+    await editButton.click();
+
+    // Verify navigation to edit page (app uses hash-based routing)
+    await expect(page).toHaveURL(/#\/edit\/test-lecture-1/);
+  });
+
+  test('Delete button shows confirmation and deletes lecture', async ({
+    page,
+  }) => {
+    const mockLectures = [
+      {
+        id: 'test-lecture-2',
+        title: 'Lecture to Delete',
+        description: 'This lecture will be deleted',
+      },
+    ];
+
+    // Mock getLectures
+    await page.route('**/api/trpc/lectures.getLectures*', async (route) => {
+      await route.fulfill({
+        json: {
+          result: {
+            data: mockLectures,
+          },
+        },
+      });
+    });
+
+    // Mock deleteLecture mutation
+    let deleteWasCalled = false;
+    await page.route('**/api/trpc/lectures.deleteLecture*', async (route) => {
+      deleteWasCalled = true;
+      await route.fulfill({
+        json: {
+          result: {
+            data: { success: true },
+          },
+        },
+      });
+    });
+
+    await page.goto('/');
+
+    // Wait for the lecture card to be visible
+    await expect(page.getByText('Lecture to Delete')).toBeVisible();
+
+    // Set up dialog handler to accept the confirmation
+    page.on('dialog', async (dialog) => {
+      expect(dialog.type()).toBe('confirm');
+      expect(dialog.message()).toContain('Lecture to Delete');
+      await dialog.accept();
+    });
+
+    // Click the delete button
+    const deleteButton = page.getByTestId('lecture-delete-button');
+    await expect(deleteButton).toBeVisible();
+    await deleteButton.click();
+
+    // Wait for the mutation to be called
+    await page.waitForTimeout(500);
+    expect(deleteWasCalled).toBe(true);
+  });
 });
