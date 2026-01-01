@@ -8,7 +8,8 @@
     "build": "tsc && vite build",
     "lint": "eslint .",
     "format": "prettier --write .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@athena/api": "workspace:*",
@@ -28,7 +29,9 @@
   },
   "devDependencies": {
     "@athena/typescript-config": "workspace:*",
+    "@playwright/test": "^1.57.0",
     "@tailwindcss/vite": "^4.0.0",
+    "@types/node": "^20.19.27",
     "@types/react": "^18.2.66",
     "@types/react-dom": "^18.2.22",
     "@vitejs/plugin-react": "^4.2.1",

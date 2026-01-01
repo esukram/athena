@@ -2,10 +2,8 @@ name: Deploy to GHCR
 
 on:
   push:
-    branches:
-      - main
-  release:
-    types: [published]
+    tags:
+      - '*'
 
 env:
   REGISTRY: ghcr.io
@@ -32,25 +30,15 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract version
-        id: version
-        run: echo "VERSION=$(jq -r .version package.json)" >> $GITHUB_OUTPUT
-
-      - name: Get short SHA
-        id: sha
-        run: echo "SHA=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
-
       - name: Extract metadata (tags, labels) for Docker
         id: meta
         uses: docker/metadata-action@v5
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
-            type=raw,value=${{ steps.version.outputs.VERSION }}-${{ steps.sha.outputs.SHA }}
-            type=ref,event=branch
-            type=ref,event=tag
             type=sha,format=long
+            type=sha,format=short
+            type=ref,event=tag
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
