@@ -29,6 +29,8 @@
   },
   "devDependencies": {
     "@athena/typescript-config": "workspace:*",
+    "@athena/eslint-config": "workspace:*",
+    "eslint": "^9.0.0",
     "@playwright/test": "^1.57.0",
     "@tailwindcss/vite": "^4.0.0",
     "@types/node": "^20.19.27",

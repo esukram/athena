@@ -12,6 +12,7 @@ test.describe('Move Chapter', () => {
       { id: 'chapter-1', lectureId: 'lecture-1', association: '', order: 0 },
     ];
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const lectureTwoChapters: any[] = [];
 
     const firstQuestions = {

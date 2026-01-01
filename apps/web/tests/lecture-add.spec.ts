@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
 
 test('add a new lecture', async ({ page }) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const lectures: any[] = [
     { id: '1', title: 'Existing Lecture', description: 'Desc' },
   ];

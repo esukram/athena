@@ -51,7 +51,7 @@ test.describe('Lecture Overview', () => {
     // Better: assert that no element with "LectureCard" characteristics is present.
     // Based on LectureCard.tsx, the title is in an h2.
     // If empty, the grid should be empty.
-    const lectureCards = page.locator('article'); // Assuming semantic HTML or we can use a specific selector if added.
+
     // Current Overview.tsx uses div for the grid.
     // Let's count h2s inside the main area, or check for specific card text.
     // The "Learn" and "Train" buttons are good indicators of a card.
