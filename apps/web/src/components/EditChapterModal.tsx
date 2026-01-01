@@ -2,7 +2,7 @@ import { ChevronDown, ChevronUp, Plus, Trash2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import ReactMarkdown from 'react-markdown';
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 export interface EditingQuestion {
   id: string | null;
@@ -121,14 +121,14 @@ export const EditChapterModal = ({
     inputRef.current?.focus();
   };
 
-  const handleSave = () => {
+  const handleSave = useCallback(() => {
     // Save the association to localStorage for future use
     if (association.trim()) {
       localStorage.setItem('lastUsedAssociation', association.trim());
       setLastUsedAssociation(association.trim());
     }
     onSave();
-  };
+  }, [association, onSave]);
 
   const handleAnswerKeyDown = (
     e: React.KeyboardEvent<HTMLTextAreaElement>,

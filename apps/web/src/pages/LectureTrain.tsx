@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import ReactMarkdown from 'react-markdown';
 import { useNavigate, useParams } from 'react-router-dom';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import type { Question } from '@athena/api';
 
@@ -36,7 +36,11 @@ export const LectureTrain = () => {
     { enabled: !!id },
   );
 
-  const chapters = chaptersQuery.data || [];
+  /* const chapters = chaptersQuery.data || []; */
+  const chapters = useMemo(
+    () => chaptersQuery.data || [],
+    [chaptersQuery.data],
+  );
 
   // Fetch all first questions for this lecture in a single call
   const firstQuestionsQuery =
@@ -58,14 +62,17 @@ export const LectureTrain = () => {
   }, [annotatedChapterIdsQuery.data]);
 
   // Build a map of chapterId -> firstQuestion
-  const firstQuestionMap = new Map<string, Question | undefined>();
-  if (firstQuestionsQuery.data) {
-    for (const [chapterId, question] of Object.entries(
-      firstQuestionsQuery.data,
-    )) {
-      firstQuestionMap.set(chapterId, question);
+  const firstQuestionMap = useMemo(() => {
+    const map = new Map<string, Question | undefined>();
+    if (firstQuestionsQuery.data) {
+      for (const [chapterId, question] of Object.entries(
+        firstQuestionsQuery.data,
+      )) {
+        map.set(chapterId, question);
+      }
     }
-  }
+    return map;
+  }, [firstQuestionsQuery.data]);
 
   // Track which lecture has been sorted to preserve order during annotation toggles
   const sortedLectureIdRef = useRef<string | null>(null);
@@ -114,7 +121,10 @@ export const LectureTrain = () => {
     { chapterId: currentChapter?.id || '' },
     { enabled: !!currentChapter?.id },
   );
-  const currentChapterQuestions = currentChapterQuestionsQuery.data || [];
+  const currentChapterQuestions = useMemo(
+    () => currentChapterQuestionsQuery.data || [],
+    [currentChapterQuestionsQuery.data],
+  );
 
   // Set selected question based on URL questionId parameter
   useEffect(() => {
@@ -190,21 +200,24 @@ export const LectureTrain = () => {
   }, [selectedChapterIndex]);
 
   // Navigation helper functions
-  const navigateToQuestion = (
-    chapterIndex: number,
-    questionIndex: number,
-    questions?: typeof currentChapterQuestions,
-  ) => {
-    const chapter = sortedChapters[chapterIndex];
-    if (chapter && questions && questions[questionIndex]) {
-      navigate(`/train/${id}/${chapter.id}/${questions[questionIndex].id}`);
-    } else if (chapter) {
-      // Will load questions and default to first
-      navigate(`/train/${id}/${chapter.id}`);
-    }
-  };
+  const navigateToQuestion = useCallback(
+    (
+      chapterIndex: number,
+      questionIndex: number,
+      questions?: typeof currentChapterQuestions,
+    ) => {
+      const chapter = sortedChapters[chapterIndex];
+      if (chapter && questions && questions[questionIndex]) {
+        navigate(`/train/${id}/${chapter.id}/${questions[questionIndex].id}`);
+      } else if (chapter) {
+        // Will load questions and default to first
+        navigate(`/train/${id}/${chapter.id}`);
+      }
+    },
+    [sortedChapters, navigate, id],
+  );
 
-  const handleNextQuestion = () => {
+  const handleNextQuestion = useCallback(() => {
     if (selectedQuestionIndex < currentChapterQuestions.length - 1) {
       // Next question in same chapter
       navigateToQuestion(
@@ -216,9 +229,15 @@ export const LectureTrain = () => {
       // First question of next chapter
       navigateToQuestion(selectedChapterIndex + 1, 0);
     }
-  };
+  }, [
+    selectedQuestionIndex,
+    currentChapterQuestions,
+    selectedChapterIndex,
+    sortedChapters.length,
+    navigateToQuestion,
+  ]);
 
-  const handlePrevQuestion = () => {
+  const handlePrevQuestion = useCallback(() => {
     if (selectedQuestionIndex > 0) {
       // Previous question in same chapter
       navigateToQuestion(
@@ -231,7 +250,15 @@ export const LectureTrain = () => {
       const prevChapter = sortedChapters[selectedChapterIndex - 1];
       navigate(`/train/${id}/${prevChapter.id}/__last__`);
     }
-  };
+  }, [
+    selectedQuestionIndex,
+    selectedChapterIndex,
+    navigateToQuestion,
+    currentChapterQuestions,
+    sortedChapters,
+    navigate,
+    id,
+  ]);
 
   // Handle __last__ special questionId to navigate to last question of a chapter
   useEffect(() => {
@@ -273,6 +300,8 @@ export const LectureTrain = () => {
     navigate,
     isFirstQuestion,
     isLastQuestion,
+    handleNextQuestion,
+    handlePrevQuestion,
   ]);
 
   const utils = trpc.useContext();

@@ -2,7 +2,7 @@ import { Search, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { trpc } from '../utils/trpc';
 
@@ -36,7 +36,7 @@ export const GlobalSearch = () => {
     { enabled: debouncedQuery.trim().length > 0 },
   );
 
-  const results = searchQuery.data || [];
+  const results = useMemo(() => searchQuery.data || [], [searchQuery.data]);
 
   // Fetch all lectures for title lookup
   const lecturesQuery = trpc.lectures.getLectures.useQuery();
@@ -44,6 +44,15 @@ export const GlobalSearch = () => {
   // Create a map of lectureId -> title for display
   const lectureMap = new Map(
     (lecturesQuery.data || []).map((lecture) => [lecture.id, lecture.title]),
+  );
+
+  const handleResultClick = useCallback(
+    (lectureId: string, chapterId: string) => {
+      navigate(`/learn/${lectureId}/${chapterId}`);
+      setIsOpen(false);
+      setQuery('');
+    },
+    [navigate],
   );
 
   // Focus input when opened
@@ -86,7 +95,7 @@ export const GlobalSearch = () => {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, results, selectedIndex]);
+  }, [isOpen, results, selectedIndex, handleResultClick]);
 
   // Close on click outside
   useEffect(() => {
@@ -102,12 +111,6 @@ export const GlobalSearch = () => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
-
-  const handleResultClick = (lectureId: string, chapterId: string) => {
-    navigate(`/learn/${lectureId}/${chapterId}`);
-    setIsOpen(false);
-    setQuery('');
-  };
 
   // Highlight matching tokens in text
   const highlightMatches = (text: string, searchQuery: string) => {
