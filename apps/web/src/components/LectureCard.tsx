@@ -32,11 +32,11 @@ export const LectureCard = ({ lecture }: { lecture: Lecture }) => {
               e.stopPropagation();
               navigate(`/edit/${lecture.id}`);
             }}
-            className="opacity-10 md:opacity-0 md:group-hover:opacity-100 md:focus:opacity-100 p-2 rounded-full bg-white/80 hover:bg-primary-50 shadow-md transition-all duration-200"
+            className="opacity-100 md:opacity-0 md:group-hover:opacity-100 md:focus:opacity-100 p-2 rounded-full bg-white/80 hover:bg-primary-50 shadow-md transition-all duration-200"
             aria-label={t('lectureCard.editLecture')}
             data-testid="lecture-edit-button"
           >
-            <Pencil className="w-5 h-5" />
+            <Pencil className="w-5 h-5 opacity-80 lg:opacity-50 lg:hover:opacity-80" />
           </button>
           <button
             onClick={(e) => {
@@ -47,7 +47,7 @@ export const LectureCard = ({ lecture }: { lecture: Lecture }) => {
             aria-label={t('lectureCard.deleteLecture')}
             data-testid="lecture-delete-button"
           >
-            <Trash2 className="w-5 h-5" />
+            <Trash2 className="w-5 h-5 opacity-80 lg:opacity-50 lg:hover:opacity-80" />
           </button>
         </div>
 
