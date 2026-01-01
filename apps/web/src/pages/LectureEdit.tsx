@@ -570,26 +570,6 @@ export const EditLecture = () => {
                       className="p-4 bg-gray-50 rounded-lg border border-gray-200"
                     >
                       <div className="flex items-center gap-3">
-                        {/* Reorder controls */}
-                        <div className="flex flex-col gap-0.5">
-                          <button
-                            onClick={handleMoveUp}
-                            disabled={isFirst || reorderChapter.isLoading}
-                            className="p-1 text-gray-500 hover:text-primary-600 hover:bg-primary-50 rounded disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                            aria-label={t('lectureEdit.moveUp')}
-                          >
-                            <ChevronUp size={16} />
-                          </button>
-                          <button
-                            onClick={handleMoveDown}
-                            disabled={isLast || reorderChapter.isLoading}
-                            className="p-1 text-gray-500 hover:text-primary-600 hover:bg-primary-50 rounded disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                            aria-label={t('lectureEdit.moveDown')}
-                          >
-                            <ChevronDown size={16} />
-                          </button>
-                        </div>
-
                         {/* Position dropdown */}
                         <select
                           value={chapter.order}
@@ -629,6 +609,26 @@ export const EditLecture = () => {
                         >
                           {t('common.delete')}
                         </button>
+
+                        {/* Reorder controls */}
+                        <div className="flex flex-col gap-0.5">
+                          <button
+                            onClick={handleMoveUp}
+                            disabled={isFirst || reorderChapter.isLoading}
+                            className="p-1 text-gray-500 hover:text-primary-600 hover:bg-primary-50 rounded disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                            aria-label={t('lectureEdit.moveUp')}
+                          >
+                            <ChevronUp size={16} />
+                          </button>
+                          <button
+                            onClick={handleMoveDown}
+                            disabled={isLast || reorderChapter.isLoading}
+                            className="p-1 text-gray-500 hover:text-primary-600 hover:bg-primary-50 rounded disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                            aria-label={t('lectureEdit.moveDown')}
+                          >
+                            <ChevronDown size={16} />
+                          </button>
+                        </div>
                       </div>
                       {firstQuestion?.answer && (
                         <div className="mt-3 pl-11 text-sm text-gray-500 truncate">
