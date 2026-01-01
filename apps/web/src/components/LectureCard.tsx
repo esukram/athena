@@ -37,7 +37,7 @@ export const LectureCard = ({ lecture }: { lecture: Lecture }) => {
             title={t('lectureCard.editLecture')}
             data-testid="lecture-edit-button"
           >
-            <Pencil className="w-5 h-5 opacity-80 lg:opacity-50 lg:hover:opacity-80" />
+            <Pencil className="w-5 h-5 opacity-90 lg:opacity-80 lg:hover:opacity-100" />
           </button>
           <button
             onClick={(e) => {
@@ -49,7 +49,7 @@ export const LectureCard = ({ lecture }: { lecture: Lecture }) => {
             title={t('lectureCard.deleteLecture')}
             data-testid="lecture-delete-button"
           >
-            <Trash2 className="w-5 h-5 opacity-80 lg:opacity-50 lg:hover:opacity-80" />
+            <Trash2 className="w-5 h-5 opacity-90 lg:opacity-80 lg:hover:opacity-100" />
           </button>
         </div>
 

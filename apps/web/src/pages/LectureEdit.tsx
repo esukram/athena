@@ -1,4 +1,10 @@
-import { ChevronDown, ChevronUp, Pencil, SquareArrowRight, Trash2 } from 'lucide-react';
+import {
+  ArrowRightLeft,
+  ChevronDown,
+  ChevronUp,
+  Pencil,
+  Trash2,
+} from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 
@@ -615,7 +621,7 @@ export const EditLecture = () => {
                         <div className="flex gap-2 shrink-0">
                           <button
                             onClick={() => handleStartEdit(chapter)}
-                            className="p-2 rounded-full bg-white/80 hover:bg-primary-50 shadow-md transition-all duration-200"
+                            className="p-2 rounded-full bg-white/80 hover:bg-primary-50 shadow-md transition-all duration-200 opacity-90 lg:opacity-80 lg:hover:opacity-100"
                             aria-label={t('lectureEdit.editChapter')}
                             title={t('lectureEdit.editChapter')}
                           >
@@ -623,16 +629,16 @@ export const EditLecture = () => {
                           </button>
                           <button
                             onClick={() => setMovingChapter(chapter)}
-                            className="p-2 rounded-full bg-white/80 hover:bg-primary-50 shadow-md transition-all duration-200"
+                            className="p-2 rounded-full bg-white/80 hover:bg-primary-50 shadow-md transition-all duration-200 opacity-90 lg:opacity-80 lg:hover:opacity-100"
                             aria-label={t('lectureEdit.moveChapterTooltip')}
                             title={t('lectureEdit.moveChapterTooltip')}
                           >
-                            <SquareArrowRight className="w-5 h-5 text-gray-600 hover:text-primary-600" />
+                            <ArrowRightLeft className="w-5 h-5 text-gray-600 hover:text-primary-600" />
                           </button>
                           <button
                             onClick={() => handleDeleteChapter(chapter.id)}
                             disabled={deleteChapter.isLoading}
-                            className="p-2 rounded-full bg-white/80 hover:bg-red-50 shadow-md transition-all duration-200 disabled:opacity-50"
+                            className="p-2 rounded-full bg-white/80 hover:bg-red-50 shadow-md transition-all duration-200 opacity-90 lg:opacity-80 lg:hover:opacity-100"
                             aria-label={t('lectureEdit.deleteChapter')}
                             title={t('lectureEdit.deleteChapter')}
                           >
