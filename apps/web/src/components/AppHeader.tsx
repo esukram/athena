@@ -22,7 +22,7 @@ export const AppHeader = () => {
           </h1>
         </Link>
 
-        <nav className="flex items-center gap-4">
+        <nav className="flex items-center gap-2 lg:gap-4">
           <GlobalSearch />
           <LanguageSelector />
           <NavMenu />

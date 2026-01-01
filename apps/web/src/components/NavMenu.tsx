@@ -1,7 +1,8 @@
 import { EllipsisVertical, FilePlus } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
+
+import { useEffect, useRef, useState } from 'react';
 
 export const NavMenu = () => {
   const { t } = useTranslation();
