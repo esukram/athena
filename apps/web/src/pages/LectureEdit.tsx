@@ -567,76 +567,79 @@ export const EditLecture = () => {
                   return (
                     <div
                       key={chapter.id}
-                      className="p-4 bg-gray-50 rounded-lg border border-gray-200"
+                      className="p-4 bg-gray-50 rounded-lg border border-gray-200 flex items-center gap-4"
                     >
-                      <div className="flex items-center gap-3">
-                        {/* Position dropdown */}
-                        <select
-                          value={chapter.order}
-                          onChange={(e) =>
-                            handleReorderTo(Number(e.target.value))
-                          }
-                          disabled={reorderChapter.isLoading}
-                          className="shrink-0 w-20 px-2 py-1.5 text-sm bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-colors disabled:opacity-50"
-                          aria-label="Chapter position"
-                        >
-                          {Array.from({ length: totalChapters }, (_, i) => (
-                            <option key={i} value={i}>
-                              {getPositionLabel(i)}
-                            </option>
-                          ))}
-                        </select>
-
-                        <span className="flex-1 text-on-surface font-medium">
-                          {firstQuestion?.question || t('common.untitled')}
-                        </span>
-                        <button
-                          onClick={() => handleStartEdit(chapter)}
-                          className="px-3 py-1.5 text-sm text-primary-600 hover:bg-primary-50 rounded transition-colors"
-                        >
-                          {t('common.edit')}
-                        </button>
-                        <button
-                          onClick={() => setMovingChapter(chapter)}
-                          className="px-3 py-1.5 text-sm text-primary-600 hover:bg-primary-50 rounded transition-colors"
-                        >
-                          {t('lectureEdit.move')}
-                        </button>
-                        <button
-                          onClick={() => handleDeleteChapter(chapter.id)}
-                          disabled={deleteChapter.isLoading}
-                          className="px-3 py-1.5 text-sm text-red-600 hover:bg-red-50 rounded transition-colors"
-                        >
-                          {t('common.delete')}
-                        </button>
-
-                        {/* Reorder controls */}
-                        <div className="flex flex-col gap-0.5">
-                          <button
-                            onClick={handleMoveUp}
-                            disabled={isFirst || reorderChapter.isLoading}
-                            className="p-1 text-gray-500 hover:text-primary-600 hover:bg-primary-50 rounded disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                            aria-label={t('lectureEdit.moveUp')}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-3">
+                          {/* Position dropdown */}
+                          <select
+                            value={chapter.order}
+                            onChange={(e) =>
+                              handleReorderTo(Number(e.target.value))
+                            }
+                            disabled={reorderChapter.isLoading}
+                            className="shrink-0 w-20 px-2 py-1.5 text-sm bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-colors disabled:opacity-50"
+                            aria-label="Chapter position"
                           >
-                            <ChevronUp size={16} />
+                            {Array.from({ length: totalChapters }, (_, i) => (
+                              <option key={i} value={i}>
+                                {getPositionLabel(i)}
+                              </option>
+                            ))}
+                          </select>
+
+                          <span className="flex-1 text-on-surface font-medium">
+                            {firstQuestion?.question || t('common.untitled')}
+                          </span>
+                          <button
+                            onClick={() => handleStartEdit(chapter)}
+                            className="px-3 py-1.5 text-sm text-primary-600 hover:bg-primary-50 rounded transition-colors"
+                          >
+                            {t('common.edit')}
                           </button>
                           <button
-                            onClick={handleMoveDown}
-                            disabled={isLast || reorderChapter.isLoading}
-                            className="p-1 text-gray-500 hover:text-primary-600 hover:bg-primary-50 rounded disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                            aria-label={t('lectureEdit.moveDown')}
+                            onClick={() => setMovingChapter(chapter)}
+                            className="px-3 py-1.5 text-sm text-primary-600 hover:bg-primary-50 rounded transition-colors"
                           >
-                            <ChevronDown size={16} />
+                            {t('lectureEdit.move')}
+                          </button>
+                          <button
+                            onClick={() => handleDeleteChapter(chapter.id)}
+                            disabled={deleteChapter.isLoading}
+                            className="px-3 py-1.5 text-sm text-red-600 hover:bg-red-50 rounded transition-colors"
+                          >
+                            {t('common.delete')}
                           </button>
                         </div>
+                        {firstQuestion?.answer && (
+                          <div className="mt-3 pl-11 text-sm text-gray-500 truncate">
+                            {firstQuestion.answer.substring(0, 100)}
+                            {firstQuestion.answer.length > 100 && '...'}
+                          </div>
+                        )}
                       </div>
-                      {firstQuestion?.answer && (
-                        <div className="mt-3 pl-11 text-sm text-gray-500 truncate">
-                          {firstQuestion.answer.substring(0, 100)}
-                          {firstQuestion.answer.length > 100 && '...'}
-                        </div>
-                      )}
+
+                      {/* Reorder controls - Centered vertically */}
+                      <div className="flex flex-col gap-0.5 shrink-0">
+                        <button
+                          onClick={handleMoveUp}
+                          disabled={isFirst || reorderChapter.isLoading}
+                          className="p-1 text-gray-500 hover:text-primary-600 hover:bg-primary-50 rounded disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                          aria-label={t('lectureEdit.moveUp')}
+                        >
+                          <ChevronUp size={16} />
+                        </button>
+                        <button
+                          onClick={handleMoveDown}
+                          disabled={isLast || reorderChapter.isLoading}
+                          className="p-1 text-gray-500 hover:text-primary-600 hover:bg-primary-50 rounded disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                          aria-label={t('lectureEdit.moveDown')}
+                        >
+                          <ChevronDown size={16} />
+                        </button>
+                      </div>
                     </div>
+
                   );
                 })
               )}
