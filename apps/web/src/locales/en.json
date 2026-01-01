@@ -30,10 +30,6 @@
     "learn": "Learn",
     "train": "Train",
     "editLecture": "Edit Lecture",
-    "deleteLecture": "Delete Lecture"
-  },
-  "lectureMenu": {
-    "editLecture": "Edit Lecture",
     "deleteLecture": "Delete Lecture",
     "confirmDelete": "Are you sure you want to delete \"{{title}}\"?"
   },
