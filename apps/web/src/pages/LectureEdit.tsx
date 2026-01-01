@@ -521,40 +521,46 @@ export const EditLecture = () => {
                   {t('lectureEdit.noChaptersYet')}
                 </p>
               ) : (
-                [...chapters]
-                  .sort((a, b) => a.order - b.order)
-                  .map((chapter, index) => {
+                (() => {
+                  const sortedChapters = [...chapters].sort(
+                    (a, b) => a.order - b.order,
+                  );
+
+                  return sortedChapters.map((chapter, index) => {
                     const firstQuestion = firstQuestionMap.get(chapter.id);
                     const isFirst = index === 0;
-                    const isLast = index === chapters.length - 1;
-                    const totalChapters = chapters.length;
+                    const isLast = index === sortedChapters.length - 1;
+                    const totalChapters = sortedChapters.length;
 
                     const handleMoveUp = () => {
                       if (!isFirst) {
+                        const targetChapter = sortedChapters[index - 1];
                         reorderChapter.mutate({
                           chapterId: chapter.id,
                           lectureId: id!,
-                          newOrder: chapter.order - 1,
+                          newOrder: targetChapter.order,
                         });
                       }
                     };
 
                     const handleMoveDown = () => {
                       if (!isLast) {
+                        const targetChapter = sortedChapters[index + 1];
                         reorderChapter.mutate({
                           chapterId: chapter.id,
                           lectureId: id!,
-                          newOrder: chapter.order + 1,
+                          newOrder: targetChapter.order,
                         });
                       }
                     };
 
-                    const handleReorderTo = (newOrder: number) => {
-                      if (newOrder !== index) {
+                    const handleReorderTo = (targetIndex: number) => {
+                      if (targetIndex !== index) {
+                        const targetChapter = sortedChapters[targetIndex];
                         reorderChapter.mutate({
                           chapterId: chapter.id,
                           lectureId: id!,
-                          newOrder,
+                          newOrder: targetChapter.order,
                         });
                       }
                     };
@@ -639,7 +645,8 @@ export const EditLecture = () => {
                         </div>
                       </div>
                     );
-                  })
+                  });
+                })()
               )}
             </div>
           </Card>
