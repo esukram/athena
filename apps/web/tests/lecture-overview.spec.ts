@@ -1,10 +1,14 @@
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
 
 import { expect, test } from '@playwright/test';
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 const en = JSON.parse(
-  fs.readFileSync(path.join(process.cwd(), 'src/locales/en.json'), 'utf-8'),
+  fs.readFileSync(path.join(__dirname, '../src/locales/en.json'), 'utf-8'),
 );
 
 test.describe('Lecture Overview', () => {
