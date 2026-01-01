@@ -577,7 +577,7 @@ export const EditLecture = () => {
                                 handleReorderTo(Number(e.target.value))
                               }
                               disabled={reorderChapter.isLoading}
-                              className="shrink-0 w-20 px-2 py-1.5 text-sm bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-colors disabled:opacity-50"
+                              className="shrink-0 w-14 px-2 py-1.5 text-sm bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-colors disabled:opacity-50"
                               aria-label="Chapter position"
                             >
                               {Array.from({ length: totalChapters }, (_, i) => (
