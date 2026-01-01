@@ -28,9 +28,7 @@
   },
   "lectureCard": {
     "learn": "Lernen",
-    "train": "Trainieren"
-  },
-  "lectureMenu": {
+    "train": "Trainieren",
     "editLecture": "Fach bearbeiten",
     "deleteLecture": "Fach löschen",
     "confirmDelete": "Möchten Sie \"{{title}}\" wirklich löschen?"

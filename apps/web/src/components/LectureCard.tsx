@@ -1,18 +1,57 @@
+import { Pencil, Trash2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
 import type { Lecture } from '@athena/api';
 
-import { LectureMenu } from './LectureMenu';
+import { trpc } from '../utils/trpc';
 
 export const LectureCard = ({ lecture }: { lecture: Lecture }) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const utils = trpc.useUtils();
+
+  const deleteLecture = trpc.lectures.deleteLecture.useMutation({
+    onSuccess: () => {
+      utils.lectures.getLectures.invalidate();
+    },
+  });
+
+  const handleDelete = () => {
+    if (confirm(t('lectureCard.confirmDelete', { title: lecture.title }))) {
+      deleteLecture.mutate({ id: lecture.id });
+    }
+  };
 
   return (
     <div className="group flex flex-col overflow-hidden rounded-2xl bg-white shadow-lg transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 border border-gray-100">
       <div className="relative h-52 w-full overflow-hidden bg-gradient-to-br from-primary-100 to-primary-50">
-        <LectureMenu lecture={lecture} />
+        <div className="absolute top-3 right-3 z-10 flex gap-2">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate(`/edit/${lecture.id}`);
+            }}
+            className="opacity-100 md:opacity-0 md:group-hover:opacity-100 md:focus:opacity-100 p-2 rounded-full bg-white/80 hover:bg-primary-50 shadow-md transition-all duration-200"
+            aria-label={t('lectureCard.editLecture')}
+            title={t('lectureCard.editLecture')}
+            data-testid="lecture-edit-button"
+          >
+            <Pencil className="w-5 h-5 opacity-80 lg:opacity-50 lg:hover:opacity-80" />
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              handleDelete();
+            }}
+            className="opacity-100 md:opacity-0 md:group-hover:opacity-100 md:focus:opacity-100 p-2 rounded-full bg-white/80 hover:bg-red-50 shadow-md transition-all duration-200"
+            aria-label={t('lectureCard.deleteLecture')}
+            title={t('lectureCard.deleteLecture')}
+            data-testid="lecture-delete-button"
+          >
+            <Trash2 className="w-5 h-5 opacity-80 lg:opacity-50 lg:hover:opacity-80" />
+          </button>
+        </div>
 
         <div className="h-full w-full flex items-center justify-center p-6">
           <div className="text-center">

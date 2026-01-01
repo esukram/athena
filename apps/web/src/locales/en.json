@@ -28,9 +28,7 @@
   },
   "lectureCard": {
     "learn": "Learn",
-    "train": "Train"
-  },
-  "lectureMenu": {
+    "train": "Train",
     "editLecture": "Edit Lecture",
     "deleteLecture": "Delete Lecture",
     "confirmDelete": "Are you sure you want to delete \"{{title}}\"?"
