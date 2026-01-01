@@ -28,7 +28,9 @@
   },
   "lectureCard": {
     "learn": "Learn",
-    "train": "Train"
+    "train": "Train",
+    "editLecture": "Edit Lecture",
+    "deleteLecture": "Delete Lecture"
   },
   "lectureMenu": {
     "editLecture": "Edit Lecture",

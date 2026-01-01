@@ -28,7 +28,9 @@
   },
   "lectureCard": {
     "learn": "Lernen",
-    "train": "Trainieren"
+    "train": "Trainieren",
+    "editLecture": "Fach bearbeiten",
+    "deleteLecture": "Fach löschen"
   },
   "lectureMenu": {
     "editLecture": "Fach bearbeiten",
