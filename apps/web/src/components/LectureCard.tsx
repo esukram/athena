@@ -34,6 +34,7 @@ export const LectureCard = ({ lecture }: { lecture: Lecture }) => {
             }}
             className="opacity-100 md:opacity-0 md:group-hover:opacity-100 md:focus:opacity-100 p-2 rounded-full bg-white/80 hover:bg-primary-50 shadow-md transition-all duration-200"
             aria-label={t('lectureCard.editLecture')}
+            title={t('lectureCard.editLecture')}
             data-testid="lecture-edit-button"
           >
             <Pencil className="w-5 h-5 opacity-80 lg:opacity-50 lg:hover:opacity-80" />
@@ -45,6 +46,7 @@ export const LectureCard = ({ lecture }: { lecture: Lecture }) => {
             }}
             className="opacity-100 md:opacity-0 md:group-hover:opacity-100 md:focus:opacity-100 p-2 rounded-full bg-white/80 hover:bg-red-50 shadow-md transition-all duration-200"
             aria-label={t('lectureCard.deleteLecture')}
+            title={t('lectureCard.deleteLecture')}
             data-testid="lecture-delete-button"
           >
             <Trash2 className="w-5 h-5 opacity-80 lg:opacity-50 lg:hover:opacity-80" />
