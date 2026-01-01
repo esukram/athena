@@ -1,6 +1,6 @@
 {
   "$schema": "https://turbo.build/schema.json",
-  "globalEnv": ["DB_PATH", "CI"],
+  "globalEnv": ["DB_PATH", "CI", "SPEECH_KEY", "SPEECH_REGION"],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],

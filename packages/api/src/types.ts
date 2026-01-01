@@ -19,3 +19,13 @@ export interface Question {
   order: number;
   isAnnotated: boolean;
 }
+
+export interface SpeechResult {
+  audioData: string; // Base64-encoded WAV
+  duration: number; // Duration in milliseconds
+}
+
+export interface SpeechService {
+  synthesize(text: string, language: 'de' | 'en'): Promise<SpeechResult>;
+  isConfigured(): boolean;
+}

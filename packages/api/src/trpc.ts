@@ -2,7 +2,7 @@ import { ZodError } from 'zod';
 
 import { initTRPC } from '@trpc/server';
 
-import type { Chapter, Lecture, Question } from './types.js';
+import type { Chapter, Lecture, Question, SpeechService } from './types.js';
 
 export interface LectureRepository {
   getAll: () => Lecture[];
@@ -41,6 +41,7 @@ export interface AppContext {
   lectureRepository: LectureRepository;
   chapterRepository: ChapterRepository;
   questionRepository: QuestionRepository;
+  speechService?: SpeechService;
 }
 
 export const createContext = (deps: AppContext) => async () => {
