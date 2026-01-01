@@ -18,7 +18,7 @@ export const LectureCard = ({ lecture }: { lecture: Lecture }) => {
   });
 
   const handleDelete = () => {
-    if (confirm(t('lectureMenu.confirmDelete', { title: lecture.title }))) {
+    if (confirm(t('lectureCard.confirmDelete', { title: lecture.title }))) {
       deleteLecture.mutate({ id: lecture.id });
     }
   };
