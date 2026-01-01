@@ -226,7 +226,7 @@ test.describe('Reorder Chapters', () => {
     await expect(firstDropdown).toBeVisible();
   });
 
-  test('dropdown shows First and Last labels for first and last positions', async ({
+  test('dropdown shows numerical labels for all positions', async ({
     page,
   }) => {
     await page.goto('/#/edit/lecture-1');
@@ -239,8 +239,8 @@ test.describe('Reorder Chapters', () => {
 
     // Check dropdown options
     const options = dropdown.locator('option');
-    await expect(options.nth(0)).toHaveText('First');
+    await expect(options.nth(0)).toHaveText('1');
     await expect(options.nth(1)).toHaveText('2');
-    await expect(options.nth(2)).toHaveText('Last');
+    await expect(options.nth(2)).toHaveText('3');
   });
 });
