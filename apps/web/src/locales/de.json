@@ -61,7 +61,11 @@
     "selectTargetLecture": "Ziel-Fach auswählen",
     "moveToLecture": "In dieses Fach verschieben",
     "moving": "Wird verschoben...",
-    "noOtherLectures": "Keine anderen Fächer verfügbar"
+    "noOtherLectures": "Keine anderen Fächer verfügbar",
+    "moveUp": "Nach oben",
+    "moveDown": "Nach unten",
+    "reorderFirst": "Erste",
+    "reorderLast": "Letzte"
   },
   "lectureTrain": {
     "backToLectures": "Zurück zu den Fächern",

@@ -67,4 +67,52 @@ export const chaptersRouter = router({
         order: maxOrder + 1,
       });
     }),
+  reorderChapter: publicProcedure
+    .input(
+      z.object({
+        chapterId: z.string(),
+        lectureId: z.string(),
+        newOrder: z.number().int().min(0),
+      }),
+    )
+    .mutation(({ ctx, input }) => {
+      const chapters = ctx.chapterRepository.getByLectureId(input.lectureId);
+      let chapter = chapters[0];
+      for (const c of chapters) {
+        if (c.id === input.chapterId) {
+          chapter = c;
+          break;
+        }
+      }
+      if (!chapter || chapter.id !== input.chapterId) {
+        throw new Error('Chapter not found');
+      }
+
+      const oldOrder = chapter.order;
+      const newOrder = input.newOrder;
+
+      if (oldOrder === newOrder) {
+        return chapter;
+      }
+
+      // Update orders of affected chapters
+      if (newOrder < oldOrder) {
+        // Moving up: shift chapters between newOrder and oldOrder-1 down by 1
+        for (const c of chapters) {
+          if (c.order >= newOrder && c.order < oldOrder) {
+            ctx.chapterRepository.update(c.id, { order: c.order + 1 });
+          }
+        }
+      } else {
+        // Moving down: shift chapters between oldOrder+1 and newOrder up by 1
+        for (const c of chapters) {
+          if (c.order > oldOrder && c.order <= newOrder) {
+            ctx.chapterRepository.update(c.id, { order: c.order - 1 });
+          }
+        }
+      }
+
+      // Update the target chapter's order
+      return ctx.chapterRepository.update(input.chapterId, { order: newOrder });
+    }),
 });
