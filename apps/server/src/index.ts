@@ -140,8 +140,8 @@ function createChapterRepository(): ChapterRepository {
       if (!existing) return undefined;
       const updated = { ...existing, ...chapter };
       db.prepare(
-        'UPDATE chapters SET association = ?, "order" = ? WHERE id = ?',
-      ).run(updated.association, updated.order, id);
+        'UPDATE chapters SET lectureId = ?, association = ?, "order" = ? WHERE id = ?',
+      ).run(updated.lectureId, updated.association, updated.order, id);
       return updated;
     },
     delete: (id: string): boolean => {

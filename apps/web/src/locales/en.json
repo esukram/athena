@@ -55,7 +55,13 @@
     "adding": "Adding...",
     "loadingChapters": "Loading chapters...",
     "noChaptersYet": "No chapters yet. Add your first chapter above.",
-    "confirmDeleteChapter": "Are you sure you want to delete this chapter?"
+    "confirmDeleteChapter": "Are you sure you want to delete this chapter?",
+    "move": "Move",
+    "moveChapter": "Move Chapter",
+    "selectTargetLecture": "Select target lecture",
+    "moveToLecture": "Move to this lecture",
+    "moving": "Moving...",
+    "noOtherLectures": "No other lectures available"
   },
   "lectureTrain": {
     "backToLectures": "Back to Lectures",

@@ -55,7 +55,13 @@
     "adding": "Wird hinzugefügt...",
     "loadingChapters": "Kapitel werden geladen...",
     "noChaptersYet": "Noch keine Kapitel. Fügen Sie oben Ihr erstes Kapitel hinzu.",
-    "confirmDeleteChapter": "Möchten Sie dieses Kapitel wirklich löschen?"
+    "confirmDeleteChapter": "Möchten Sie dieses Kapitel wirklich löschen?",
+    "move": "Verschieben",
+    "moveChapter": "Kapitel verschieben",
+    "selectTargetLecture": "Ziel-Fach auswählen",
+    "moveToLecture": "In dieses Fach verschieben",
+    "moving": "Wird verschoben...",
+    "noOtherLectures": "Keine anderen Fächer verfügbar"
   },
   "lectureTrain": {
     "backToLectures": "Zurück zu den Fächern",
