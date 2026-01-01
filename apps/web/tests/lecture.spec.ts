@@ -1,41 +1,43 @@
-import { test, expect } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 
 test('add a new lecture', async ({ page }) => {
-  const lectures: any[] = [{ id: '1', title: 'Existing Lecture', description: 'Desc' }];
+  const lectures: any[] = [
+    { id: '1', title: 'Existing Lecture', description: 'Desc' },
+  ];
 
   // Mock getLectures
   // tRPC default response format: { result: { data: ... } }
-  await page.route('**/api/trpc/lectures.getLectures*', async route => {
-    await route.fulfill({ 
-        json: { 
-            result: { 
-                data: lectures 
-            } 
-        } 
+  await page.route('**/api/trpc/lectures.getLectures*', async (route) => {
+    await route.fulfill({
+      json: {
+        result: {
+          data: lectures,
+        },
+      },
     });
   });
 
   // Mock createLecture
-  await page.route('**/api/trpc/lectures.createLecture*', async route => {
-     const postData = route.request().postDataJSON();
-     
-     const input = postData || {};
-     const newLecture = {
-         id: 'test-lecture-id-' + Date.now(),
-         title: input.title || 'Untitled',
-         description: input.description || 'No desc',
-         ...input
-     };
-     
-     lectures.push(newLecture);
-     
-     await route.fulfill({
-        json: {
-            result: {
-                data: newLecture
-            }
-        }
-     });
+  await page.route('**/api/trpc/lectures.createLecture*', async (route) => {
+    const postData = route.request().postDataJSON();
+
+    const input = postData || {};
+    const newLecture = {
+      id: 'test-lecture-id-' + Date.now(),
+      title: input.title || 'Untitled',
+      description: input.description || 'No desc',
+      ...input,
+    };
+
+    lectures.push(newLecture);
+
+    await route.fulfill({
+      json: {
+        result: {
+          data: newLecture,
+        },
+      },
+    });
   });
 
   // Go to home page
@@ -50,7 +52,10 @@ test('add a new lecture', async ({ page }) => {
   // Fill in the form
   const lectureTitle = 'Test Lecture ' + Date.now();
   await page.fill('input#title', lectureTitle);
-  await page.fill('textarea#description', 'This is a test lecture description.');
+  await page.fill(
+    'textarea#description',
+    'This is a test lecture description.',
+  );
 
   // Submit
   await page.click('button[type="submit"]');
