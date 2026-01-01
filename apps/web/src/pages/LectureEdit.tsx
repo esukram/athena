@@ -74,7 +74,13 @@ export const EditLecture = () => {
         ]);
       }
     }
-  }, [editingChapter?.id, chapterQuestionsQuery.data, isCreatingNewChapter]);
+  }, [
+    editingChapter?.id,
+    chapterQuestionsQuery.data,
+    isCreatingNewChapter,
+    editingChapter,
+    editingQuestions.length,
+  ]);
 
   const lectureQuery = trpc.lectures.getLecture.useQuery(
     { id: id! },
