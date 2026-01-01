@@ -43,8 +43,9 @@ test('add a new lecture', async ({ page }) => {
   // Go to home page
   await page.goto('/');
 
-  // Navigate to Add Lecture page
-  await page.click('a[href="#/add-lecture"]');
+  // Navigate to Add Lecture page via NavMenu
+  await page.getByTestId('nav-menu-button').click();
+  await page.getByTestId('nav-menu-add-lecture').click();
 
   // Verify we are on the add lecture page
   await expect(page).toHaveURL(/.*#\/add-lecture/);

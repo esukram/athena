@@ -15,7 +15,8 @@
     "saving": "Wird gespeichert..."
   },
   "header": {
-    "addLecture": "Fach hinzufügen"
+    "addLecture": "Fach hinzufügen",
+    "menuLabel": "Menü"
   },
   "language": {
     "german": "Deutsch",
