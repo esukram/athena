@@ -114,7 +114,9 @@ test.describe('Move Chapter', () => {
     await expect(page.getByText('Test Question')).toBeVisible();
 
     // Click the Move button
-    await page.getByRole('button', { name: 'Move', exact: true }).click();
+    await page
+      .getByRole('button', { name: 'Move Chapter', exact: true })
+      .click();
 
     // The move modal should appear - wait for modal heading
     await expect(

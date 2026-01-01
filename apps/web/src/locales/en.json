@@ -65,7 +65,10 @@
     "moveUp": "Move up",
     "moveDown": "Move down",
     "reorderFirst": "First",
-    "reorderLast": "Last"
+    "reorderLast": "Last",
+    "editChapter": "Edit Chapter",
+    "moveChapterTooltip": "Move Chapter",
+    "deleteChapter": "Delete Chapter"
   },
   "lectureTrain": {
     "backToLectures": "Back to Lectures",

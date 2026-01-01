@@ -65,7 +65,10 @@
     "moveUp": "Nach oben",
     "moveDown": "Nach unten",
     "reorderFirst": "Erste",
-    "reorderLast": "Letzte"
+    "reorderLast": "Letzte",
+    "editChapter": "Kapitel bearbeiten",
+    "moveChapterTooltip": "Kapitel verschieben",
+    "deleteChapter": "Kapitel löschen"
   },
   "lectureTrain": {
     "backToLectures": "Zurück zu den Fächern",

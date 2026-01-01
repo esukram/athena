@@ -1,4 +1,10 @@
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import {
+  ArrowRightLeft,
+  ChevronDown,
+  ChevronUp,
+  Pencil,
+  Trash2,
+} from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 
@@ -578,10 +584,10 @@ export const EditLecture = () => {
                     return (
                       <div
                         key={chapter.id}
-                        className="p-4 bg-gray-50 rounded-lg border border-gray-200 flex items-center gap-4"
+                        className="p-3 sm:p-4 bg-gray-50 rounded-lg border border-gray-200 grid grid-cols-[1fr_auto_auto] items-center gap-2 sm:gap-4"
                       >
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-3">
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2 sm:gap-3">
                             {/* Position dropdown */}
                             <select
                               value={index}
@@ -589,7 +595,7 @@ export const EditLecture = () => {
                                 handleReorderTo(Number(e.target.value))
                               }
                               disabled={reorderChapter.isLoading}
-                              className="shrink-0 w-14 px-2 py-1.5 text-sm bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-colors disabled:opacity-50"
+                              className="shrink-0 w-12 sm:w-14 px-1.5 sm:px-2 py-1 sm:py-1.5 text-sm bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-colors disabled:opacity-50"
                               aria-label="Chapter position"
                             >
                               {Array.from({ length: totalChapters }, (_, i) => (
@@ -599,35 +605,45 @@ export const EditLecture = () => {
                               ))}
                             </select>
 
-                            <span className="flex-1 text-on-surface font-medium">
+                            <span className="flex-1 text-on-surface font-medium text-sm sm:text-base line-clamp-2 sm:line-clamp-none">
                               {firstQuestion?.question || t('common.untitled')}
                             </span>
-                            <button
-                              onClick={() => handleStartEdit(chapter)}
-                              className="px-3 py-1.5 text-sm text-primary-600 hover:bg-primary-50 rounded transition-colors"
-                            >
-                              {t('common.edit')}
-                            </button>
-                            <button
-                              onClick={() => setMovingChapter(chapter)}
-                              className="px-3 py-1.5 text-sm text-primary-600 hover:bg-primary-50 rounded transition-colors"
-                            >
-                              {t('lectureEdit.move')}
-                            </button>
-                            <button
-                              onClick={() => handleDeleteChapter(chapter.id)}
-                              disabled={deleteChapter.isLoading}
-                              className="px-3 py-1.5 text-sm text-red-600 hover:bg-red-50 rounded transition-colors"
-                            >
-                              {t('common.delete')}
-                            </button>
                           </div>
                           {firstQuestion?.answer && (
-                            <div className="mt-3 pl-11 text-sm text-gray-500 truncate">
+                            <div className="mt-3 pl-11 text-sm text-gray-500 truncate hidden sm:block">
                               {firstQuestion.answer.substring(0, 100)}
                               {firstQuestion.answer.length > 100 && '...'}
                             </div>
                           )}
+                        </div>
+
+                        {/* Chapter action icons */}
+                        <div className="flex gap-1 sm:gap-2 shrink-0">
+                          <button
+                            onClick={() => handleStartEdit(chapter)}
+                            className="p-1.5 sm:p-2 rounded-full bg-white/80 hover:bg-primary-50 shadow-md transition-all duration-200 opacity-90 lg:opacity-80 lg:hover:opacity-100"
+                            aria-label={t('lectureEdit.editChapter')}
+                            title={t('lectureEdit.editChapter')}
+                          >
+                            <Pencil className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600 hover:text-primary-600" />
+                          </button>
+                          <button
+                            onClick={() => setMovingChapter(chapter)}
+                            className="p-1.5 sm:p-2 rounded-full bg-white/80 hover:bg-primary-50 shadow-md transition-all duration-200 opacity-90 lg:opacity-80 lg:hover:opacity-100"
+                            aria-label={t('lectureEdit.moveChapterTooltip')}
+                            title={t('lectureEdit.moveChapterTooltip')}
+                          >
+                            <ArrowRightLeft className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600 hover:text-primary-600" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteChapter(chapter.id)}
+                            disabled={deleteChapter.isLoading}
+                            className="p-1.5 sm:p-2 rounded-full bg-white/80 hover:bg-red-50 shadow-md transition-all duration-200 opacity-90 lg:opacity-80 lg:hover:opacity-100"
+                            aria-label={t('lectureEdit.deleteChapter')}
+                            title={t('lectureEdit.deleteChapter')}
+                          >
+                            <Trash2 className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600 hover:text-red-600" />
+                          </button>
                         </div>
 
                         {/* Reorder controls - Centered vertically */}
