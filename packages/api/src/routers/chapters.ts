@@ -44,4 +44,27 @@ export const chaptersRouter = router({
     .mutation(({ ctx, input }) => {
       return ctx.chapterRepository.delete(input.id);
     }),
+  moveChapter: publicProcedure
+    .input(
+      z.object({
+        chapterId: z.string(),
+        targetLectureId: z.string(),
+      }),
+    )
+    .mutation(({ ctx, input }) => {
+      // Get max order in target lecture
+      const targetChapters = ctx.chapterRepository.getByLectureId(
+        input.targetLectureId,
+      );
+      const maxOrder =
+        targetChapters.length > 0
+          ? Math.max(...targetChapters.map((c) => c.order))
+          : -1;
+
+      // Update chapter with new lectureId and order
+      return ctx.chapterRepository.update(input.chapterId, {
+        lectureId: input.targetLectureId,
+        order: maxOrder + 1,
+      });
+    }),
 });

@@ -12,6 +12,7 @@ import {
   EditChapterModal,
   type EditingQuestion,
 } from '../components/EditChapterModal';
+import { MoveChapterModal } from '../components/MoveChapterModal';
 import { trpc } from '../utils/trpc';
 
 export const EditLecture = () => {
@@ -31,6 +32,7 @@ export const EditLecture = () => {
   const [editingQuestions, setEditingQuestions] = useState<EditingQuestion[]>(
     [],
   );
+  const [movingChapter, setMovingChapter] = useState<Chapter | null>(null);
 
   // Fetch questions for the editing chapter (only for existing chapters)
   const chapterQuestionsQuery = trpc.questions.getQuestions.useQuery(
@@ -169,6 +171,16 @@ export const EditLecture = () => {
       utils.chapters.getChapters.invalidate({ lectureId: id! });
     },
   });
+
+  const moveChapter = trpc.chapters.moveChapter.useMutation({
+    onSuccess: () => {
+      utils.chapters.getChapters.invalidate({ lectureId: id! });
+      setMovingChapter(null);
+    },
+  });
+
+  // Fetch all lectures for the move chapter modal
+  const lecturesQuery = trpc.lectures.getLectures.useQuery();
 
   const handleUpdateLecture = (e: React.FormEvent) => {
     e.preventDefault();
@@ -523,6 +535,12 @@ export const EditLecture = () => {
                           {t('common.edit')}
                         </button>
                         <button
+                          onClick={() => setMovingChapter(chapter)}
+                          className="px-3 py-1.5 text-sm text-primary-600 hover:bg-primary-50 rounded transition-colors"
+                        >
+                          {t('lectureEdit.move')}
+                        </button>
+                        <button
                           onClick={() => handleDeleteChapter(chapter.id)}
                           disabled={deleteChapter.isLoading}
                           className="px-3 py-1.5 text-sm text-red-600 hover:bg-red-50 rounded transition-colors"
@@ -558,6 +576,22 @@ export const EditLecture = () => {
             onDeleteQuestion={handleDeleteEditingQuestion}
             onSave={handleSaveEdit}
             onCancel={handleCancelEdit}
+          />
+        )}
+
+        {/* Move Chapter Modal */}
+        {movingChapter && (
+          <MoveChapterModal
+            currentLectureId={id!}
+            lectures={lecturesQuery.data || []}
+            isMoving={moveChapter.isLoading}
+            onMove={(targetLectureId) =>
+              moveChapter.mutate({
+                chapterId: movingChapter.id,
+                targetLectureId,
+              })
+            }
+            onCancel={() => setMovingChapter(null)}
           />
         )}
       </main>
