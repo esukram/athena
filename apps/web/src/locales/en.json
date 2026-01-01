@@ -61,7 +61,11 @@
     "selectTargetLecture": "Select target lecture",
     "moveToLecture": "Move to this lecture",
     "moving": "Moving...",
-    "noOtherLectures": "No other lectures available"
+    "noOtherLectures": "No other lectures available",
+    "moveUp": "Move up",
+    "moveDown": "Move down",
+    "reorderFirst": "First",
+    "reorderLast": "Last"
   },
   "lectureTrain": {
     "backToLectures": "Back to Lectures",
