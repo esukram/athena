@@ -43,6 +43,11 @@ To maintain high code quality and consistency, we follow these guidelines:
 - **Type Safety**: Leverage tRPC for end-to-end type safety between the frontend and backend.
 - **Interfaces/Types**: Define clear interfaces or types for component props and data models.
 
+### Code Style
+
+- **Formatting**: Use Prettier for consistent code formatting. Execute `pnpm format` before committing your changes.
+- **Linting**: Use ESLint for code quality and potential issues. Execute `pnpm lint` before committing your changes.
+
 ## 🧪 Testing Policy
 
 Testing is essential for maintaining a stable application.

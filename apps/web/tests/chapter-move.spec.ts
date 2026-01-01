@@ -116,7 +116,9 @@ test.describe('Move Chapter', () => {
     await page.getByRole('button', { name: 'Move' }).click();
 
     // The move modal should appear - wait for modal heading
-    await expect(page.getByRole('heading', { name: 'Move Chapter' })).toBeVisible();
+    await expect(
+      page.getByRole('heading', { name: 'Move Chapter' }),
+    ).toBeVisible();
 
     // Wait for lectures to load and verify Lecture Two is visible
     // (Lecture One should not be in the list since it's the current lecture)
@@ -129,6 +131,8 @@ test.describe('Move Chapter', () => {
     await page.getByRole('button', { name: /Move to this lecture/i }).click();
 
     // The modal should close
-    await expect(page.getByRole('heading', { name: 'Move Chapter' })).not.toBeVisible();
+    await expect(
+      page.getByRole('heading', { name: 'Move Chapter' }),
+    ).not.toBeVisible();
   });
 });
