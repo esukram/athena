@@ -8,6 +8,7 @@
     "lint": "turbo lint",
     "format": "turbo format",
     "test:e2e": "turbo test:e2e",
+    "test:e2e:report": "pnpm --filter web exec playwright show-report",
     "clean": "turbo clean",
     "prepare": "husky"
   },
