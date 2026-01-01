@@ -1,4 +1,4 @@
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import { ChevronDown, ChevronUp, Pencil, SquareArrowRight, Trash2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 
@@ -578,9 +578,9 @@ export const EditLecture = () => {
                     return (
                       <div
                         key={chapter.id}
-                        className="p-4 bg-gray-50 rounded-lg border border-gray-200 flex items-center gap-4"
+                        className="p-4 bg-gray-50 rounded-lg border border-gray-200 grid grid-cols-[1fr_auto_auto] items-center gap-4"
                       >
-                        <div className="flex-1 min-w-0">
+                        <div className="min-w-0">
                           <div className="flex items-center gap-3">
                             {/* Position dropdown */}
                             <select
@@ -602,25 +602,6 @@ export const EditLecture = () => {
                             <span className="flex-1 text-on-surface font-medium">
                               {firstQuestion?.question || t('common.untitled')}
                             </span>
-                            <button
-                              onClick={() => handleStartEdit(chapter)}
-                              className="px-3 py-1.5 text-sm text-primary-600 hover:bg-primary-50 rounded transition-colors"
-                            >
-                              {t('common.edit')}
-                            </button>
-                            <button
-                              onClick={() => setMovingChapter(chapter)}
-                              className="px-3 py-1.5 text-sm text-primary-600 hover:bg-primary-50 rounded transition-colors"
-                            >
-                              {t('lectureEdit.move')}
-                            </button>
-                            <button
-                              onClick={() => handleDeleteChapter(chapter.id)}
-                              disabled={deleteChapter.isLoading}
-                              className="px-3 py-1.5 text-sm text-red-600 hover:bg-red-50 rounded transition-colors"
-                            >
-                              {t('common.delete')}
-                            </button>
                           </div>
                           {firstQuestion?.answer && (
                             <div className="mt-3 pl-11 text-sm text-gray-500 truncate">
@@ -628,6 +609,35 @@ export const EditLecture = () => {
                               {firstQuestion.answer.length > 100 && '...'}
                             </div>
                           )}
+                        </div>
+
+                        {/* Chapter action icons */}
+                        <div className="flex gap-2 shrink-0">
+                          <button
+                            onClick={() => handleStartEdit(chapter)}
+                            className="p-2 rounded-full bg-white/80 hover:bg-primary-50 shadow-md transition-all duration-200"
+                            aria-label={t('lectureEdit.editChapter')}
+                            title={t('lectureEdit.editChapter')}
+                          >
+                            <Pencil className="w-5 h-5 text-gray-600 hover:text-primary-600" />
+                          </button>
+                          <button
+                            onClick={() => setMovingChapter(chapter)}
+                            className="p-2 rounded-full bg-white/80 hover:bg-primary-50 shadow-md transition-all duration-200"
+                            aria-label={t('lectureEdit.moveChapterTooltip')}
+                            title={t('lectureEdit.moveChapterTooltip')}
+                          >
+                            <SquareArrowRight className="w-5 h-5 text-gray-600 hover:text-primary-600" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteChapter(chapter.id)}
+                            disabled={deleteChapter.isLoading}
+                            className="p-2 rounded-full bg-white/80 hover:bg-red-50 shadow-md transition-all duration-200 disabled:opacity-50"
+                            aria-label={t('lectureEdit.deleteChapter')}
+                            title={t('lectureEdit.deleteChapter')}
+                          >
+                            <Trash2 className="w-5 h-5 text-gray-600 hover:text-red-600" />
+                          </button>
                         </div>
 
                         {/* Reorder controls - Centered vertically */}
