@@ -7,10 +7,12 @@
     "dev": "turbo dev",
     "lint": "turbo lint",
     "format": "turbo format",
-    "clean": "turbo clean"
+    "clean": "turbo clean",
+    "prepare": "husky"
   },
   "devDependencies": {
     "@trivago/prettier-plugin-sort-imports": "^6.0.0",
+    "husky": "^9.1.7",
     "prettier": "^3.0.0",
     "turbo": "latest",
     "typescript": "^5.0.0"
