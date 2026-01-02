@@ -1,5 +1,5 @@
-import * as fs from 'node:fs';
 import * as sdk from 'microsoft-cognitiveservices-speech-sdk';
+import * as fs from 'node:fs';
 
 import type { SpeechResult, SpeechService } from '@athena/api';
 
@@ -17,9 +17,13 @@ export function createSpeechService(): SpeechService | undefined {
 
   if (!speechKey && speechKeyFile) {
     try {
+      console.log('Reading SPEECH_KEY_FILE from', speechKeyFile);
       speechKey = fs.readFileSync(speechKeyFile, 'utf8').trim();
     } catch (error) {
-      console.error(`Failed to read SPEECH_KEY_FILE from ${speechKeyFile}:`, error);
+      console.error(
+        `Failed to read SPEECH_KEY_FILE from ${speechKeyFile}:`,
+        error,
+      );
       return undefined;
     }
   }

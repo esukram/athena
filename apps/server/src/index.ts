@@ -18,6 +18,7 @@ import {
 } from '@athena/api';
 
 import { db } from './db.js';
+import './env.js';
 import { runMigrations } from './migration.js';
 import { createSpeechService } from './speech.js';
 

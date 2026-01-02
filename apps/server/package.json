@@ -15,6 +15,7 @@
     "@trpc/server": "^10.45.0",
     "better-sqlite3": "^12.5.0",
     "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
     "fastify": "^5.6.2",
     "microsoft-cognitiveservices-speech-sdk": "^1.47.0"
   },
