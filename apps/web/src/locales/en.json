@@ -112,5 +112,11 @@
     "newQuestion": "New Question",
     "deleteQuestion": "Delete question",
     "answerPlaceholder": "Write your answer in Markdown..."
+  },
+  "speech": {
+    "playQuestion": "Read question aloud",
+    "stopPlayback": "Stop",
+    "loading": "Preparing audio...",
+    "error": "Speech unavailable"
   }
 }

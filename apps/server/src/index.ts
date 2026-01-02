@@ -2,6 +2,8 @@ import Fastify from 'fastify';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
+import './env.js';
+
 import cors from '@fastify/cors';
 import staticPlugin from '@fastify/static';
 import { fastifyTRPCPlugin } from '@trpc/server/adapters/fastify';
@@ -19,6 +21,7 @@ import {
 
 import { db } from './db.js';
 import { runMigrations } from './migration.js';
+import { createSpeechService } from './speech.js';
 
 function createLectureRepository(): LectureRepository {
   return {
@@ -256,6 +259,7 @@ async function main() {
   const lectureRepository = createLectureRepository();
   const chapterRepository = createChapterRepository();
   const questionRepository = createQuestionRepository();
+  const speechService = createSpeechService();
 
   await server.register(fastifyTRPCPlugin, {
     prefix: '/api/trpc',
@@ -265,6 +269,7 @@ async function main() {
         lectureRepository,
         chapterRepository,
         questionRepository,
+        speechService,
       }),
     },
   });

@@ -9,10 +9,11 @@ import type { Question } from '@athena/api';
 
 import { Accordion } from '../components/Accordion';
 import { AppHeader } from '../components/AppHeader';
+import { SpeechPlayButton } from '../components/SpeechPlayButton';
 import { trpc } from '../utils/trpc';
 
 export const LectureTrain = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { id, chapterId, questionId } = useParams<{
     id: string;
     chapterId?: string;
@@ -509,33 +510,43 @@ export const LectureTrain = () => {
                               noShadow
                               noPadding
                               leftIcon={
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    updateQuestion.mutate({
-                                      id: question.id,
-                                      isAnnotated: !question.isAnnotated,
-                                    });
-                                  }}
-                                  className={`p-1 rounded-full transition-all hover:scale-110 ${
-                                    question.isAnnotated
-                                      ? ''
-                                      : 'opacity-50 hover:opacity-100'
-                                  }`}
-                                  title={
-                                    question.isAnnotated
-                                      ? t('lectureTrain.annotated')
-                                      : t('lectureTrain.annotate')
-                                  }
-                                >
-                                  <span
-                                    className={`text-xl ${
-                                      question.isAnnotated ? '' : 'grayscale'
+                                <span className="flex items-center gap-1">
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      updateQuestion.mutate({
+                                        id: question.id,
+                                        isAnnotated: !question.isAnnotated,
+                                      });
+                                    }}
+                                    className={`p-1 rounded-full transition-all hover:scale-110 ${
+                                      question.isAnnotated
+                                        ? ''
+                                        : 'opacity-50 hover:opacity-100'
                                     }`}
+                                    title={
+                                      question.isAnnotated
+                                        ? t('lectureTrain.annotated')
+                                        : t('lectureTrain.annotate')
+                                    }
                                   >
-                                    🦉
-                                  </span>
-                                </button>
+                                    <span
+                                      className={`text-xl ${
+                                        question.isAnnotated ? '' : 'grayscale'
+                                      }`}
+                                    >
+                                      🦉
+                                    </span>
+                                  </button>
+                                  <SpeechPlayButton
+                                    text={question.question}
+                                    language={
+                                      i18n.language.startsWith('de')
+                                        ? 'de'
+                                        : 'en'
+                                    }
+                                  />
+                                </span>
                               }
                             >
                               {question.answer ? (

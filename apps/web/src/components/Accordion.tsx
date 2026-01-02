@@ -46,9 +46,7 @@ export const Accordion: React.FC<AccordionProps> = ({
       >
         <div className="flex-1">
           <h1 className="text-2xl font-bold text-on-background mb-2">
-            {leftIcon && (
-              <span onClick={(e) => e.stopPropagation()}>{leftIcon}</span>
-            )}
+            {leftIcon && <span>{leftIcon}</span>}
             {title}
           </h1>
           {!isOpen && (

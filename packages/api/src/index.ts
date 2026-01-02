@@ -6,4 +6,10 @@ export {
   type QuestionRepository,
   type AppContext,
 } from './trpc.js';
-export type { Lecture, Chapter, Question } from './types.js';
+export type {
+  Lecture,
+  Chapter,
+  Question,
+  SpeechService,
+  SpeechResult,
+} from './types.js';
