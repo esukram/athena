@@ -1,19 +1,32 @@
+import * as fs from 'node:fs';
 import * as sdk from 'microsoft-cognitiveservices-speech-sdk';
 
 import type { SpeechResult, SpeechService } from '@athena/api';
 
 const VOICE_MAP: Record<'de' | 'en', string> = {
-  de: 'de-DE-KatjaNeural',
+  de: 'de-DE-KlarissaNeural',
   en: 'en-GB-RyanNeural',
 };
 
+const SPEECH_REGION = 'germanywestcentral';
+
 export function createSpeechService(): SpeechService | undefined {
-  const speechKey = process.env.SPEECH_KEY;
-  const speechRegion = process.env.SPEECH_REGION;
+  let speechKey = process.env.SPEECH_KEY;
+  const speechKeyFile = process.env.SPEECH_KEY_FILE;
+  const speechRegion = SPEECH_REGION;
+
+  if (!speechKey && speechKeyFile) {
+    try {
+      speechKey = fs.readFileSync(speechKeyFile, 'utf8').trim();
+    } catch (error) {
+      console.error(`Failed to read SPEECH_KEY_FILE from ${speechKeyFile}:`, error);
+      return undefined;
+    }
+  }
 
   if (!speechKey || !speechRegion) {
     console.log(
-      'Speech service not configured. Set SPEECH_KEY and SPEECH_REGION environment variables.',
+      'Speech service not configured. Set SPEECH_KEY or SPEECH_KEY_FILE and SPEECH_REGION environment variables.',
     );
     return undefined;
   }
