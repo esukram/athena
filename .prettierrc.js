@@ -5,7 +5,7 @@ module.exports = {
   "printWidth": 80,
   "tabWidth": 2,
   "plugins": [require.resolve("@trivago/prettier-plugin-sort-imports")],
-  "importOrder": ["^react$", "^@(?!athena)(.*)/(.*)$", "^@athena/(.*)$", "^components/(.*)$", "^[./]"],
+  "importOrder": ["^react$", "./env.js", "^@(?!athena)(.*)/(.*)$", "^@athena/(.*)$", "^components/(.*)$", "^[./]"],
   "importOrderSeparation": true,
   "importOrderSortSpecifiers": true
 }

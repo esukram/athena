@@ -2,6 +2,8 @@ import Fastify from 'fastify';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
+import './env.js';
+
 import cors from '@fastify/cors';
 import staticPlugin from '@fastify/static';
 import { fastifyTRPCPlugin } from '@trpc/server/adapters/fastify';
@@ -18,7 +20,6 @@ import {
 } from '@athena/api';
 
 import { db } from './db.js';
-import './env.js';
 import { runMigrations } from './migration.js';
 import { createSpeechService } from './speech.js';
 
