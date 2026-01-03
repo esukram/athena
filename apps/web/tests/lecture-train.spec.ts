@@ -114,4 +114,65 @@ test.describe('Lecture Train', () => {
     await prevButton.click();
     await expect(page).toHaveURL(new RegExp(`/train/${lectureId}/c1/q1`));
   });
+
+  test('edit button should not be visible in training mode', async ({ page }) => {
+    const lectureId = 'lecture-train-2';
+    const lecture = {
+      id: lectureId,
+      title: 'Focus Training',
+      description: 'No distractions',
+    };
+
+    const chapters = [{ id: 'c1', lectureId, order: 0 }];
+
+    const firstQuestions = {
+      c1: { question: 'Question 1' },
+    };
+
+    const c1Questions = [
+      {
+        id: 'q1',
+        chapterId: 'c1',
+        question: 'Question 1',
+        answer: 'Answer 1',
+        order: 0,
+        isAnnotated: false,
+      },
+    ];
+
+    // Mock API
+    await page.route('**/api/trpc/lectures.getLecture?*', async (route) => {
+      await route.fulfill({ json: { result: { data: lecture } } });
+    });
+    await page.route('**/api/trpc/chapters.getChapters*', async (route) => {
+      await route.fulfill({ json: { result: { data: chapters } } });
+    });
+    await page.route(
+      '**/api/trpc/questions.getFirstQuestionsByLecture*',
+      async (route) => {
+        await route.fulfill({ json: { result: { data: firstQuestions } } });
+      },
+    );
+    await page.route(
+      '**/api/trpc/questions.getAnnotatedChapterIdsByLecture*',
+      async (route) => {
+        await route.fulfill({ json: { result: { data: [] } } });
+      },
+    );
+    await page.route('**/api/trpc/questions.getQuestions?*', async (route) => {
+      await route.fulfill({ json: { result: { data: c1Questions } } });
+    });
+
+    await page.goto(`/#/train/${lectureId}`);
+
+    // Verify question is displayed
+    await expect(
+      page.getByRole('heading', { name: 'Question 1' }),
+    ).toBeVisible();
+
+    // Verify edit button is NOT visible in training mode
+    await expect(
+      page.getByTestId('chapter-edit-button'),
+    ).not.toBeVisible();
+  });
 });
