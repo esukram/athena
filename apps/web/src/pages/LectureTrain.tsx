@@ -9,7 +9,6 @@ import type { Question } from '@athena/api';
 
 import { Accordion } from '../components/Accordion';
 import { AppHeader } from '../components/AppHeader';
-
 import { SpeechPlayButton } from '../components/SpeechPlayButton';
 import { trpc } from '../utils/trpc';
 
