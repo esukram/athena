@@ -13,10 +13,10 @@ import {
   EditChapterModal,
   type EditingQuestion,
 } from '../components/EditChapterModal';
+import { MoveChapterModal } from '../components/MoveChapterModal';
 import { IconButtonDelete } from '../components/buttons/IconButtonDelete';
 import { IconButtonEdit } from '../components/buttons/IconButtonEdit';
 import { IconButtonMove } from '../components/buttons/IconButtonMove';
-import { MoveChapterModal } from '../components/MoveChapterModal';
 import { trpc } from '../utils/trpc';
 
 export const EditLecture = () => {
