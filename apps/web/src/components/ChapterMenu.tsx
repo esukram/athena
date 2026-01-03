@@ -205,7 +205,7 @@ export const ChapterMenu = ({ chapter, lectureId }: ChapterMenuProps) => {
           e.stopPropagation();
           handleOpenEdit();
         }}
-        className="p-2 rounded-full hover:bg-gray-100 transition-all duration-200"
+        className="p-2 rounded-full bg-white/80 hover:bg-primary-50 shadow-md transition-all duration-200"
         aria-label={t('chapterMenu.editChapter')}
         title={t('chapterMenu.editChapter')}
         data-testid="chapter-edit-button"
