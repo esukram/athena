@@ -115,7 +115,9 @@ test.describe('Lecture Train', () => {
     await expect(page).toHaveURL(new RegExp(`/train/${lectureId}/c1/q1`));
   });
 
-  test('edit button should not be visible in training mode', async ({ page }) => {
+  test('edit button should not be visible in training mode', async ({
+    page,
+  }) => {
     const lectureId = 'lecture-train-2';
     const lecture = {
       id: lectureId,
@@ -171,8 +173,6 @@ test.describe('Lecture Train', () => {
     ).toBeVisible();
 
     // Verify edit button is NOT visible in training mode
-    await expect(
-      page.getByTestId('chapter-edit-button'),
-    ).not.toBeVisible();
+    await expect(page.getByTestId('chapter-edit-button')).not.toBeVisible();
   });
 });
