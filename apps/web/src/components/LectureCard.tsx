@@ -32,7 +32,7 @@ export const LectureCard = ({ lecture }: { lecture: Lecture }) => {
               e.stopPropagation();
               navigate(`/edit/${lecture.id}`);
             }}
-            className="opacity-100 md:opacity-0 md:group-hover:opacity-100 md:focus:opacity-100 p-2 rounded-full bg-white/80 hover:bg-primary-50 shadow-md transition-all duration-200"
+            className="p-2 rounded-full bg-white/80 hover:bg-primary-50 shadow-md transition-all duration-200"
             aria-label={t('lectureCard.editLecture')}
             title={t('lectureCard.editLecture')}
             data-testid="lecture-edit-button"
@@ -44,7 +44,7 @@ export const LectureCard = ({ lecture }: { lecture: Lecture }) => {
               e.stopPropagation();
               handleDelete();
             }}
-            className="opacity-100 md:opacity-0 md:group-hover:opacity-100 md:focus:opacity-100 p-2 rounded-full bg-white/80 hover:bg-red-50 shadow-md transition-all duration-200"
+            className="p-2 rounded-full bg-white/80 hover:bg-red-50 shadow-md transition-all duration-200"
             aria-label={t('lectureCard.deleteLecture')}
             title={t('lectureCard.deleteLecture')}
             data-testid="lecture-delete-button"
