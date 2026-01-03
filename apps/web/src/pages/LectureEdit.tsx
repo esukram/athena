@@ -1,10 +1,4 @@
-import {
-  ArrowRightLeft,
-  ChevronDown,
-  ChevronUp,
-  Pencil,
-  Trash2,
-} from 'lucide-react';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 
@@ -19,6 +13,9 @@ import {
   EditChapterModal,
   type EditingQuestion,
 } from '../components/EditChapterModal';
+import { IconButtonDelete } from '../components/IconButtonDelete';
+import { IconButtonEdit } from '../components/IconButtonEdit';
+import { IconButtonMove } from '../components/IconButtonMove';
 import { MoveChapterModal } from '../components/MoveChapterModal';
 import { trpc } from '../utils/trpc';
 
@@ -619,31 +616,22 @@ export const EditLecture = () => {
 
                         {/* Chapter action icons */}
                         <div className="flex gap-1 sm:gap-2 shrink-0">
-                          <button
+                          <IconButtonEdit
                             onClick={() => handleStartEdit(chapter)}
-                            className="p-1.5 sm:p-2 rounded-full bg-white/80 hover:bg-primary-50 shadow-md transition-all duration-200 opacity-90 lg:opacity-80 lg:hover:opacity-100"
                             aria-label={t('lectureEdit.editChapter')}
-                            title={t('lectureEdit.editChapter')}
-                          >
-                            <Pencil className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600 hover:text-primary-600" />
-                          </button>
-                          <button
+                            size="sm"
+                          />
+                          <IconButtonMove
                             onClick={() => setMovingChapter(chapter)}
-                            className="p-1.5 sm:p-2 rounded-full bg-white/80 hover:bg-primary-50 shadow-md transition-all duration-200 opacity-90 lg:opacity-80 lg:hover:opacity-100"
                             aria-label={t('lectureEdit.moveChapterTooltip')}
-                            title={t('lectureEdit.moveChapterTooltip')}
-                          >
-                            <ArrowRightLeft className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600 hover:text-primary-600" />
-                          </button>
-                          <button
+                            size="sm"
+                          />
+                          <IconButtonDelete
                             onClick={() => handleDeleteChapter(chapter.id)}
                             disabled={deleteChapter.isLoading}
-                            className="p-1.5 sm:p-2 rounded-full bg-white/80 hover:bg-red-50 shadow-md transition-all duration-200 opacity-90 lg:opacity-80 lg:hover:opacity-100"
                             aria-label={t('lectureEdit.deleteChapter')}
-                            title={t('lectureEdit.deleteChapter')}
-                          >
-                            <Trash2 className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600 hover:text-red-600" />
-                          </button>
+                            size="sm"
+                          />
                         </div>
 
                         {/* Reorder controls - Centered vertically */}

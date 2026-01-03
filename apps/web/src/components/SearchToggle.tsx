@@ -1,6 +1,7 @@
 import { Search, X } from 'lucide-react';
-import { forwardRef } from 'react';
 import { useTranslation } from 'react-i18next';
+
+import { forwardRef } from 'react';
 
 interface SearchToggleProps {
   /** Whether the search input is open/visible */
@@ -29,7 +30,9 @@ export const SearchToggle = forwardRef<HTMLInputElement, SearchToggleProps>(
           onClick={onToggle}
           className="p-1 rounded-lg hover:bg-gray-100 transition-colors text-on-surface-variant hover:text-on-surface"
           aria-label={
-            isOpen ? t('globalSearch.closeSearch') : t('globalSearch.openSearch')
+            isOpen
+              ? t('globalSearch.closeSearch')
+              : t('globalSearch.openSearch')
           }
         >
           {isOpen ? <X size={18} /> : <Search size={18} />}

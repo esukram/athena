@@ -1,9 +1,10 @@
-import { Pencil, Trash2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
 import type { Lecture } from '@athena/api';
 
+import { IconButtonDelete } from './IconButtonDelete';
+import { IconButtonEdit } from './IconButtonEdit';
 import { trpc } from '../utils/trpc';
 
 export const LectureCard = ({ lecture }: { lecture: Lecture }) => {
@@ -27,30 +28,22 @@ export const LectureCard = ({ lecture }: { lecture: Lecture }) => {
     <div className="group flex flex-col overflow-hidden rounded-2xl bg-white shadow-lg transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 border border-gray-100">
       <div className="relative h-52 w-full overflow-hidden bg-gradient-to-br from-primary-100 to-primary-50">
         <div className="absolute top-3 right-3 z-10 flex gap-2">
-          <button
+          <IconButtonEdit
             onClick={(e) => {
               e.stopPropagation();
               navigate(`/edit/${lecture.id}`);
             }}
-            className="p-2 rounded-full bg-white/80 hover:bg-primary-50 shadow-md transition-all duration-200"
             aria-label={t('lectureCard.editLecture')}
-            title={t('lectureCard.editLecture')}
             data-testid="lecture-edit-button"
-          >
-            <Pencil className="w-5 h-5 opacity-90 lg:opacity-80 lg:hover:opacity-100" />
-          </button>
-          <button
+          />
+          <IconButtonDelete
             onClick={(e) => {
               e.stopPropagation();
               handleDelete();
             }}
-            className="p-2 rounded-full bg-white/80 hover:bg-red-50 shadow-md transition-all duration-200"
             aria-label={t('lectureCard.deleteLecture')}
-            title={t('lectureCard.deleteLecture')}
             data-testid="lecture-delete-button"
-          >
-            <Trash2 className="w-5 h-5 opacity-90 lg:opacity-80 lg:hover:opacity-100" />
-          </button>
+          />
         </div>
 
         <div className="h-full w-full flex items-center justify-center p-6">

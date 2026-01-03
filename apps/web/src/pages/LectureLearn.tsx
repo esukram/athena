@@ -14,8 +14,8 @@ import { ChapterSidebar } from '../components/ChapterSidebar';
 import { ErrorState } from '../components/ErrorState';
 import { LoadingState } from '../components/LoadingState';
 import { PaginationNav } from '../components/PaginationNav';
-import { trpc } from '../utils/trpc';
 import { highlightText } from '../utils/highlightText';
+import { trpc } from '../utils/trpc';
 
 export const LectureLearn = () => {
   const { t } = useTranslation();
@@ -185,7 +185,9 @@ export const LectureLearn = () => {
               chapters={chapters}
               filteredChapters={filteredChapters}
               selectedIndex={selectedChapterIndex}
-              onSelect={(chapter: Chapter) => navigate(`/learn/${id}/${chapter.id}`)}
+              onSelect={(chapter: Chapter) =>
+                navigate(`/learn/${id}/${chapter.id}`)
+              }
               isSearchOpen={isSearchOpen}
               onSearchToggle={() => {
                 setIsSearchOpen(!isSearchOpen);
@@ -259,10 +261,14 @@ export const LectureLearn = () => {
                   {/* Chapter Navigation */}
                   <PaginationNav
                     onPrev={() =>
-                      navigate(`/learn/${id}/${chapters[selectedChapterIndex - 1].id}`)
+                      navigate(
+                        `/learn/${id}/${chapters[selectedChapterIndex - 1].id}`,
+                      )
                     }
                     onNext={() =>
-                      navigate(`/learn/${id}/${chapters[selectedChapterIndex + 1].id}`)
+                      navigate(
+                        `/learn/${id}/${chapters[selectedChapterIndex + 1].id}`,
+                      )
                     }
                     disablePrev={selectedChapterIndex === 0}
                     disableNext={selectedChapterIndex === chapters.length - 1}

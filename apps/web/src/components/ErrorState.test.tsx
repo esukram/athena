@@ -1,5 +1,6 @@
-import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
+
+import { fireEvent, render, screen } from '@testing-library/react';
 
 import { ErrorState } from './ErrorState';
 
@@ -26,7 +27,7 @@ describe('ErrorState', () => {
         message="Error"
         actionLabel="Try Again"
         onAction={onAction}
-      />
+      />,
     );
     expect(screen.getByText('Try Again')).toBeInTheDocument();
   });
@@ -34,13 +35,9 @@ describe('ErrorState', () => {
   it('calls onAction when action button is clicked', () => {
     const onAction = vi.fn();
     render(
-      <ErrorState
-        message="Error"
-        actionLabel="Retry"
-        onAction={onAction}
-      />
+      <ErrorState message="Error" actionLabel="Retry" onAction={onAction} />,
     );
-    
+
     fireEvent.click(screen.getByText('Retry'));
     expect(onAction).toHaveBeenCalledTimes(1);
   });

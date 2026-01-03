@@ -1,5 +1,6 @@
-import React from 'react';
 import { useTranslation } from 'react-i18next';
+
+import React from 'react';
 
 import { AppHeader } from './AppHeader';
 
@@ -18,7 +19,9 @@ export const LoadingState: React.FC<LoadingStateProps> = ({ message }) => {
     <div className="min-h-screen bg-background">
       <AppHeader />
       <main className="container mx-auto px-4 py-8">
-        <p className="text-on-surface-variant">{message || t('common.loading')}</p>
+        <p className="text-on-surface-variant">
+          {message || t('common.loading')}
+        </p>
       </main>
     </div>
   );

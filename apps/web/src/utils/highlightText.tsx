@@ -8,10 +8,7 @@ import React from 'react';
  * @param query - Space-separated search tokens
  * @returns React nodes with matches wrapped in <mark> elements
  */
-export const highlightText = (
-  text: string,
-  query: string,
-): React.ReactNode => {
+export const highlightText = (text: string, query: string): React.ReactNode => {
   if (!query.trim()) return text;
 
   const tokens = query.toLowerCase().split(/\s+/).filter(Boolean);
@@ -28,10 +25,7 @@ export const highlightText = (
     const isMatch = tokens.some((token) => part.toLowerCase() === token);
     if (isMatch) {
       return (
-        <mark
-          key={index}
-          className="bg-yellow-200 text-inherit rounded px-0.5"
-        >
+        <mark key={index} className="bg-yellow-200 text-inherit rounded px-0.5">
           {part}
         </mark>
       );

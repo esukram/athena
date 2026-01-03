@@ -1,6 +1,7 @@
 import { Search, X } from 'lucide-react';
-import React, { RefObject } from 'react';
 import { useTranslation } from 'react-i18next';
+
+import React, { RefObject } from 'react';
 
 export interface ChapterItem {
   id: string;
@@ -102,7 +103,9 @@ export function ChapterSidebar<T extends ChapterItem>({
           </p>
         ) : (
           filteredChapters.map((chapter) => {
-            const originalIndex = chapters.findIndex((c) => c.id === chapter.id);
+            const originalIndex = chapters.findIndex(
+              (c) => c.id === chapter.id,
+            );
             const isHighlighted = highlightedChapterIds?.has(chapter.id);
 
             return (
