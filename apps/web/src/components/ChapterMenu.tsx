@@ -5,8 +5,8 @@ import { useEffect, useState } from 'react';
 import type { Chapter } from '@athena/api';
 
 import { trpc } from '../utils/trpc';
-import { IconButtonEdit } from './buttons/IconButtonEdit';
 import { EditChapterModal, type EditingQuestion } from './EditChapterModal';
+import { IconButtonEdit } from './buttons/IconButtonEdit';
 
 interface ChapterMenuProps {
   chapter: Chapter;
