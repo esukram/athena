@@ -9,6 +9,7 @@ import type { Question } from '@athena/api';
 
 import { Accordion } from '../components/Accordion';
 import { AppHeader } from '../components/AppHeader';
+import { ChapterMenu } from '../components/ChapterMenu';
 import { SpeechPlayButton } from '../components/SpeechPlayButton';
 import { trpc } from '../utils/trpc';
 
@@ -484,11 +485,14 @@ export const LectureTrain = () => {
                 <>
                   <div className="flex justify-between items-start mb-6">
                     <h2 className="text-2xl font-bold text-on-background"></h2>
-                    {currentChapter.association && (
-                      <span className="px-3 py-1 text-sm font-medium bg-primary-100 text-primary-700 rounded-full">
-                        {currentChapter.association}
-                      </span>
-                    )}
+                    <div className="flex items-center gap-2">
+                      {currentChapter.association && (
+                        <span className="px-3 py-1 text-sm font-medium bg-primary-100 text-primary-700 rounded-full">
+                          {currentChapter.association}
+                        </span>
+                      )}
+                      <ChapterMenu chapter={currentChapter} lectureId={id!} />
+                    </div>
                   </div>
 
                   {currentChapterQuestions.length > 0 ? (
