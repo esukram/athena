@@ -1,6 +1,7 @@
-import { render, screen, fireEvent } from '@testing-library/react';
 import { Pencil } from 'lucide-react';
 import { describe, expect, it, vi } from 'vitest';
+
+import { fireEvent, render, screen } from '@testing-library/react';
 
 import { IconButton } from './IconButton';
 
@@ -13,7 +14,9 @@ describe('IconButton', () => {
 
   it('uses aria-label for accessible name', () => {
     render(<IconButton icon={Pencil} aria-label="Edit item" />);
-    expect(screen.getByRole('button', { name: 'Edit item' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Edit item' }),
+    ).toBeInTheDocument();
   });
 
   it('uses aria-label as title when title not provided', () => {
@@ -45,7 +48,7 @@ describe('IconButton', () => {
   it('calls onClick when clicked', () => {
     const onClick = vi.fn();
     render(<IconButton icon={Pencil} aria-label="Edit" onClick={onClick} />);
-    
+
     fireEvent.click(screen.getByRole('button'));
     expect(onClick).toHaveBeenCalledTimes(1);
   });

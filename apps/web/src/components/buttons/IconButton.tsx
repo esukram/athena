@@ -1,10 +1,10 @@
 import type { LucideIcon } from 'lucide-react';
+
 import React, { forwardRef } from 'react';
 
 export type IconButtonVariant = 'primary' | 'danger';
 
-export interface IconButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+export interface IconButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   /** The icon component to render */
   icon: LucideIcon;
   /** Accessible label for the button */

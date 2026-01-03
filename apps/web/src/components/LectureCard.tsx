@@ -3,9 +3,9 @@ import { useNavigate } from 'react-router-dom';
 
 import type { Lecture } from '@athena/api';
 
-import { IconButtonDelete } from './IconButtonDelete';
-import { IconButtonEdit } from './IconButtonEdit';
 import { trpc } from '../utils/trpc';
+import { IconButtonDelete } from './buttons/IconButtonDelete';
+import { IconButtonEdit } from './buttons/IconButtonEdit';
 
 export const LectureCard = ({ lecture }: { lecture: Lecture }) => {
   const { t } = useTranslation();

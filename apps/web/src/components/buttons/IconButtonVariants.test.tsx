@@ -1,14 +1,17 @@
-import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
-import { IconButtonEdit } from './IconButtonEdit';
+import { fireEvent, render, screen } from '@testing-library/react';
+
 import { IconButtonDelete } from './IconButtonDelete';
+import { IconButtonEdit } from './IconButtonEdit';
 import { IconButtonMove } from './IconButtonMove';
 
 describe('IconButtonEdit', () => {
   it('renders with edit icon', () => {
     render(<IconButtonEdit aria-label="Edit item" />);
-    expect(screen.getByRole('button', { name: 'Edit item' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Edit item' }),
+    ).toBeInTheDocument();
   });
 
   it('uses primary variant styling', () => {
@@ -20,7 +23,7 @@ describe('IconButtonEdit', () => {
   it('forwards onClick handler', () => {
     const onClick = vi.fn();
     render(<IconButtonEdit aria-label="Edit" onClick={onClick} />);
-    
+
     fireEvent.click(screen.getByRole('button'));
     expect(onClick).toHaveBeenCalledTimes(1);
   });
@@ -29,7 +32,9 @@ describe('IconButtonEdit', () => {
 describe('IconButtonDelete', () => {
   it('renders with delete icon', () => {
     render(<IconButtonDelete aria-label="Delete item" />);
-    expect(screen.getByRole('button', { name: 'Delete item' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Delete item' }),
+    ).toBeInTheDocument();
   });
 
   it('uses danger variant styling', () => {
@@ -47,7 +52,9 @@ describe('IconButtonDelete', () => {
 describe('IconButtonMove', () => {
   it('renders with move icon', () => {
     render(<IconButtonMove aria-label="Move item" />);
-    expect(screen.getByRole('button', { name: 'Move item' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Move item' }),
+    ).toBeInTheDocument();
   });
 
   it('uses primary variant styling', () => {
@@ -57,7 +64,9 @@ describe('IconButtonMove', () => {
   });
 
   it('forwards custom title', () => {
-    render(<IconButtonMove aria-label="Move" title="Move to another lecture" />);
+    render(
+      <IconButtonMove aria-label="Move" title="Move to another lecture" />,
+    );
     const button = screen.getByRole('button');
     expect(button).toHaveAttribute('title', 'Move to another lecture');
   });

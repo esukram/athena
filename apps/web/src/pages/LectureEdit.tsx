@@ -13,9 +13,9 @@ import {
   EditChapterModal,
   type EditingQuestion,
 } from '../components/EditChapterModal';
-import { IconButtonDelete } from '../components/IconButtonDelete';
-import { IconButtonEdit } from '../components/IconButtonEdit';
-import { IconButtonMove } from '../components/IconButtonMove';
+import { IconButtonDelete } from '../components/buttons/IconButtonDelete';
+import { IconButtonEdit } from '../components/buttons/IconButtonEdit';
+import { IconButtonMove } from '../components/buttons/IconButtonMove';
 import { MoveChapterModal } from '../components/MoveChapterModal';
 import { trpc } from '../utils/trpc';
 

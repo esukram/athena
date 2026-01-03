@@ -1,4 +1,5 @@
 import { Trash2 } from 'lucide-react';
+
 import { forwardRef } from 'react';
 
 import { IconButton, type IconButtonProps } from './IconButton';
