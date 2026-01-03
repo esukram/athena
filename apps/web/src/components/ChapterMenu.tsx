@@ -1,6 +1,7 @@
+import { Pencil } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import type { Chapter } from '@athena/api';
 
@@ -15,9 +16,7 @@ interface ChapterMenuProps {
 export const ChapterMenu = ({ chapter, lectureId }: ChapterMenuProps) => {
   const { t } = useTranslation();
   const utils = trpc.useUtils();
-  const [menuOpen, setMenuOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
 
   // Edit form state
   const [editingAssociation, setEditingAssociation] = useState(
@@ -133,7 +132,6 @@ export const ChapterMenu = ({ chapter, lectureId }: ChapterMenuProps) => {
   const handleOpenEdit = () => {
     setEditingAssociation(chapter.association);
     setEditingQuestions([]);
-    setMenuOpen(false);
     setEditModalOpen(true);
   };
 
@@ -187,16 +185,6 @@ export const ChapterMenu = ({ chapter, lectureId }: ChapterMenuProps) => {
     setEditingQuestions((prev) => prev.filter((_, i) => i !== index));
   };
 
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        setMenuOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
   // Prevent keyboard navigation when modal is open
   useEffect(() => {
     if (editModalOpen) {
@@ -212,46 +200,18 @@ export const ChapterMenu = ({ chapter, lectureId }: ChapterMenuProps) => {
 
   return (
     <>
-      <div className="relative" ref={menuRef}>
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            setMenuOpen(!menuOpen);
-          }}
-          className="p-2 rounded-full hover:bg-gray-100 transition-all duration-200"
-          aria-label="More options"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="text-gray-700"
-          >
-            <circle cx="12" cy="12" r="1" />
-            <circle cx="12" cy="5" r="1" />
-            <circle cx="12" cy="19" r="1" />
-          </svg>
-        </button>
-        {menuOpen && (
-          <div className="absolute right-0 mt-1 w-36 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-20">
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                handleOpenEdit();
-              }}
-              className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 transition-colors"
-            >
-              {t('chapterMenu.editChapter')}
-            </button>
-          </div>
-        )}
-      </div>
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          handleOpenEdit();
+        }}
+        className="p-2 rounded-full bg-white/80 hover:bg-primary-50 shadow-md transition-all duration-200"
+        aria-label={t('chapterMenu.editChapter')}
+        title={t('chapterMenu.editChapter')}
+        data-testid="chapter-edit-button"
+      >
+        <Pencil className="w-5 h-5 text-gray-700" />
+      </button>
 
       {/* Chapter Edit Modal */}
       {editModalOpen && (
