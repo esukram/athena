@@ -12,8 +12,8 @@ import { ChapterMenu } from '../components/ChapterMenu';
 import { ChapterSidebar } from '../components/ChapterSidebar';
 import { ErrorState } from '../components/ErrorState';
 import { LoadingState } from '../components/LoadingState';
+import { LectureNavigation } from '../components/LectureNavigation';
 import { BackButton } from '../components/buttons/BackButton';
-import { PaginationNav } from '../components/buttons/PaginationNav';
 import { highlightText } from '../utils/highlightText';
 import { trpc } from '../utils/trpc';
 
@@ -258,8 +258,7 @@ export const LectureLearn = () => {
                     </p>
                   )}
 
-                  {/* Chapter Navigation */}
-                  <PaginationNav
+                  <LectureNavigation
                     onPrev={() =>
                       navigate(
                         `/learn/${id}/${chapters[selectedChapterIndex - 1].id}`,
@@ -272,8 +271,6 @@ export const LectureLearn = () => {
                     }
                     disablePrev={selectedChapterIndex === 0}
                     disableNext={selectedChapterIndex === chapters.length - 1}
-                    prevLabel={t('common.previous')}
-                    nextLabel={t('common.next')}
                   />
                 </>
               ) : (

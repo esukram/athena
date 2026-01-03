@@ -8,4 +8,3 @@ export {
 export { IconButtonDelete } from './IconButtonDelete';
 export { IconButtonEdit } from './IconButtonEdit';
 export { IconButtonMove } from './IconButtonMove';
-export { PaginationNav } from './PaginationNav';
