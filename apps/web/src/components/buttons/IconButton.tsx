@@ -2,14 +2,12 @@ import type { LucideIcon } from 'lucide-react';
 
 import { forwardRef } from 'react';
 
-import { Button, type ButtonSize } from './Button';
+import { Button } from './Button';
 
 export type IconButtonVariant = 'primary' | 'danger';
 
-export interface IconButtonProps extends Omit<
-  React.ButtonHTMLAttributes<HTMLButtonElement>,
-  'children'
-> {
+export interface IconButtonProps
+  extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'children'> {
   /** The icon component to render */
   icon: LucideIcon;
   /** Accessible label for the button */
@@ -22,9 +20,20 @@ export interface IconButtonProps extends Omit<
   size?: 'sm' | 'md';
 }
 
+// Icon button specific styling
+const sizeClasses = {
+  sm: 'p-1.5 sm:p-2',
+  md: 'p-2',
+};
+
 const iconSizeClasses = {
   sm: 'w-4 h-4 sm:w-5 sm:h-5',
   md: 'w-5 h-5',
+};
+
+const variantClasses = {
+  primary: 'hover:bg-primary-50 hover:text-primary-600',
+  danger: 'hover:bg-red-50 hover:text-red-600',
 };
 
 /**
@@ -44,17 +53,23 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
     },
     ref,
   ) => {
-    // Map IconButton variant to Button variant
-    const buttonVariant = variant === 'danger' ? 'iconDanger' : 'icon';
+    // IconButton applies its own styling by overriding Button's defaults via className
+    const iconButtonClasses = `
+      ${sizeClasses[size]}
+      ${variantClasses[variant]}
+      !rounded-full !bg-white/80 !shadow-md 
+      !font-normal
+      opacity-90 lg:opacity-80 lg:hover:opacity-100
+      ${className}
+    `.trim();
 
     return (
       <Button
         ref={ref}
-        variant={buttonVariant}
-        size={size as ButtonSize}
+        variant="ghost"
         aria-label={ariaLabel}
         title={title || ariaLabel}
-        className={className}
+        className={iconButtonClasses}
         {...props}
       >
         <Icon className={`${iconSizeClasses[size]} text-gray-600`} />
