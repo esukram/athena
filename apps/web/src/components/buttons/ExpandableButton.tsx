@@ -151,7 +151,7 @@ export const ExpandableButton = ({
       </button>
 
       {/* Dropdown menu */}
-      {isOpen && (
+      {isOpen && actions.length > 0 && (
         <div
           ref={menuRef}
           role="menu"
