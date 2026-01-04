@@ -35,8 +35,6 @@ interface ChapterSidebarProps<T extends ChapterItem> {
   searchInputRef?: RefObject<HTMLInputElement>;
   /** Optional ref map for chapter buttons (for scroll-into-view) */
   chapterButtonsRef?: RefObject<Map<number, HTMLButtonElement>>;
-  /** Whether to show the index number based on position in sorted array instead of chapter.order */
-  showIndex?: boolean;
 }
 
 /**
@@ -56,7 +54,6 @@ export function ChapterSidebar<T extends ChapterItem>({
   highlightedChapterIds,
   searchInputRef,
   chapterButtonsRef,
-  showIndex = false,
 }: ChapterSidebarProps<T>) {
   const { t } = useTranslation();
 
@@ -136,10 +133,7 @@ export function ChapterSidebar<T extends ChapterItem>({
               >
                 <span className="text-sm wrap-break-words flex items-center gap-2">
                   <span className="flex-1">
-                    {showIndex
-                      ? `${filteredChapters.indexOf(chapter) + 1}. `
-                      : `${chapter.order + 1}. `}
-                    {getDisplayText(chapter)}
+                    {filteredChapters.indexOf(chapter) + 1}. {getDisplayText(chapter)}
                   </span>
                 </span>
               </button>

@@ -354,7 +354,6 @@ const TrainingSessionContent = ({
               highlightedChapterIds={annotatedChapterIds}
               searchInputRef={searchInputRef}
               chapterButtonsRef={chapterButtonsRef}
-              showIndex={mode === 'randomized'}
             />
 
             <div className="min-w-0 overflow-hidden bg-surface-container rounded-xl shadow-md p-8">
