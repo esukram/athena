@@ -619,18 +619,15 @@ export const EditLecture = () => {
                           <IconButtonEdit
                             onClick={() => handleStartEdit(chapter)}
                             aria-label={t('lectureEdit.editChapter')}
-                            size="sm"
                           />
                           <IconButtonMove
                             onClick={() => setMovingChapter(chapter)}
                             aria-label={t('lectureEdit.moveChapterTooltip')}
-                            size="sm"
                           />
                           <IconButtonDelete
                             onClick={() => handleDeleteChapter(chapter.id)}
                             disabled={deleteChapter.isLoading}
                             aria-label={t('lectureEdit.deleteChapter')}
-                            size="sm"
                           />
                         </div>
 
