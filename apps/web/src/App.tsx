@@ -9,6 +9,7 @@ import { AddLecture } from './pages/LectureAdd';
 import { EditLecture } from './pages/LectureEdit';
 import { LectureLearn } from './pages/LectureLearn';
 import { LectureTrain } from './pages/LectureTrain';
+import { LectureTrainRandomized } from './pages/LectureTrainRandomized';
 import { Overview } from './pages/Overview';
 import { trpc } from './utils/trpc';
 
@@ -35,6 +36,10 @@ export default function App() {
             <Route
               path="/train/:id/:chapterId?/:questionId?"
               element={<LectureTrain />}
+            />
+            <Route
+              path="/train-random/:id/:chapterId?/:questionId?"
+              element={<LectureTrainRandomized />}
             />
             <Route path="/learn/:id/:chapterId?" element={<LectureLearn />} />
           </Routes>

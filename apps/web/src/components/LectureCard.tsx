@@ -77,15 +77,12 @@ export const LectureCard = ({ lecture }: { lecture: Lecture }) => {
           <ExpandableButton
             variant="primary"
             onClick={() => navigate(`/train/${lecture.id}`)}
-            actions={
-              [
-                /*
+            actions={[
               {
                 label: t('lectureCard.trainRandomized'),
-                onClick: () => navigate(`/train/${lecture.id}`),
-              }, */
-              ]
-            }
+                onClick: () => navigate(`/train-random/${lecture.id}`),
+              },
+            ]}
             className="flex-1"
             buttonClassName="py-2.5 active:from-primary-800 active:to-primary-900"
           >
