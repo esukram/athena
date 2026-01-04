@@ -107,13 +107,6 @@ export const ExpandableButton = ({
     danger: 'border-red-400/30',
   };
 
-  const dropdownHoverClasses: Record<ButtonVariant, string> = {
-    primary: 'hover:bg-primary-600/20',
-    secondary: 'hover:bg-primary-100',
-    ghost: 'hover:bg-primary-50',
-    danger: 'hover:bg-red-600/20',
-  };
-
   return (
     <div ref={containerRef} className={`relative inline-flex ${className}`}>
       {/* Main button */}
@@ -162,12 +155,16 @@ export const ExpandableButton = ({
         <div
           ref={menuRef}
           role="menu"
-          className="
-            absolute top-full right-0 mt-1 z-50
-            min-w-[160px] py-1
-            bg-white rounded-lg shadow-lg border border-gray-200
+          className={`
+            absolute top-full left-0 mt-0 z-50
+            w-full
+            rounded-lg shadow-lg
             animate-in fade-in slide-in-from-top-1 duration-150
-          "
+            ${variant === 'primary' ? 'bg-primary-700 border border-primary-600' : ''}
+            ${variant === 'secondary' ? 'bg-primary-50 border border-primary-200' : ''}
+            ${variant === 'ghost' ? 'bg-white border border-gray-200' : ''}
+            ${variant === 'danger' ? 'bg-red-600 border border-red-500' : ''}
+          `}
           data-testid="expandable-button-menu"
         >
           {actions.map((action, index) => (
@@ -178,10 +175,13 @@ export const ExpandableButton = ({
               disabled={action.disabled}
               onClick={() => handleActionClick(action)}
               className={`
-                w-full px-4 py-2 text-left text-sm text-gray-700
-                ${dropdownHoverClasses[variant]}
+                w-full px-4 py-2 text-left text-sm
                 disabled:opacity-50 disabled:cursor-not-allowed
                 transition-colors duration-150
+                ${variant === 'primary' ? 'text-white hover:bg-primary-800' : ''}
+                ${variant === 'secondary' ? 'text-primary-700 hover:bg-primary-100' : ''}
+                ${variant === 'ghost' ? 'text-gray-700 hover:bg-primary-50' : ''}
+                ${variant === 'danger' ? 'text-white hover:bg-red-700' : ''}
               `}
               data-testid={`expandable-button-action-${index}`}
             >
