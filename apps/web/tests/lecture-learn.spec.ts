@@ -88,9 +88,9 @@ test.describe('Lecture Learn', () => {
     await expect(page.getByText('Learn Physics')).toBeVisible();
 
     // Verify Sidebar Chapters (names come from first questions)
-    await expect(page.getByText('1. Chapter 1 Intro')).toBeVisible();
-    await expect(page.getByText('2. Chapter 2 Middle')).toBeVisible();
-    await expect(page.getByText('3. Chapter 3 End')).toBeVisible();
+    await expect(page.getByText('0. Chapter 1 Intro')).toBeVisible();
+    await expect(page.getByText('1. Chapter 2 Middle')).toBeVisible();
+    await expect(page.getByText('2. Chapter 3 End')).toBeVisible();
 
     // Default selection should be first chapter
     // Verify content of first chapter
