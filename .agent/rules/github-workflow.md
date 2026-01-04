@@ -16,15 +16,15 @@ This workflow defines the process for working on GitHub issues within this repos
     - Create a descriptive branch name based on the issue (e.g., `feat/issue-number-description` or `fix/issue-number-description`).
     - Command: `git checkout -b <branch-name>`
 
-3.  **Publish Branch & Create PR**
+3.  **Implementation**
+    - Implement the feature or fix according to the issue instructions.
+    - Follow [React Best Practices](react-best-practices.md) and [Design Aesthetics](../../CONTRIBUTING.md).
+
+4.  **Publish Branch & Create PR**
     - Push the empty branch to the remote repository.
     - Create a Draft Pull Request immediately to link it to the issue and announce work.
     - Use `gh pr create --draft --title "<type>: <description>" --body "Closes #<issue-number>"`
     - Ensure the title follows [Conventional Commits](git-commit-instructions.md).
-
-4.  **Implementation**
-    - Implement the feature or fix according to the issue instructions.
-    - Follow [React Best Practices](react-best-practices.md) and [Design Aesthetics](../../CONTRIBUTING.md).
 
 5.  **Regular Commits**
     - Make regular, small, and logical commits.

@@ -8,6 +8,7 @@ interface AccordionProps {
   description?: string;
   children?: ReactNode;
   leftIcon?: ReactNode;
+  rightElement?: ReactNode;
   noShadow?: boolean;
   noPadding?: boolean;
 }
@@ -17,6 +18,7 @@ export const Accordion: React.FC<AccordionProps> = ({
   description = '',
   children,
   leftIcon,
+  rightElement,
   noShadow = false,
   noPadding = false,
 }) => {
@@ -65,8 +67,11 @@ export const Accordion: React.FC<AccordionProps> = ({
             </p>
           )}
         </div>
-        <div className="ml-4 mt-2 text-on-surface-variant">
-          {isOpen ? <ChevronUp size={24} /> : <ChevronDown size={24} />}
+        <div className="ml-4 mt-2 flex items-center gap-2">
+          {rightElement}
+          <span className="text-on-surface-variant">
+            {isOpen ? <ChevronUp size={24} /> : <ChevronDown size={24} />}
+          </span>
         </div>
       </div>
 

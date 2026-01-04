@@ -82,7 +82,9 @@
     "selectAChapter": "Select a chapter",
     "annotate": "Question not highlighted, click to highlight",
     "annotated": "Question highlighted, click to unhighlight",
-    "questionProgress": "Question {{current}} of {{total}}"
+    "questionProgress": "Question {{current}} of {{total}}",
+    "questionProgressRandomized": "Chapter {{chapterIndex}}/{{chapterTotal}} · Question {{current}}/{{total}}",
+    "randomizedMode": "Randomized"
   },
   "globalSearch": {
     "searchChapters": "Search chapters...",

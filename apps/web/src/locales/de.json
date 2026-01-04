@@ -82,7 +82,9 @@
     "selectAChapter": "Wählen Sie ein Kapitel",
     "annotate": "Frage nicht hervorgehoben, klicken um hervorzuheben",
     "annotated": "Frage hervorgehoben, klicken um nicht hervorzuheben",
-    "questionProgress": "Frage {{current}} von {{total}}"
+    "questionProgress": "Frage {{current}} von {{total}}",
+    "questionProgressRandomized": "Kapitel {{chapterIndex}}/{{chapterTotal}} · Frage {{current}}/{{total}}",
+    "randomizedMode": "Zufällig"
   },
   "globalSearch": {
     "searchChapters": "Kapitel suchen...",
