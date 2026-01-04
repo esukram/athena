@@ -133,7 +133,7 @@ export function ChapterSidebar<T extends ChapterItem>({
               >
                 <span className="text-sm wrap-break-words flex items-center gap-2">
                   <span className="flex-1">
-                    {filteredChapters.indexOf(chapter) + 1}. {getDisplayText(chapter)}
+                    {chapter.order}. {getDisplayText(chapter)}
                   </span>
                 </span>
               </button>
