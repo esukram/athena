@@ -1,4 +1,4 @@
-import { Search, X } from 'lucide-react';
+import { ListFilter, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import React, { RefObject } from 'react';
@@ -77,7 +77,7 @@ export function ChapterSidebar<T extends ChapterItem>({
               : t('globalSearch.openSearch')
           }
         >
-          {isSearchOpen ? <X size={18} /> : <Search size={18} />}
+          {isSearchOpen ? <X size={18} /> : <ListFilter size={18} />}
         </button>
       </div>
 
