@@ -8,12 +8,12 @@ import type { Question } from '@athena/api';
 
 import { Accordion } from '../components/Accordion';
 import { AppHeader } from '../components/AppHeader';
-import { BackButton } from '../components/buttons/BackButton';
 import { ChapterSidebar } from '../components/ChapterSidebar';
 import { ErrorState } from '../components/ErrorState';
 import { LectureNavigation } from '../components/LectureNavigation';
 import { LoadingState } from '../components/LoadingState';
 import { SpeechPlayButton } from '../components/SpeechPlayButton';
+import { BackButton } from '../components/buttons/BackButton';
 import { highlightText } from '../utils/highlightText';
 import { trpc } from '../utils/trpc';
 

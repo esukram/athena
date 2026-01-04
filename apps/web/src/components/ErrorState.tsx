@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { AppHeader } from './AppHeader';
+import { PageLayout } from './PageLayout';
 
 interface ErrorStateProps {
   /** Error message to display */
@@ -21,19 +21,16 @@ export const ErrorState: React.FC<ErrorStateProps> = ({
   onAction,
 }) => {
   return (
-    <div className="min-h-screen bg-background">
-      <AppHeader />
-      <main className="container mx-auto px-4 py-8">
-        <p className="text-error">{message}</p>
-        {actionLabel && onAction && (
-          <button
-            onClick={onAction}
-            className="mt-4 px-4 py-2 rounded-lg bg-primary-600 text-white hover:bg-primary-700"
-          >
-            {actionLabel}
-          </button>
-        )}
-      </main>
-    </div>
+    <PageLayout>
+      <p className="text-error">{message}</p>
+      {actionLabel && onAction && (
+        <button
+          onClick={onAction}
+          className="mt-4 px-4 py-2 rounded-lg bg-primary-600 text-white hover:bg-primary-700"
+        >
+          {actionLabel}
+        </button>
+      )}
+    </PageLayout>
   );
 };

@@ -1,5 +1,6 @@
-import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
+
+import { fireEvent, render, screen } from '@testing-library/react';
 
 import { ChapterSidebar } from './ChapterSidebar';
 
@@ -20,7 +21,7 @@ describe('ChapterSidebar', () => {
     onSearchToggle: vi.fn(),
     searchQuery: '',
     onSearchChange: vi.fn(),
-    getDisplayText: (chapter: any) => `Chapter ${chapter.id}`,
+    getDisplayText: (chapter: { id: string; order: number }) => `Chapter ${chapter.id}`,
   };
 
   it('renders fixed title', () => {
@@ -67,7 +68,10 @@ describe('ChapterSidebar', () => {
   it('highlights chapters if highlightedChapterIds is provided', () => {
     const highlightedIds = new Set(['2']);
     render(
-      <ChapterSidebar {...defaultProps} highlightedChapterIds={highlightedIds} />,
+      <ChapterSidebar
+        {...defaultProps}
+        highlightedChapterIds={highlightedIds}
+      />,
     );
 
     // Filter button for chapter 2
@@ -85,6 +89,8 @@ describe('ChapterSidebar', () => {
 
   it('shows empty state when no chapters are filtered', () => {
     render(<ChapterSidebar {...defaultProps} filteredChapters={[]} />);
-    expect(screen.getByText(/lectureTrain\.noChaptersFound/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/lectureTrain\.noChaptersFound/i),
+    ).toBeInTheDocument();
   });
 });

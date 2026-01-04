@@ -1,11 +1,9 @@
 import { useTranslation } from 'react-i18next';
 
-import type { Lecture } from '@athena/api';
-
-import { AppHeader } from '../components/AppHeader';
 import { ErrorState } from '../components/ErrorState';
 import { LectureCard } from '../components/LectureCard';
 import { LoadingState } from '../components/LoadingState';
+import { PageLayout } from '../components/PageLayout';
 import { trpc } from '../utils/trpc';
 
 export const Overview = () => {
@@ -23,25 +21,21 @@ export const Overview = () => {
   const lectures = lecturesQuery.data;
 
   return (
-    <div className="min-h-screen bg-background">
-      <AppHeader />
+    <PageLayout>
+      <div className="mb-8">
+        <h2 className="text-2xl font-bold text-on-background mb-2">
+          {t('overview.availableLectures')}
+        </h2>
+        <p className="text-lg text-on-surface-variant">
+          {t('overview.exploreCollection')}
+        </p>
+      </div>
 
-      <main className="container mx-auto px-4 py-8 md:py-12">
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold text-on-background mb-2">
-            {t('overview.availableLectures')}
-          </h2>
-          <p className="text-lg text-on-surface-variant">
-            {t('overview.exploreCollection')}
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {lectures?.map((lecture: Lecture) => (
-            <LectureCard key={lecture.id} lecture={lecture} />
-          ))}
-        </div>
-      </main>
-    </div>
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {lectures?.map((lecture) => (
+          <LectureCard key={lecture.id} lecture={lecture} />
+        ))}
+      </div>
+    </PageLayout>
   );
 };
