@@ -59,7 +59,7 @@ export const LanguageSelector = () => {
 
       {isOpen && (
         <div
-          className="absolute right-0 mt-1 w-44 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50"
+          className="absolute right-0 mt-1 w-44 bg-white rounded-lg shadow-lg border border-gray-200 z-50"
           role="listbox"
         >
           {languages.map((lang) => (

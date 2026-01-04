@@ -7,6 +7,11 @@ export {
   type ButtonSize,
 } from './Button';
 export {
+  ExpandableButton,
+  type ExpandableButtonProps,
+  type ExpandableButtonAction,
+} from './ExpandableButton';
+export {
   IconButton,
   type IconButtonProps,
   type IconButtonVariant,

@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import type { Lecture } from '@athena/api';
 
 import { trpc } from '../utils/trpc';
+import { ExpandableButton } from './buttons';
 import { Button } from './buttons/Button';
 import { IconButtonDelete } from './buttons/IconButtonDelete';
 import { IconButtonEdit } from './buttons/IconButtonEdit';
@@ -26,7 +27,7 @@ export const LectureCard = ({ lecture }: { lecture: Lecture }) => {
   };
 
   return (
-    <div className="group flex flex-col overflow-hidden rounded-2xl bg-white shadow-lg transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 border border-gray-100">
+    <div className="group flex flex-col overflow-visible rounded-2xl bg-white shadow-lg transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 border border-gray-100">
       <div className="relative h-52 w-full overflow-hidden bg-gradient-to-br from-primary-100 to-primary-50">
         <div className="absolute top-3 right-3 z-10 flex gap-2">
           <IconButtonEdit
@@ -73,13 +74,23 @@ export const LectureCard = ({ lecture }: { lecture: Lecture }) => {
             {t('lectureCard.learn')}
           </Button>
 
-          <Button
+          <ExpandableButton
             variant="primary"
             onClick={() => navigate(`/train/${lecture.id}`)}
-            className="flex-1 py-2.5 active:from-primary-800 active:to-primary-900"
+            actions={
+              [
+                /*
+              {
+                label: t('lectureCard.trainRandomized'),
+                onClick: () => navigate(`/train/${lecture.id}`),
+              }, */
+              ]
+            }
+            className="flex-1"
+            buttonClassName="py-2.5 active:from-primary-800 active:to-primary-900"
           >
             {t('lectureCard.train')}
-          </Button>
+          </ExpandableButton>
         </div>
       </div>
     </div>
