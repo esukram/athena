@@ -1,4 +1,3 @@
-import { Search, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import ReactMarkdown from 'react-markdown';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -9,7 +8,13 @@ import type { Question } from '@athena/api';
 
 import { Accordion } from '../components/Accordion';
 import { AppHeader } from '../components/AppHeader';
+import { ChapterSidebar } from '../components/ChapterSidebar';
+import { ErrorState } from '../components/ErrorState';
+import { LectureNavigation } from '../components/LectureNavigation';
+import { LoadingState } from '../components/LoadingState';
 import { SpeechPlayButton } from '../components/SpeechPlayButton';
+import { BackButton } from '../components/buttons/BackButton';
+import { highlightText } from '../utils/highlightText';
 import { trpc } from '../utils/trpc';
 
 export const LectureTrain = () => {
@@ -156,35 +161,6 @@ export const LectureTrain = () => {
     });
   }, [sortedChapters, searchQuery, firstQuestionMap]);
 
-  // Highlight matching tokens in text
-  const highlightMatches = (text: string, query: string) => {
-    if (!query.trim()) return text;
-    const tokens = query.toLowerCase().split(/\s+/).filter(Boolean);
-    if (tokens.length === 0) return text;
-
-    // Build a regex to match any of the tokens (case-insensitive)
-    const escapedTokens = tokens.map((t) =>
-      t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
-    );
-    const regex = new RegExp(`(${escapedTokens.join('|')})`, 'gi');
-
-    const parts = text.split(regex);
-    return parts.map((part, index) => {
-      const isMatch = tokens.some((token) => part.toLowerCase() === token);
-      if (isMatch) {
-        return (
-          <mark
-            key={index}
-            className="bg-yellow-200 text-inherit rounded px-0.5"
-          >
-            {part}
-          </mark>
-        );
-      }
-      return part;
-    });
-  };
-
   // Focus search input when opened
   useEffect(() => {
     if (isSearchOpen && searchInputRef.current) {
@@ -318,30 +294,16 @@ export const LectureTrain = () => {
   });
 
   if (lectureQuery.isLoading || chaptersQuery.isLoading) {
-    return (
-      <div className="min-h-screen bg-background">
-        <AppHeader />
-        <main className="container mx-auto px-4 py-8">
-          <p className="text-on-surface-variant">{t('common.loading')}</p>
-        </main>
-      </div>
-    );
+    return <LoadingState />;
   }
 
   if (!lectureQuery.data) {
     return (
-      <div className="min-h-screen bg-background">
-        <AppHeader />
-        <main className="container mx-auto px-4 py-8">
-          <p className="text-error">{t('lectureEdit.lectureNotFound')}</p>
-          <button
-            onClick={() => navigate('/')}
-            className="mt-4 px-4 py-2 rounded-lg bg-primary-600 text-white hover:bg-primary-700"
-          >
-            {t('lectureEdit.backToOverview')}
-          </button>
-        </main>
-      </div>
+      <ErrorState
+        message={t('lectureEdit.lectureNotFound')}
+        actionLabel={t('lectureEdit.backToOverview')}
+        onAction={() => navigate('/')}
+      />
     );
   }
 
@@ -354,25 +316,7 @@ export const LectureTrain = () => {
       <main className="container mx-auto px-4 py-4 md:py-12">
         {/* Lecture Header */}
         <div className="mb-4 lg:mb-8">
-          <button
-            onClick={() => navigate('/')}
-            className="text-primary-600 hover:text-primary-700 text-sm mb-4 flex items-center gap-1"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="m15 18-6-6 6-6" />
-            </svg>
-            {t('lectureTrain.backToLectures')}
-          </button>
+          <BackButton to="/" label={t('lectureTrain.backToLectures')} />
           <Accordion title={lecture.title} description={lecture.description} />
         </div>
 
@@ -390,93 +334,25 @@ export const LectureTrain = () => {
           </div>
         ) : (
           <div className="grid gap-4 lg:gap-8 lg:grid-cols-[280px_1fr]">
-            {/* Chapter Navigation */}
-            <div className="min-w-0 overflow-hidden bg-surface-container-low rounded-xl shadow-md p-4 h-fit lg:sticky lg:top-8">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-semibold text-on-surface-variant uppercase tracking-wide">
-                  {t('lectureEdit.chapters')}
-                </h3>
-                <button
-                  onClick={() => {
-                    setIsSearchOpen(!isSearchOpen);
-                    if (isSearchOpen) {
-                      setSearchQuery('');
-                    }
-                  }}
-                  className="p-1 rounded-lg hover:bg-gray-100 transition-colors text-on-surface-variant hover:text-on-surface"
-                  aria-label={
-                    isSearchOpen
-                      ? t('globalSearch.closeSearch')
-                      : t('globalSearch.openSearch')
-                  }
-                >
-                  {isSearchOpen ? <X size={18} /> : <Search size={18} />}
-                </button>
-              </div>
-              {isSearchOpen && (
-                <div className="mb-3">
-                  <input
-                    ref={searchInputRef}
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder={t('lectureTrain.searchChapters')}
-                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white text-on-surface"
-                  />
-                </div>
-              )}
-              <nav
-                className={`space-y-1 ${sortedChapters.length > 10 ? 'max-h-96 overflow-y-auto' : ''}`}
-              >
-                {filteredChapters.length === 0 ? (
-                  <p className="text-sm text-on-surface-variant italic px-3 py-2">
-                    {t('lectureTrain.noChaptersFound')}
-                  </p>
-                ) : (
-                  filteredChapters.map((chapter) => {
-                    const originalIndex = sortedChapters.findIndex(
-                      (c) => c.id === chapter.id,
-                    );
-                    return (
-                      <button
-                        key={chapter.id}
-                        ref={(el) => {
-                          if (el) {
-                            chapterButtonsRef.current.set(originalIndex, el);
-                          } else {
-                            chapterButtonsRef.current.delete(originalIndex);
-                          }
-                        }}
-                        onClick={() => navigate(`/train/${id}/${chapter.id}`)}
-                        className={`w-full text-left px-3 py-2 rounded-lg transition-all duration-200 ${
-                          annotatedChapterIds.has(chapter.id)
-                            ? 'border-l-4 border-amber-400 bg-linear-to-r from-amber-50 to-transparent'
-                            : ''
-                        } ${
-                          selectedChapterIndex === originalIndex
-                            ? 'bg-primary-100 text-primary-700 shadow-sm'
-                            : 'text-on-surface hover:bg-gray-100'
-                        }`}
-                      >
-                        <span className="text-sm wrap-break-words flex items-center gap-2">
-                          <span className="flex-1">
-                            {chapter.order + 1}.{' '}
-                            {(() => {
-                              const firstQ = firstQuestionMap.get(chapter.id);
-                              const displayText =
-                                firstQ?.question || t('common.untitled');
-                              return searchQuery.trim()
-                                ? highlightMatches(displayText, searchQuery)
-                                : displayText;
-                            })()}
-                          </span>
-                        </span>
-                      </button>
-                    );
-                  })
-                )}
-              </nav>
-            </div>
+            <ChapterSidebar
+              title={t('lectureEdit.chapters')}
+              chapters={sortedChapters}
+              filteredChapters={filteredChapters}
+              selectedIndex={selectedChapterIndex}
+              onSelect={(chapter) => navigate(`/train/${id}/${chapter.id}`)}
+              isSearchOpen={isSearchOpen}
+              onSearchToggle={() => setIsSearchOpen(!isSearchOpen)}
+              searchQuery={searchQuery}
+              onSearchChange={setSearchQuery}
+              getDisplayText={(chapter) => {
+                const firstQ = firstQuestionMap.get(chapter.id);
+                const displayText = firstQ?.question || t('common.untitled');
+                return highlightText(displayText, searchQuery);
+              }}
+              highlightedChapterIds={annotatedChapterIds}
+              searchInputRef={searchInputRef}
+              chapterButtonsRef={chapterButtonsRef}
+            />
 
             {/* Chapter Content */}
             <div className="min-w-0 overflow-hidden bg-surface-container rounded-xl shadow-md p-8">
@@ -573,49 +449,12 @@ export const LectureTrain = () => {
                     </p>
                   )}
 
-                  {/* Question Navigation */}
-                  <div className="flex justify-between mt-8 lg:mt-12 pt-4 lg:pt-6 border-t border-gray-300">
-                    <button
-                      onClick={handlePrevQuestion}
-                      disabled={isFirstQuestion}
-                      className="px-4 py-2 text-primary-600 hover:bg-primary-50 disabled:text-gray-400 disabled:hover:bg-transparent rounded-lg transition-colors flex items-center gap-2"
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="20"
-                        height="20"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <path d="m15 18-6-6 6-6" />
-                      </svg>
-                      {t('common.previous')}
-                    </button>
-                    <button
-                      onClick={handleNextQuestion}
-                      disabled={isLastQuestion}
-                      className="px-4 py-2 text-primary-600 hover:bg-primary-50 disabled:text-gray-400 disabled:hover:bg-transparent rounded-lg transition-colors flex items-center gap-2"
-                    >
-                      {t('common.next')}
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="20"
-                        height="20"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <path d="m9 18 6-6-6-6" />
-                      </svg>
-                    </button>
-                  </div>
+                  <LectureNavigation
+                    onPrev={handlePrevQuestion}
+                    onNext={handleNextQuestion}
+                    disablePrev={isFirstQuestion}
+                    disableNext={isLastQuestion}
+                  />
                 </>
               ) : (
                 <p className="text-on-surface-variant">

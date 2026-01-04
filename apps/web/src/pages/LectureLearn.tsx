@@ -1,15 +1,20 @@
-import { Search, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import ReactMarkdown from 'react-markdown';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 
-import type { Question } from '@athena/api';
+import type { Chapter, Question } from '@athena/api';
 
 import { Accordion } from '../components/Accordion';
 import { AppHeader } from '../components/AppHeader';
 import { ChapterMenu } from '../components/ChapterMenu';
+import { ChapterSidebar } from '../components/ChapterSidebar';
+import { ErrorState } from '../components/ErrorState';
+import { LectureNavigation } from '../components/LectureNavigation';
+import { LoadingState } from '../components/LoadingState';
+import { BackButton } from '../components/buttons/BackButton';
+import { highlightText } from '../utils/highlightText';
 import { trpc } from '../utils/trpc';
 
 export const LectureLearn = () => {
@@ -82,34 +87,8 @@ export const LectureLearn = () => {
     });
   }, [chapters, searchQuery, firstQuestionMap]);
 
-  // Highlight matching tokens in text
-  const highlightMatches = (text: string, query: string) => {
-    if (!query.trim()) return text;
-    const tokens = query.toLowerCase().split(/\s+/).filter(Boolean);
-    if (tokens.length === 0) return text;
-
-    // Build a regex to match any of the tokens (case-insensitive)
-    const escapedTokens = tokens.map((t) =>
-      t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
-    );
-    const regex = new RegExp(`(${escapedTokens.join('|')})`, 'gi');
-
-    const parts = text.split(regex);
-    return parts.map((part, index) => {
-      const isMatch = tokens.some((token) => part.toLowerCase() === token);
-      if (isMatch) {
-        return (
-          <mark
-            key={index}
-            className="bg-yellow-200 text-inherit rounded px-0.5"
-          >
-            {part}
-          </mark>
-        );
-      }
-      return part;
-    });
-  };
+  // Use the reusable highlightText utility
+  const highlightMatches = (text: string) => highlightText(text, searchQuery);
 
   // Focus search input when opened
   useEffect(() => {
@@ -157,30 +136,16 @@ export const LectureLearn = () => {
   const currentChapterQuestions = currentChapterQuestionsQuery.data || [];
 
   if (lectureQuery.isLoading || chaptersQuery.isLoading) {
-    return (
-      <div className="min-h-screen bg-background">
-        <AppHeader />
-        <main className="container mx-auto px-4 py-8">
-          <p className="text-on-surface-variant">{t('common.loading')}</p>
-        </main>
-      </div>
-    );
+    return <LoadingState />;
   }
 
   if (!lectureQuery.data) {
     return (
-      <div className="min-h-screen bg-background">
-        <AppHeader />
-        <main className="container mx-auto px-4 py-8">
-          <p className="text-error">{t('lectureEdit.lectureNotFound')}</p>
-          <button
-            onClick={() => navigate('/')}
-            className="mt-4 px-4 py-2 rounded-lg bg-primary-600 text-white hover:bg-primary-700"
-          >
-            {t('lectureEdit.backToOverview')}
-          </button>
-        </main>
-      </div>
+      <ErrorState
+        message={t('lectureEdit.lectureNotFound')}
+        actionLabel={t('lectureEdit.backToOverview')}
+        onAction={() => navigate('/')}
+      />
     );
   }
 
@@ -196,25 +161,7 @@ export const LectureLearn = () => {
       <main className="container mx-auto px-4 py-8 md:py-12">
         {/* Lecture Header */}
         <div className="mb-8">
-          <button
-            onClick={() => navigate('/')}
-            className="text-primary-600 hover:text-primary-700 text-sm mb-4 flex items-center gap-1"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="m15 18-6-6 6-6" />
-            </svg>
-            {t('lectureTrain.backToLectures')}
-          </button>
+          <BackButton to="/" label={t('lectureTrain.backToLectures')} />
           <Accordion title={lecture.title} description={lecture.description} />
         </div>
 
@@ -233,86 +180,33 @@ export const LectureLearn = () => {
         ) : (
           <div className="grid gap-8 lg:grid-cols-[280px_1fr]">
             {/* Chapter Navigation */}
-            <div className="min-w-0 overflow-hidden bg-surface-container-low rounded-xl shadow-md p-4 h-fit lg:sticky lg:top-8">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-semibold text-on-surface-variant uppercase tracking-wide">
-                  {t('lectureEdit.chapters')}
-                </h3>
-                <button
-                  onClick={() => {
-                    setIsSearchOpen(!isSearchOpen);
-                    if (isSearchOpen) {
-                      setSearchQuery('');
-                    }
-                  }}
-                  className="p-1 rounded-lg hover:bg-gray-100 transition-colors text-on-surface-variant hover:text-on-surface"
-                  aria-label={
-                    isSearchOpen
-                      ? t('globalSearch.closeSearch')
-                      : t('globalSearch.openSearch')
-                  }
-                >
-                  {isSearchOpen ? <X size={18} /> : <Search size={18} />}
-                </button>
-              </div>
-              {isSearchOpen && (
-                <div className="mb-3">
-                  <input
-                    ref={searchInputRef}
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder={t('lectureTrain.searchChapters')}
-                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white text-on-surface"
-                  />
-                </div>
-              )}
-              <nav
-                className={`space-y-1 ${chapters.length > 10 ? 'max-h-96 overflow-y-auto' : ''}`}
-              >
-                {filteredChapters.length === 0 ? (
-                  <p className="text-sm text-on-surface-variant italic px-3 py-2">
-                    {t('lectureTrain.noChaptersFound')}
-                  </p>
-                ) : (
-                  filteredChapters.map((chapter) => {
-                    const originalIndex = chapters.findIndex(
-                      (c) => c.id === chapter.id,
-                    );
-                    return (
-                      <button
-                        key={chapter.id}
-                        ref={(el) => {
-                          if (el) {
-                            chapterButtonsRef.current.set(originalIndex, el);
-                          } else {
-                            chapterButtonsRef.current.delete(originalIndex);
-                          }
-                        }}
-                        onClick={() => navigate(`/learn/${id}/${chapter.id}`)}
-                        className={`w-full text-left px-3 py-2 rounded-lg transition-colors ${
-                          selectedChapterIndex === originalIndex
-                            ? 'bg-primary-100 text-primary-700 font-medium'
-                            : 'text-on-surface hover:bg-gray-100'
-                        }`}
-                      >
-                        <span className="text-sm break-words">
-                          {chapter.order + 1}.{' '}
-                          {(() => {
-                            const firstQ = firstQuestionMap.get(chapter.id);
-                            const displayText =
-                              firstQ?.question || t('common.untitled');
-                            return searchQuery.trim()
-                              ? highlightMatches(displayText, searchQuery)
-                              : displayText;
-                          })()}
-                        </span>
-                      </button>
-                    );
-                  })
-                )}
-              </nav>
-            </div>
+            <ChapterSidebar
+              title={t('lectureEdit.chapters')}
+              chapters={chapters}
+              filteredChapters={filteredChapters}
+              selectedIndex={selectedChapterIndex}
+              onSelect={(chapter: Chapter) =>
+                navigate(`/learn/${id}/${chapter.id}`)
+              }
+              isSearchOpen={isSearchOpen}
+              onSearchToggle={() => {
+                setIsSearchOpen(!isSearchOpen);
+                if (isSearchOpen) {
+                  setSearchQuery('');
+                }
+              }}
+              searchQuery={searchQuery}
+              onSearchChange={setSearchQuery}
+              getDisplayText={(chapter: Chapter) => {
+                const firstQ = firstQuestionMap.get(chapter.id);
+                const displayText = firstQ?.question || t('common.untitled');
+                return searchQuery.trim()
+                  ? highlightMatches(displayText)
+                  : displayText;
+              }}
+              searchInputRef={searchInputRef}
+              chapterButtonsRef={chapterButtonsRef}
+            />
 
             {/* Chapter Content */}
             <div className="min-w-0 overflow-hidden bg-surface-container rounded-xl shadow-md p-8">
@@ -364,57 +258,20 @@ export const LectureLearn = () => {
                     </p>
                   )}
 
-                  {/* Chapter Navigation */}
-                  <div className="flex justify-between mt-12 pt-6 border-t border-gray-300">
-                    <button
-                      onClick={() =>
-                        navigate(
-                          `/learn/${id}/${chapters[selectedChapterIndex - 1].id}`,
-                        )
-                      }
-                      disabled={selectedChapterIndex === 0}
-                      className="px-4 py-2 text-primary-600 hover:bg-primary-50 disabled:text-gray-400 disabled:hover:bg-transparent rounded-lg transition-colors flex items-center gap-2"
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="20"
-                        height="20"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <path d="m15 18-6-6 6-6" />
-                      </svg>
-                      {t('common.previous')}
-                    </button>
-                    <button
-                      onClick={() =>
-                        navigate(
-                          `/learn/${id}/${chapters[selectedChapterIndex + 1].id}`,
-                        )
-                      }
-                      disabled={selectedChapterIndex === chapters.length - 1}
-                      className="px-4 py-2 text-primary-600 hover:bg-primary-50 disabled:text-gray-400 disabled:hover:bg-transparent rounded-lg transition-colors flex items-center gap-2"
-                    >
-                      {t('common.next')}
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="20"
-                        height="20"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <path d="m9 18 6-6-6-6" />
-                      </svg>
-                    </button>
-                  </div>
+                  <LectureNavigation
+                    onPrev={() =>
+                      navigate(
+                        `/learn/${id}/${chapters[selectedChapterIndex - 1].id}`,
+                      )
+                    }
+                    onNext={() =>
+                      navigate(
+                        `/learn/${id}/${chapters[selectedChapterIndex + 1].id}`,
+                      )
+                    }
+                    disablePrev={selectedChapterIndex === 0}
+                    disableNext={selectedChapterIndex === chapters.length - 1}
+                  />
                 </>
               ) : (
                 <p className="text-on-surface-variant">

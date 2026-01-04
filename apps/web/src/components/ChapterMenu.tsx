@@ -1,4 +1,3 @@
-import { Pencil } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { useEffect, useState } from 'react';
@@ -7,6 +6,7 @@ import type { Chapter } from '@athena/api';
 
 import { trpc } from '../utils/trpc';
 import { EditChapterModal, type EditingQuestion } from './EditChapterModal';
+import { IconButtonEdit } from './buttons/IconButtonEdit';
 
 interface ChapterMenuProps {
   chapter: Chapter;
@@ -200,18 +200,14 @@ export const ChapterMenu = ({ chapter, lectureId }: ChapterMenuProps) => {
 
   return (
     <>
-      <button
+      <IconButtonEdit
         onClick={(e) => {
           e.stopPropagation();
           handleOpenEdit();
         }}
-        className="p-2 rounded-full bg-white/80 hover:bg-primary-50 shadow-md transition-all duration-200"
         aria-label={t('chapterMenu.editChapter')}
-        title={t('chapterMenu.editChapter')}
         data-testid="chapter-edit-button"
-      >
-        <Pencil className="w-5 h-5 text-gray-700" />
-      </button>
+      />
 
       {/* Chapter Edit Modal */}
       {editModalOpen && (
