@@ -98,7 +98,7 @@ export const ExpandableButton = ({
 
   // Variant-specific styling for dropdown
   const dropdownBorderClasses: Record<ButtonVariant, string> = {
-    primary: 'border-primary-500/30',
+    primary: 'border-primary-400/30',
     secondary: 'border-primary-300',
     ghost: 'border-primary-200',
     danger: 'border-red-400/30',
@@ -134,7 +134,7 @@ export const ExpandableButton = ({
         aria-expanded={isOpen}
         className={`
           flex items-center justify-center px-2
-          border-l ${dropdownBorderClasses[variant]}
+          border-l-2 ${dropdownBorderClasses[variant]}
           rounded-r-lg transition-all duration-200
           ${
             variant === 'primary'
