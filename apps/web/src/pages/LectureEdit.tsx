@@ -152,12 +152,14 @@ export const EditLecture = () => {
   const createChapter = trpc.chapters.createChapter.useMutation({
     onSuccess: () => {
       utils.chapters.getChapters.invalidate({ lectureId: id! });
+      utils.chapters.getDistinctAssociations.invalidate();
     },
   });
 
   const updateChapter = trpc.chapters.updateChapter.useMutation({
     onSuccess: () => {
       utils.chapters.getChapters.invalidate({ lectureId: id! });
+      utils.chapters.getDistinctAssociations.invalidate();
     },
   });
 

@@ -69,6 +69,7 @@ export const ChapterMenu = ({ chapter, lectureId }: ChapterMenuProps) => {
   const updateChapter = trpc.chapters.updateChapter.useMutation({
     onSuccess: () => {
       utils.chapters.getChapters.invalidate({ lectureId });
+      utils.chapters.getDistinctAssociations.invalidate();
     },
   });
 
