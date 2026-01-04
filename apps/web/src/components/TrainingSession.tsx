@@ -307,17 +307,17 @@ const TrainingSessionContent = ({
       <main className="container mx-auto px-4 py-4 md:py-12">
         <div className="mb-4 lg:mb-8">
           <BackButton to="/" label={t('lectureTrain.backToLectures')} />
-          <div className="flex items-center gap-3">
-            <Accordion
-              title={lecture.title}
-              description={lecture.description ?? undefined}
-            />
-            {mode === 'randomized' && (
-              <span className="px-3 py-1 text-sm font-medium bg-amber-100 text-amber-700 rounded-full whitespace-nowrap">
-                {t('lectureTrain.randomizedMode')}
-              </span>
-            )}
-          </div>
+          <Accordion
+            title={lecture.title}
+            description={lecture.description ?? undefined}
+            rightElement={
+              mode === 'randomized' ? (
+                <span className="px-3 py-1 text-sm font-medium bg-amber-100 text-amber-700 rounded-full whitespace-nowrap">
+                  {t('lectureTrain.randomizedMode')}
+                </span>
+              ) : undefined
+            }
+          />
         </div>
 
         {chapters.length === 0 ? (
