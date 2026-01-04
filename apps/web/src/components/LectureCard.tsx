@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import type { Lecture } from '@athena/api';
 
 import { trpc } from '../utils/trpc';
+import { Button } from './buttons/Button';
 import { IconButtonDelete } from './buttons/IconButtonDelete';
 import { IconButtonEdit } from './buttons/IconButtonEdit';
 
@@ -64,19 +65,21 @@ export const LectureCard = ({ lecture }: { lecture: Lecture }) => {
         </div>
 
         <div className="flex gap-3 mt-6 pt-4 border-t border-gray-100">
-          <button
+          <Button
+            variant="secondary"
             onClick={() => navigate(`/learn/${lecture.id}`)}
-            className="flex-1 px-4 py-2.5 text-sm font-semibold text-primary-600 bg-primary-50 rounded-lg hover:bg-primary-100 active:bg-primary-200 transition-all duration-200 hover:shadow-md"
+            className="flex-1 py-2.5 active:bg-primary-200"
           >
             {t('lectureCard.learn')}
-          </button>
+          </Button>
 
-          <button
+          <Button
+            variant="primary"
             onClick={() => navigate(`/train/${lecture.id}`)}
-            className="flex-1 px-4 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-primary-600 to-primary-700 rounded-lg hover:from-primary-700 hover:to-primary-800 active:from-primary-800 active:to-primary-900 transition-all duration-200 shadow-md hover:shadow-lg"
+            className="flex-1 py-2.5 active:from-primary-800 active:to-primary-900"
           >
             {t('lectureCard.train')}
-          </button>
+          </Button>
         </div>
       </div>
     </div>

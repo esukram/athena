@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 
 import { AppHeader } from '../components/AppHeader';
+import { Button } from '../components/buttons/Button';
 import { Card } from '../components/Card';
 import { trpc } from '../utils/trpc';
 
@@ -87,22 +88,25 @@ export const AddLecture = () => {
           )}
 
           <div className="flex gap-4">
-            <button
+            <Button
               type="submit"
+              variant="primary"
+              size="lg"
               disabled={createLecture.isLoading}
-              className="flex-1 bg-primary-600 hover:bg-primary-700 disabled:bg-primary-400 text-white font-medium py-3 px-6 rounded-lg transition-colors"
+              className="flex-1"
             >
               {createLecture.isLoading
                 ? t('lectureAdd.creating')
                 : t('lectureAdd.createLecture')}
-            </button>
-            <button
-              type="button"
+            </Button>
+            <Button
+              variant="ghost"
+              size="lg"
               onClick={() => navigate('/')}
-              className="px-6 py-3 rounded-lg border border-gray-300 text-on-surface hover:bg-gray-50 transition-colors"
+              className="border border-gray-300 hover:bg-gray-50"
             >
               {t('common.cancel')}
-            </button>
+            </Button>
           </div>
         </Card>
       </main>
