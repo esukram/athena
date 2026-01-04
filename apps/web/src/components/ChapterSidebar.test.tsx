@@ -21,7 +21,8 @@ describe('ChapterSidebar', () => {
     onSearchToggle: vi.fn(),
     searchQuery: '',
     onSearchChange: vi.fn(),
-    getDisplayText: (chapter: { id: string; order: number }) => `Chapter ${chapter.id}`,
+    getDisplayText: (chapter: { id: string; order: number }) =>
+      `Chapter ${chapter.id}`,
   };
 
   it('renders fixed title', () => {
