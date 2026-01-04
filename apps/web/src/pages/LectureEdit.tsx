@@ -37,6 +37,7 @@ export const EditLecture = () => {
     [],
   );
   const [movingChapter, setMovingChapter] = useState<Chapter | null>(null);
+  const [isSavingChapter, setIsSavingChapter] = useState(false);
 
   // Track if questions have been synced for current editing chapter
   const [questionsSynced, setQuestionsSynced] = useState(false);
@@ -267,6 +268,8 @@ export const EditLecture = () => {
     const hasValidQuestion = editingQuestions.some((q) => q.question.trim());
     if (!hasValidQuestion) return;
 
+    setIsSavingChapter(true);
+
     let chapterId = editingChapter.id;
 
     // If creating a new chapter, save it to the database first
@@ -334,6 +337,7 @@ export const EditLecture = () => {
     setIsCreatingNewChapter(false);
     setEditingAssociation('');
     setEditingQuestions([]);
+    setIsSavingChapter(false);
   };
 
   const handleAddQuestion = () => {
@@ -678,7 +682,7 @@ export const EditLecture = () => {
           <EditChapterModal
             association={editingAssociation}
             questions={editingQuestions}
-            isSaving={updateQuestion.isLoading || createQuestion.isLoading}
+            isSaving={isSavingChapter}
             existingAssociations={existingAssociations}
             onAssociationChange={setEditingAssociation}
             onAddQuestion={handleAddQuestion}
