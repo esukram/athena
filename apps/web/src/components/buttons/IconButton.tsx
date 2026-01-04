@@ -6,8 +6,10 @@ import { Button } from './Button';
 
 export type IconButtonVariant = 'primary' | 'danger';
 
-export interface IconButtonProps
-  extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'children'> {
+export interface IconButtonProps extends Omit<
+  React.ButtonHTMLAttributes<HTMLButtonElement>,
+  'children'
+> {
   /** The icon component to render */
   icon: LucideIcon;
   /** Accessible label for the button */
@@ -22,13 +24,13 @@ export interface IconButtonProps
 
 // Icon button specific styling
 const sizeClasses = {
-  sm: 'p-1.5 sm:p-2',
-  md: 'p-2',
+  sm: '!p-1.5 sm:!p-2',
+  md: '!p-2',
 };
 
 const iconSizeClasses = {
-  sm: 'w-4 h-4 sm:w-5 sm:h-5',
-  md: 'w-5 h-5',
+  sm: 'w-4 h-4 sm:w-4.5 sm:h-4.5',
+  md: 'w-4.5 h-4.5',
 };
 
 const variantClasses = {
