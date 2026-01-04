@@ -108,13 +108,13 @@ export const ExpandableButton = ({
   };
 
   return (
-    <div ref={containerRef} className={`relative inline-flex ${className}`}>
+    <div ref={containerRef} className={`relative flex ${className}`}>
       {/* Main button */}
       <Button
         variant={variant}
         disabled={disabled}
         onClick={handleMainClick}
-        className={`rounded-r-none! pr-3! ${buttonClassName}`}
+        className={`rounded-r-none! pr-3! flex-1 ${buttonClassName}`}
         data-testid="expandable-button-main"
       >
         {children}
