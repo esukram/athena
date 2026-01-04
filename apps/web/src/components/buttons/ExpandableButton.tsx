@@ -138,12 +138,12 @@ export const ExpandableButton = ({
           rounded-r-lg transition-all duration-200
           ${
             variant === 'primary'
-              ? 'bg-linear-to-r from-primary-600 to-primary-700 text-white hover:from-primary-700 hover:to-primary-800'
+              ? 'bg-primary-700 text-white hover:bg-primary-800 active:bg-primary-900'
               : ''
           }
-          ${variant === 'secondary' ? 'bg-primary-50 text-primary-600 hover:bg-primary-100' : ''}
-          ${variant === 'ghost' ? 'text-primary-600 hover:bg-primary-50' : ''}
-          ${variant === 'danger' ? 'bg-red-600 text-white hover:bg-red-700' : ''}
+          ${variant === 'secondary' ? 'bg-primary-50 text-primary-600 hover:bg-primary-200 active:bg-primary-300' : ''}
+          ${variant === 'ghost' ? 'text-primary-600 hover:bg-primary-100 active:bg-primary-200' : ''}
+          ${variant === 'danger' ? 'bg-red-600 text-white hover:bg-red-700 active:bg-red-800' : ''}
           disabled:opacity-50 disabled:cursor-not-allowed
         `}
         data-testid="expandable-button-dropdown"

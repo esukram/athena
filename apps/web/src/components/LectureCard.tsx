@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import type { Lecture } from '@athena/api';
 
 import { trpc } from '../utils/trpc';
+import { ExpandableButton } from './buttons';
 import { Button } from './buttons/Button';
 import { IconButtonDelete } from './buttons/IconButtonDelete';
 import { IconButtonEdit } from './buttons/IconButtonEdit';
@@ -73,13 +74,19 @@ export const LectureCard = ({ lecture }: { lecture: Lecture }) => {
             {t('lectureCard.learn')}
           </Button>
 
-          <Button
+          <ExpandableButton
             variant="primary"
             onClick={() => navigate(`/train/${lecture.id}`)}
+            actions={[
+              {
+                label: t('lectureCard.train'),
+                onClick: () => navigate(`/train/${lecture.id}`),
+              },
+            ]}
             className="flex-1 py-2.5 active:from-primary-800 active:to-primary-900"
           >
             {t('lectureCard.train')}
-          </Button>
+          </ExpandableButton>
         </div>
       </div>
     </div>
