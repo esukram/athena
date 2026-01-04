@@ -26,8 +26,10 @@ export interface ExpandableButtonProps {
   disabled?: boolean;
   /** Accessible label for the dropdown trigger */
   dropdownLabel?: string;
-  /** Additional CSS classes */
+  /** Additional CSS classes for the container */
   className?: string;
+  /** Additional CSS classes for the inner button (use for sizing like py-2.5) */
+  buttonClassName?: string;
 }
 
 /**
@@ -43,6 +45,7 @@ export const ExpandableButton = ({
   disabled = false,
   dropdownLabel = 'Show more options',
   className = '',
+  buttonClassName = '',
 }: ExpandableButtonProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -118,7 +121,7 @@ export const ExpandableButton = ({
         variant={variant}
         disabled={disabled}
         onClick={handleMainClick}
-        className="rounded-r-none! pr-3!"
+        className={`rounded-r-none! pr-3! ${buttonClassName}`}
         data-testid="expandable-button-main"
       >
         {children}
