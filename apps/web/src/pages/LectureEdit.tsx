@@ -37,6 +37,10 @@ export const EditLecture = () => {
     [],
   );
   const [movingChapter, setMovingChapter] = useState<Chapter | null>(null);
+  const [isSavingChapter, setIsSavingChapter] = useState(false);
+
+  // Track if questions have been synced for current editing chapter
+  const [questionsSynced, setQuestionsSynced] = useState(false);
 
   // Fetch questions for the editing chapter (only for existing chapters)
   const chapterQuestionsQuery = trpc.questions.getQuestions.useQuery(
@@ -44,10 +48,21 @@ export const EditLecture = () => {
     { enabled: !!editingChapter?.id && !isCreatingNewChapter },
   );
 
+  // Reset sync flag when modal closes
+  useEffect(() => {
+    if (!editingChapter) {
+      setQuestionsSynced(false);
+    }
+  }, [editingChapter]);
+
   // Sync fetched questions to editing state when modal opens (only for existing chapters)
+  // This should only run ONCE when the data first loads, not on every change
   useEffect(() => {
     // Skip for new chapters - they're pre-populated in handleAddChapter
     if (isCreatingNewChapter) return;
+
+    // Skip if we've already synced for this chapter
+    if (questionsSynced) return;
 
     if (editingChapter && chapterQuestionsQuery.data !== undefined) {
       const questions = chapterQuestionsQuery.data;
@@ -63,8 +78,8 @@ export const EditLecture = () => {
             showPreview: false,
           })),
         );
-      } else if (editingQuestions.length === 0) {
-        // No questions in DB and none set locally (existing chapter with no questions)
+      } else {
+        // No questions in DB (existing chapter with no questions)
         setEditingQuestions([
           {
             id: null,
@@ -76,13 +91,13 @@ export const EditLecture = () => {
           },
         ]);
       }
+      setQuestionsSynced(true);
     }
   }, [
-    editingChapter?.id,
+    editingChapter,
     chapterQuestionsQuery.data,
     isCreatingNewChapter,
-    editingChapter,
-    editingQuestions.length,
+    questionsSynced,
   ]);
 
   const lectureQuery = trpc.lectures.getLecture.useQuery(
@@ -253,6 +268,8 @@ export const EditLecture = () => {
     const hasValidQuestion = editingQuestions.some((q) => q.question.trim());
     if (!hasValidQuestion) return;
 
+    setIsSavingChapter(true);
+
     let chapterId = editingChapter.id;
 
     // If creating a new chapter, save it to the database first
@@ -320,6 +337,7 @@ export const EditLecture = () => {
     setIsCreatingNewChapter(false);
     setEditingAssociation('');
     setEditingQuestions([]);
+    setIsSavingChapter(false);
   };
 
   const handleAddQuestion = () => {
@@ -664,7 +682,7 @@ export const EditLecture = () => {
           <EditChapterModal
             association={editingAssociation}
             questions={editingQuestions}
-            isSaving={updateQuestion.isLoading || createQuestion.isLoading}
+            isSaving={isSavingChapter}
             existingAssociations={existingAssociations}
             onAssociationChange={setEditingAssociation}
             onAddQuestion={handleAddQuestion}
