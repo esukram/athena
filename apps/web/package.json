@@ -9,8 +9,9 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "preview": "vite preview",
-    "test:e2e": "playwright test",
-    "test": "vitest"
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@athena/api": "workspace:*",

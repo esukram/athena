@@ -6,7 +6,7 @@ import { useState } from 'react';
 import { AppHeader } from '../components/AppHeader';
 import { Button } from '../components/buttons/Button';
 import { Card } from '../components/Card';
-import { Button } from '../components/buttons/Button';
+
 import { trpc } from '../utils/trpc';
 
 export const AddLecture = () => {
