@@ -35,7 +35,7 @@ const iconSizeClasses = {
 
 const variantClasses = {
   primary: 'hover:bg-primary-50 hover:text-primary-600',
-  danger: 'hover:bg-red-50 hover:text-red-600',
+  danger: 'hover:!bg-red-50 hover:!text-red-600',
 };
 
 /**
