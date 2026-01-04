@@ -40,7 +40,7 @@ describe('IconButtonDelete', () => {
   it('uses danger variant styling', () => {
     render(<IconButtonDelete aria-label="Delete" />);
     const button = screen.getByRole('button');
-    expect(button.className).toContain('hover:bg-red-50');
+    expect(button.className).toContain('hover:!bg-red-50');
   });
 
   it('can be disabled', () => {

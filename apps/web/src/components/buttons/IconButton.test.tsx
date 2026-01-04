@@ -42,7 +42,7 @@ describe('IconButton', () => {
   it('applies danger variant classes when specified', () => {
     render(<IconButton icon={Pencil} aria-label="Delete" variant="danger" />);
     const button = screen.getByRole('button');
-    expect(button.className).toContain('hover:bg-red-50');
+    expect(button.className).toContain('hover:!bg-red-50');
   });
 
   it('calls onClick when clicked', () => {

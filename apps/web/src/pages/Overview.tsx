@@ -3,7 +3,9 @@ import { useTranslation } from 'react-i18next';
 import type { Lecture } from '@athena/api';
 
 import { AppHeader } from '../components/AppHeader';
+import { ErrorState } from '../components/ErrorState';
 import { LectureCard } from '../components/LectureCard';
+import { LoadingState } from '../components/LoadingState';
 import { trpc } from '../utils/trpc';
 
 export const Overview = () => {
@@ -11,28 +13,11 @@ export const Overview = () => {
   const lecturesQuery = trpc.lectures.getLectures.useQuery();
 
   if (lecturesQuery.isLoading) {
-    return (
-      <div className="flex h-screen items-center justify-center bg-background">
-        <div className="flex flex-col items-center gap-3">
-          <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary-200 border-t-primary-600"></div>
-          <p className="text-lg font-medium text-on-surface">
-            {t('common.loading')}
-          </p>
-        </div>
-      </div>
-    );
+    return <LoadingState />;
   }
 
   if (lecturesQuery.isError) {
-    return (
-      <div className="flex h-screen items-center justify-center bg-background">
-        <div className="rounded-lg bg-red-50 px-6 py-4 border border-red-200">
-          <p className="text-lg font-medium text-error">
-            {t('overview.errorLoading')}
-          </p>
-        </div>
-      </div>
-    );
+    return <ErrorState message={t('overview.errorLoading')} />;
   }
 
   const lectures = lecturesQuery.data;
