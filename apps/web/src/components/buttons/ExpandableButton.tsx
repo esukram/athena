@@ -156,7 +156,7 @@ export const ExpandableButton = ({
           ref={menuRef}
           role="menu"
           className={`
-            absolute top-full left-0 mt-0 z-50
+            absolute top-full left-0 mt-0.5 z-50
             w-full font-semibold
             rounded-lg shadow-lg
             animate-in fade-in slide-in-from-top-1 duration-150
