@@ -2,12 +2,14 @@ import type { LucideIcon } from 'lucide-react';
 
 import { forwardRef } from 'react';
 
-import { Button } from './Button';
+import { Button, type ButtonSize } from './Button';
 
 export type IconButtonVariant = 'primary' | 'danger';
 
-export interface IconButtonProps
-  extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'children'> {
+export interface IconButtonProps extends Omit<
+  React.ButtonHTMLAttributes<HTMLButtonElement>,
+  'children'
+> {
   /** The icon component to render */
   icon: LucideIcon;
   /** Accessible label for the button */
@@ -20,19 +22,9 @@ export interface IconButtonProps
   size?: 'sm' | 'md';
 }
 
-const sizeClasses = {
-  sm: 'p-1.5 sm:p-2',
-  md: 'p-2',
-};
-
 const iconSizeClasses = {
   sm: 'w-4 h-4 sm:w-5 sm:h-5',
   md: 'w-5 h-5',
-};
-
-const variantClasses = {
-  primary: 'hover:bg-primary-50 hover:text-primary-600',
-  danger: 'hover:bg-red-50 hover:text-red-600',
 };
 
 /**
@@ -52,23 +44,17 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
     },
     ref,
   ) => {
-    // Compose Button with icon-specific styling via className override
-    const iconButtonClasses = `
-      ${sizeClasses[size]}
-      ${variantClasses[variant]}
-      !rounded-full !bg-white/80 !shadow-md 
-      opacity-90 lg:opacity-80 lg:hover:opacity-100
-      !px-0 !py-0
-      ${className}
-    `.trim();
+    // Map IconButton variant to Button variant
+    const buttonVariant = variant === 'danger' ? 'iconDanger' : 'icon';
 
     return (
       <Button
         ref={ref}
-        variant="ghost"
+        variant={buttonVariant}
+        size={size as ButtonSize}
         aria-label={ariaLabel}
         title={title || ariaLabel}
-        className={iconButtonClasses}
+        className={className}
         {...props}
       >
         <Icon className={`${iconSizeClasses[size]} text-gray-600`} />
