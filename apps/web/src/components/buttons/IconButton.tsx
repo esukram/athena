@@ -1,10 +1,13 @@
 import type { LucideIcon } from 'lucide-react';
 
-import React, { forwardRef } from 'react';
+import { forwardRef } from 'react';
+
+import { Button, type ButtonSize } from './Button';
 
 export type IconButtonVariant = 'primary' | 'danger';
 
-export interface IconButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+export interface IconButtonProps
+  extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'children'> {
   /** The icon component to render */
   icon: LucideIcon;
   /** Accessible label for the button */
@@ -16,6 +19,11 @@ export interface IconButtonProps extends React.ButtonHTMLAttributes<HTMLButtonEl
   /** Size variant */
   size?: 'sm' | 'md';
 }
+
+const iconSizeClasses = {
+  sm: 'w-4 h-4 sm:w-5 sm:h-5',
+  md: 'w-5 h-5',
+};
 
 /**
  * Base icon button component with consistent styling.
@@ -30,46 +38,25 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
       variant = 'primary',
       size = 'md',
       className = '',
-      disabled,
       ...props
     },
     ref,
   ) => {
-    const sizeClasses = {
-      sm: 'p-1.5 sm:p-2',
-      md: 'p-2',
-    };
-
-    const iconSizeClasses = {
-      sm: 'w-4 h-4 sm:w-5 sm:h-5',
-      md: 'w-5 h-5',
-    };
-
-    const variantClasses = {
-      primary: 'hover:bg-primary-50 hover:text-primary-600',
-      danger: 'hover:bg-red-50 hover:text-red-600',
-    };
+    // Map IconButton variant to Button variant
+    const buttonVariant = variant === 'danger' ? 'iconDanger' : 'icon';
 
     return (
-      <button
+      <Button
         ref={ref}
-        type="button"
+        variant={buttonVariant}
+        size={size as ButtonSize}
         aria-label={ariaLabel}
         title={title || ariaLabel}
-        disabled={disabled}
-        className={`
-          ${sizeClasses[size]}
-          rounded-full bg-white/80 shadow-md 
-          transition-all duration-200 
-          opacity-90 lg:opacity-80 lg:hover:opacity-100
-          disabled:opacity-50 disabled:cursor-not-allowed
-          ${variantClasses[variant]}
-          ${className}
-        `.trim()}
+        className={className}
         {...props}
       >
         <Icon className={`${iconSizeClasses[size]} text-gray-600`} />
-      </button>
+      </Button>
     );
   },
 );
