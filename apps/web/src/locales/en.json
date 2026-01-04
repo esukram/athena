@@ -30,6 +30,7 @@
   "lectureCard": {
     "learn": "Learn",
     "train": "Train",
+    "trainRandomized": "Randomized",
     "editLecture": "Edit Lecture",
     "deleteLecture": "Delete Lecture",
     "confirmDelete": "Are you sure you want to delete \"{{title}}\"?"

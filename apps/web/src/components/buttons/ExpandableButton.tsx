@@ -157,7 +157,7 @@ export const ExpandableButton = ({
           role="menu"
           className={`
             absolute top-full left-0 mt-0 z-50
-            w-full
+            w-full font-semibold
             rounded-lg shadow-lg
             animate-in fade-in slide-in-from-top-1 duration-150
             ${variant === 'primary' ? 'bg-primary-700 border border-primary-600' : ''}
@@ -176,6 +176,7 @@ export const ExpandableButton = ({
               onClick={() => handleActionClick(action)}
               className={`
                 w-full px-4 py-2 text-left text-sm
+                first:rounded-t-lg last:rounded-b-lg
                 disabled:opacity-50 disabled:cursor-not-allowed
                 transition-colors duration-150
                 ${variant === 'primary' ? 'text-white hover:bg-primary-800' : ''}
