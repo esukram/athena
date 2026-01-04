@@ -38,16 +38,30 @@ export const EditLecture = () => {
   );
   const [movingChapter, setMovingChapter] = useState<Chapter | null>(null);
 
+  // Track if questions have been synced for current editing chapter
+  const [questionsSynced, setQuestionsSynced] = useState(false);
+
   // Fetch questions for the editing chapter (only for existing chapters)
   const chapterQuestionsQuery = trpc.questions.getQuestions.useQuery(
     { chapterId: editingChapter?.id || '' },
     { enabled: !!editingChapter?.id && !isCreatingNewChapter },
   );
 
+  // Reset sync flag when modal closes
+  useEffect(() => {
+    if (!editingChapter) {
+      setQuestionsSynced(false);
+    }
+  }, [editingChapter]);
+
   // Sync fetched questions to editing state when modal opens (only for existing chapters)
+  // This should only run ONCE when the data first loads, not on every change
   useEffect(() => {
     // Skip for new chapters - they're pre-populated in handleAddChapter
     if (isCreatingNewChapter) return;
+
+    // Skip if we've already synced for this chapter
+    if (questionsSynced) return;
 
     if (editingChapter && chapterQuestionsQuery.data !== undefined) {
       const questions = chapterQuestionsQuery.data;
@@ -63,8 +77,8 @@ export const EditLecture = () => {
             showPreview: false,
           })),
         );
-      } else if (editingQuestions.length === 0) {
-        // No questions in DB and none set locally (existing chapter with no questions)
+      } else {
+        // No questions in DB (existing chapter with no questions)
         setEditingQuestions([
           {
             id: null,
@@ -76,13 +90,13 @@ export const EditLecture = () => {
           },
         ]);
       }
+      setQuestionsSynced(true);
     }
   }, [
-    editingChapter?.id,
+    editingChapter,
     chapterQuestionsQuery.data,
     isCreatingNewChapter,
-    editingChapter,
-    editingQuestions.length,
+    questionsSynced,
   ]);
 
   const lectureQuery = trpc.lectures.getLecture.useQuery(
