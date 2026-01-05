@@ -12,6 +12,7 @@ import { ChapterSidebar } from '../components/ChapterSidebar';
 import { ErrorState } from '../components/ErrorState';
 import { LectureNavigation } from '../components/LectureNavigation';
 import { LoadingState } from '../components/LoadingState';
+import { ProgressBar } from '../components/ProgressBar';
 import { SpeechPlayButton } from '../components/SpeechPlayButton';
 import { BackButton } from '../components/buttons/BackButton';
 import { highlightText } from '../utils/highlightText';
@@ -58,6 +59,20 @@ export const LectureTrain = () => {
   // Fetch chapter IDs that have any annotated questions
   const annotatedChapterIdsQuery =
     trpc.questions.getAnnotatedChapterIdsByLecture.useQuery(
+      { lectureId: id! },
+      { enabled: !!id },
+    );
+
+  // Query for total question count (for progress bar)
+  const totalQuestionsQuery =
+    trpc.questions.getQuestionCountsByLecture.useQuery(
+      { lectureId: id! },
+      { enabled: !!id },
+    );
+
+  // Query for per-chapter question counts (for accurate progress calculation)
+  const questionCountsPerChapterQuery =
+    trpc.questions.getQuestionCountsPerChapter.useQuery(
       { lectureId: id! },
       { enabled: !!id },
     );
@@ -160,6 +175,25 @@ export const LectureTrain = () => {
       return tokens.every((token) => questionText.includes(token));
     });
   }, [sortedChapters, searchQuery, firstQuestionMap]);
+
+  // Calculate current progress position across all chapters
+  // Sum questions from all previous chapters + current question index + 1
+  const currentProgressPosition = useMemo(() => {
+    const countsPerChapter = questionCountsPerChapterQuery.data || {};
+    let questionsInPreviousChapters = 0;
+    for (let i = 0; i < selectedChapterIndex; i++) {
+      const chapterId = sortedChapters[i]?.id;
+      if (chapterId) {
+        questionsInPreviousChapters += countsPerChapter[chapterId] || 0;
+      }
+    }
+    return questionsInPreviousChapters + selectedQuestionIndex + 1;
+  }, [
+    selectedChapterIndex,
+    selectedQuestionIndex,
+    sortedChapters,
+    questionCountsPerChapterQuery.data,
+  ]);
 
   // Focus search input when opened
   useEffect(() => {
@@ -358,6 +392,14 @@ export const LectureTrain = () => {
             <div className="min-w-0 overflow-hidden bg-surface-container rounded-xl shadow-md p-8">
               {currentChapter ? (
                 <>
+                  {/* Progress Bar */}
+                  {totalQuestionsQuery.data && totalQuestionsQuery.data > 0 && (
+                    <ProgressBar
+                      current={currentProgressPosition}
+                      total={totalQuestionsQuery.data}
+                    />
+                  )}
+
                   <div className="flex justify-between items-start mb-6">
                     <h2 className="text-2xl font-bold text-on-background"></h2>
                     {currentChapter.association && (

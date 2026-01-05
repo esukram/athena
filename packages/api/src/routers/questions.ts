@@ -56,4 +56,14 @@ export const questionsRouter = router({
     .mutation(({ ctx, input }) => {
       return ctx.questionRepository.delete(input.id);
     }),
+  getQuestionCountsByLecture: publicProcedure
+    .input(z.object({ lectureId: z.string() }))
+    .query(({ ctx, input }) => {
+      return ctx.questionRepository.getQuestionCountsByLecture(input.lectureId);
+    }),
+  getQuestionCountsPerChapter: publicProcedure
+    .input(z.object({ lectureId: z.string() }))
+    .query(({ ctx, input }) => {
+      return ctx.questionRepository.getQuestionCountsPerChapter(input.lectureId);
+    }),
 });

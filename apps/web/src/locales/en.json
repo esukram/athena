@@ -84,7 +84,8 @@
     "annotated": "Question highlighted, click to unhighlight",
     "questionProgress": "Question {{current}} of {{total}}",
     "questionProgressRandomized": "Chapter {{chapterIndex}}/{{chapterTotal}} · Question {{current}}/{{total}}",
-    "randomizedMode": "Randomized"
+    "randomizedMode": "Randomized",
+    "progressLabel": "Training progress: {{current}} of {{total}} questions ({{percent}}%)"
   },
   "globalSearch": {
     "searchChapters": "Search chapters...",

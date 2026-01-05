@@ -241,6 +241,34 @@ function createQuestionRepository(): QuestionRepository {
       const result = db.prepare('DELETE FROM questions WHERE id = ?').run(id);
       return result.changes > 0;
     },
+    getQuestionCountsByLecture: (lectureId: string): number => {
+      const result = db
+        .prepare(
+          `SELECT COUNT(*) as count FROM questions q
+           INNER JOIN chapters c ON q.chapterId = c.id
+           WHERE c.lectureId = ?`,
+        )
+        .get(lectureId) as { count: number };
+      return result.count;
+    },
+    getQuestionCountsPerChapter: (
+      lectureId: string,
+    ): Record<string, number> => {
+      const rows = db
+        .prepare(
+          `SELECT c.id as chapterId, COUNT(q.id) as count 
+           FROM chapters c
+           LEFT JOIN questions q ON q.chapterId = c.id
+           WHERE c.lectureId = ?
+           GROUP BY c.id`,
+        )
+        .all(lectureId) as { chapterId: string; count: number }[];
+      const result: Record<string, number> = {};
+      for (const row of rows) {
+        result[row.chapterId] = row.count;
+      }
+      return result;
+    },
   };
 }
 

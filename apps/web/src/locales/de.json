@@ -84,7 +84,8 @@
     "annotated": "Frage hervorgehoben, klicken um nicht hervorzuheben",
     "questionProgress": "Frage {{current}} von {{total}}",
     "questionProgressRandomized": "Kapitel {{chapterIndex}}/{{chapterTotal}} · Frage {{current}}/{{total}}",
-    "randomizedMode": "Zufällig"
+    "randomizedMode": "Zufällig",
+    "progressLabel": "Trainingsfortschritt: {{current}} von {{total}} Fragen ({{percent}}%)"
   },
   "globalSearch": {
     "searchChapters": "Kapitel suchen...",
