@@ -18,6 +18,8 @@ interface EditChapterModalProps {
   questions: EditingQuestion[];
   isSaving: boolean;
   existingAssociations?: string[];
+  initialAssociation: string;
+  initialQuestions: EditingQuestion[];
   onAssociationChange: (association: string) => void;
   onAddQuestion: () => void;
   onUpdateQuestion: (index: number, updates: Partial<EditingQuestion>) => void;
@@ -32,6 +34,8 @@ export const EditChapterModal = ({
   questions,
   isSaving,
   existingAssociations = [],
+  initialAssociation,
+  initialQuestions,
   onAssociationChange,
   onAddQuestion,
   onUpdateQuestion,
@@ -42,6 +46,23 @@ export const EditChapterModal = ({
 }: EditChapterModalProps) => {
   const { t } = useTranslation();
   const canSave = questions.some((q) => q.question.trim());
+
+  // Compute dirty state by comparing current values against initial values
+  const isDirty = (() => {
+    // Check if association changed
+    if (association !== initialAssociation) return true;
+    // Check if questions count changed
+    if (questions.length !== initialQuestions.length) return true;
+    // Check if any question content changed
+    for (let i = 0; i < questions.length; i++) {
+      const current = questions[i];
+      const initial = initialQuestions[i];
+      if (!initial) return true;
+      if (current.question !== initial.question) return true;
+      if (current.answer !== initial.answer) return true;
+    }
+    return false;
+  })();
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
   const [lastUsedAssociation, setLastUsedAssociation] = useState<string | null>(
@@ -162,6 +183,10 @@ export const EditChapterModal = ({
         if (showSuggestions) {
           setShowSuggestions(false);
           setHighlightedIndex(-1);
+        } else if (isDirty) {
+          if (confirm(t('editChapterModal.confirmDiscardChanges'))) {
+            onCancel();
+          }
         } else {
           onCancel();
         }
@@ -175,7 +200,7 @@ export const EditChapterModal = ({
 
     document.addEventListener('keydown', handleGlobalKeyDown);
     return () => document.removeEventListener('keydown', handleGlobalKeyDown);
-  }, [showSuggestions, canSave, isSaving, onCancel, handleSave]);
+  }, [showSuggestions, canSave, isSaving, onCancel, handleSave, isDirty, t]);
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">

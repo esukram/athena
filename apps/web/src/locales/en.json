@@ -114,7 +114,8 @@
     "noContentYet": "No content yet",
     "newQuestion": "New Question",
     "deleteQuestion": "Delete question",
-    "answerPlaceholder": "Write your answer in Markdown..."
+    "answerPlaceholder": "Write your answer in Markdown...",
+    "confirmDiscardChanges": "You have unsaved changes. Discard them?"
   },
   "speech": {
     "playQuestion": "Read question aloud",
