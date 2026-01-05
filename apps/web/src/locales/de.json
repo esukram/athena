@@ -114,7 +114,8 @@
     "noContentYet": "Noch kein Inhalt",
     "newQuestion": "Neue Frage",
     "deleteQuestion": "Frage löschen",
-    "answerPlaceholder": "Schreiben Sie Ihre Antwort in Markdown..."
+    "answerPlaceholder": "Schreiben Sie Ihre Antwort in Markdown...",
+    "confirmDiscardChanges": "Sie haben ungespeicherte Änderungen. Verwerfen?"
   },
   "speech": {
     "playQuestion": "Frage vorlesen",

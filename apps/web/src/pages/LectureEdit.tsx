@@ -36,6 +36,10 @@ export const EditLecture = () => {
   const [editingQuestions, setEditingQuestions] = useState<EditingQuestion[]>(
     [],
   );
+  const [initialAssociation, setInitialAssociation] = useState('');
+  const [initialQuestions, setInitialQuestions] = useState<EditingQuestion[]>(
+    [],
+  );
   const [movingChapter, setMovingChapter] = useState<Chapter | null>(null);
   const [isSavingChapter, setIsSavingChapter] = useState(false);
 
@@ -68,28 +72,28 @@ export const EditLecture = () => {
       const questions = chapterQuestionsQuery.data;
       if (questions.length > 0) {
         // Load existing questions from database
-        setEditingQuestions(
-          questions.map((q, index) => ({
-            id: q.id,
-            question: q.question,
-            answer: q.answer,
-            order: q.order,
-            isExpanded: index === 0, // First question expanded by default
-            showPreview: false,
-          })),
-        );
+        const mappedQuestions = questions.map((q, index) => ({
+          id: q.id,
+          question: q.question,
+          answer: q.answer,
+          order: q.order,
+          isExpanded: index === 0, // First question expanded by default
+          showPreview: false,
+        }));
+        setEditingQuestions(mappedQuestions);
+        setInitialQuestions(mappedQuestions.map((q) => ({ ...q })));
       } else {
         // No questions in DB (existing chapter with no questions)
-        setEditingQuestions([
-          {
-            id: null,
-            question: '',
-            answer: '',
-            order: 0,
-            isExpanded: true,
-            showPreview: false,
-          },
-        ]);
+        const emptyQuestion: EditingQuestion = {
+          id: null,
+          question: '',
+          answer: '',
+          order: 0,
+          isExpanded: true,
+          showPreview: false,
+        };
+        setEditingQuestions([emptyQuestion]);
+        setInitialQuestions([{ ...emptyQuestion }]);
       }
       setQuestionsSynced(true);
     }
@@ -243,16 +247,17 @@ export const EditLecture = () => {
     setIsCreatingNewChapter(true);
     setEditingAssociation('');
     // Pre-populate with the entered question
-    setEditingQuestions([
-      {
-        id: null,
-        question: newChapterQuestion,
-        answer: '',
-        order: 0,
-        isExpanded: true,
-        showPreview: false,
-      },
-    ]);
+    const newQuestion: EditingQuestion = {
+      id: null,
+      question: newChapterQuestion,
+      answer: '',
+      order: 0,
+      isExpanded: true,
+      showPreview: false,
+    };
+    setEditingQuestions([newQuestion]);
+    setInitialAssociation('');
+    setInitialQuestions([{ ...newQuestion }]);
     setNewChapterQuestion('');
   };
 
@@ -260,7 +265,9 @@ export const EditLecture = () => {
     setEditingChapter(chapter);
     setIsCreatingNewChapter(false); // Ensure we're in edit mode, not create mode
     setEditingAssociation(chapter.association);
+    setInitialAssociation(chapter.association);
     setEditingQuestions([]); // Will be populated by useEffect when query loads
+    setInitialQuestions([]); // Will be populated by useEffect when query loads
   };
 
   const handleSaveEdit = async () => {
@@ -686,6 +693,8 @@ export const EditLecture = () => {
             questions={editingQuestions}
             isSaving={isSavingChapter}
             existingAssociations={existingAssociations}
+            initialAssociation={initialAssociation}
+            initialQuestions={initialQuestions}
             onAssociationChange={setEditingAssociation}
             onAddQuestion={handleAddQuestion}
             onUpdateQuestion={handleUpdateEditingQuestion}

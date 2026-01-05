@@ -25,6 +25,12 @@ export const ChapterMenu = ({ chapter, lectureId }: ChapterMenuProps) => {
   const [editingQuestions, setEditingQuestions] = useState<EditingQuestion[]>(
     [],
   );
+  const [initialAssociation, setInitialAssociation] = useState(
+    chapter.association,
+  );
+  const [initialQuestions, setInitialQuestions] = useState<EditingQuestion[]>(
+    [],
+  );
 
   // Fetch all questions for this chapter
   const chapterQuestionsQuery = trpc.questions.getQuestions.useQuery(
@@ -41,27 +47,27 @@ export const ChapterMenu = ({ chapter, lectureId }: ChapterMenuProps) => {
     if (editModalOpen && chapterQuestionsQuery.data !== undefined) {
       const questions = chapterQuestionsQuery.data;
       if (questions.length > 0) {
-        setEditingQuestions(
-          questions.map((q, index) => ({
-            id: q.id,
-            question: q.question,
-            answer: q.answer,
-            order: q.order,
-            isExpanded: index === 0,
-            showPreview: false,
-          })),
-        );
+        const mappedQuestions = questions.map((q, index) => ({
+          id: q.id,
+          question: q.question,
+          answer: q.answer,
+          order: q.order,
+          isExpanded: index === 0,
+          showPreview: false,
+        }));
+        setEditingQuestions(mappedQuestions);
+        setInitialQuestions(mappedQuestions.map((q) => ({ ...q })));
       } else {
-        setEditingQuestions([
-          {
-            id: null,
-            question: '',
-            answer: '',
-            order: 0,
-            isExpanded: true,
-            showPreview: false,
-          },
-        ]);
+        const emptyQuestion: EditingQuestion = {
+          id: null,
+          question: '',
+          answer: '',
+          order: 0,
+          isExpanded: true,
+          showPreview: false,
+        };
+        setEditingQuestions([emptyQuestion]);
+        setInitialQuestions([{ ...emptyQuestion }]);
       }
     }
   }, [editModalOpen, chapterQuestionsQuery.data]);
@@ -132,7 +138,9 @@ export const ChapterMenu = ({ chapter, lectureId }: ChapterMenuProps) => {
 
   const handleOpenEdit = () => {
     setEditingAssociation(chapter.association);
+    setInitialAssociation(chapter.association);
     setEditingQuestions([]);
+    setInitialQuestions([]);
     setEditModalOpen(true);
   };
 
@@ -217,6 +225,8 @@ export const ChapterMenu = ({ chapter, lectureId }: ChapterMenuProps) => {
           questions={editingQuestions}
           isSaving={updateQuestion.isLoading || createQuestion.isLoading}
           existingAssociations={existingAssociations}
+          initialAssociation={initialAssociation}
+          initialQuestions={initialQuestions}
           onAssociationChange={setEditingAssociation}
           onAddQuestion={handleAddQuestion}
           onUpdateQuestion={handleUpdateEditingQuestion}
