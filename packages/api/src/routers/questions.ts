@@ -64,6 +64,8 @@ export const questionsRouter = router({
   getQuestionCountsPerChapter: publicProcedure
     .input(z.object({ lectureId: z.string() }))
     .query(({ ctx, input }) => {
-      return ctx.questionRepository.getQuestionCountsPerChapter(input.lectureId);
+      return ctx.questionRepository.getQuestionCountsPerChapter(
+        input.lectureId,
+      );
     }),
 });

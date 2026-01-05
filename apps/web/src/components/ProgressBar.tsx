@@ -41,6 +41,12 @@ export const ProgressBar = ({ current, total }: ProgressBarProps) => {
           data-testid="progress-bar-fill"
         />
       </div>
+      <div
+        className="text-xs text-green-600 font-bold mt-1"
+        data-testid="progress-bar-percent"
+      >
+        {roundedPercent}%
+      </div>
     </div>
   );
 };
