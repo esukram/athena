@@ -95,7 +95,7 @@ export function ChapterSidebar<T extends ChapterItem>({
       )}
 
       <nav
-        className={`space-y-1 ${chapters.length > 10 ? 'max-h-96 overflow-y-auto' : ''}`}
+        className={`space-y-1 max-h-40 md:max-h-48 lg:max-h-96 overflow-y-auto`}
       >
         {filteredChapters.length === 0 ? (
           <p className="text-sm text-on-surface-variant italic px-3 py-2">
