@@ -63,6 +63,24 @@ test.describe('Lecture Train', () => {
       await route.fulfill({ json: { result: { data: c1Questions } } });
     });
 
+    // Mock total questions count for progress bar
+    await page.route(
+      '**/api/trpc/questions.getQuestionCountsByLecture*',
+      async (route) => {
+        await route.fulfill({ json: { result: { data: 4 } } }); // 2 questions per chapter, 2 chapters
+      },
+    );
+
+    // Mock per-chapter question counts for progress bar
+    await page.route(
+      '**/api/trpc/questions.getQuestionCountsPerChapter*',
+      async (route) => {
+        await route.fulfill({
+          json: { result: { data: { c1: 2, c2: 2 } } },
+        });
+      },
+    );
+
     // Mock annotation update
     await page.route('**/api/trpc/questions.updateQuestion*', async (route) => {
       const data = route.request().postDataJSON();
@@ -164,6 +182,24 @@ test.describe('Lecture Train', () => {
     await page.route('**/api/trpc/questions.getQuestions?*', async (route) => {
       await route.fulfill({ json: { result: { data: c1Questions } } });
     });
+
+    // Mock total questions count for progress bar
+    await page.route(
+      '**/api/trpc/questions.getQuestionCountsByLecture*',
+      async (route) => {
+        await route.fulfill({ json: { result: { data: 1 } } }); // 1 question
+      },
+    );
+
+    // Mock per-chapter question counts for progress bar
+    await page.route(
+      '**/api/trpc/questions.getQuestionCountsPerChapter*',
+      async (route) => {
+        await route.fulfill({
+          json: { result: { data: { c1: 1 } } },
+        });
+      },
+    );
 
     await page.goto(`/#/train/${lectureId}`);
 

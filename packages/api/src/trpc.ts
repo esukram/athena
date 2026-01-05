@@ -35,6 +35,8 @@ export interface QuestionRepository {
     question: Partial<Omit<Question, 'id'>>,
   ) => Question | undefined;
   delete: (id: string) => boolean;
+  getQuestionCountsByLecture: (lectureId: string) => number;
+  getQuestionCountsPerChapter: (lectureId: string) => Record<string, number>;
 }
 
 export interface AppContext {
