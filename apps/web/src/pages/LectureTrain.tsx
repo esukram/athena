@@ -389,114 +389,119 @@ export const LectureTrain = () => {
             />
 
             {/* Chapter Content */}
-            <div className="min-w-0 overflow-hidden bg-surface-container rounded-xl shadow-md p-8">
+            <div className="min-w-0 overflow-hidden bg-surface-container rounded-xl shadow-md">
               {currentChapter ? (
                 <>
-                  {/* Progress Bar */}
+                  {/* Progress Bar - at top of card, below border */}
                   {totalQuestionsQuery.data && totalQuestionsQuery.data > 0 && (
                     <ProgressBar
                       current={currentProgressPosition}
                       total={totalQuestionsQuery.data}
+                      flush
                     />
                   )}
 
-                  <div className="flex justify-between items-start mb-6">
-                    <h2 className="text-2xl font-bold text-on-background"></h2>
-                    {currentChapter.association && (
-                      <span className="px-3 py-1 text-sm font-medium bg-primary-100 text-primary-700 rounded-full">
-                        {currentChapter.association}
-                      </span>
-                    )}
-                  </div>
-
-                  {currentChapterQuestions.length > 0 ? (
-                    <div className="space-y-4">
-                      {(() => {
-                        const question =
-                          currentChapterQuestions[selectedQuestionIndex];
-                        if (!question) return null;
-                        return (
-                          <div key={question.id}>
-                            <div className="text-sm text-on-surface-variant">
-                              {t('lectureTrain.questionProgress', {
-                                current: selectedQuestionIndex + 1,
-                                total: currentChapterQuestions.length,
-                              })}
-                            </div>
-                            <Accordion
-                              title={question.question}
-                              noShadow
-                              noPadding
-                              leftIcon={
-                                <span className="flex items-center gap-1">
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      updateQuestion.mutate({
-                                        id: question.id,
-                                        isAnnotated: !question.isAnnotated,
-                                      });
-                                    }}
-                                    className={`p-1 rounded-full transition-all hover:scale-110 ${
-                                      question.isAnnotated
-                                        ? ''
-                                        : 'opacity-50 hover:opacity-100'
-                                    }`}
-                                    title={
-                                      question.isAnnotated
-                                        ? t('lectureTrain.annotated')
-                                        : t('lectureTrain.annotate')
-                                    }
-                                  >
-                                    <span
-                                      className={`text-xl ${
-                                        question.isAnnotated ? '' : 'grayscale'
-                                      }`}
-                                    >
-                                      🦉
-                                    </span>
-                                  </button>
-                                  <SpeechPlayButton
-                                    text={question.question}
-                                    language={
-                                      i18n.language.startsWith('de')
-                                        ? 'de'
-                                        : 'en'
-                                    }
-                                  />
-                                </span>
-                              }
-                            >
-                              {question.answer ? (
-                                <div>
-                                  <div className="prose prose-lg max-w-none">
-                                    <ReactMarkdown>
-                                      {question.answer}
-                                    </ReactMarkdown>
-                                  </div>
-                                </div>
-                              ) : (
-                                <p className="text-on-surface-variant italic">
-                                  {t('lectureTrain.noAnswerYet')}
-                                </p>
-                              )}
-                            </Accordion>
-                          </div>
-                        );
-                      })()}
+                  <div className="p-8">
+                    <div className="flex justify-between items-start mb-6">
+                      <h2 className="text-2xl font-bold text-on-background"></h2>
+                      {currentChapter.association && (
+                        <span className="px-3 py-1 text-sm font-medium bg-primary-100 text-primary-700 rounded-full">
+                          {currentChapter.association}
+                        </span>
+                      )}
                     </div>
-                  ) : (
-                    <p className="text-on-surface-variant italic">
-                      {t('lectureTrain.noContentYet')}
-                    </p>
-                  )}
 
-                  <LectureNavigation
-                    onPrev={handlePrevQuestion}
-                    onNext={handleNextQuestion}
-                    disablePrev={isFirstQuestion}
-                    disableNext={isLastQuestion}
-                  />
+                    {currentChapterQuestions.length > 0 ? (
+                      <div className="space-y-4">
+                        {(() => {
+                          const question =
+                            currentChapterQuestions[selectedQuestionIndex];
+                          if (!question) return null;
+                          return (
+                            <div key={question.id}>
+                              <div className="text-sm text-on-surface-variant">
+                                {t('lectureTrain.questionProgress', {
+                                  current: selectedQuestionIndex + 1,
+                                  total: currentChapterQuestions.length,
+                                })}
+                              </div>
+                              <Accordion
+                                title={question.question}
+                                noShadow
+                                noPadding
+                                leftIcon={
+                                  <span className="flex items-center gap-1">
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        updateQuestion.mutate({
+                                          id: question.id,
+                                          isAnnotated: !question.isAnnotated,
+                                        });
+                                      }}
+                                      className={`p-1 rounded-full transition-all hover:scale-110 ${
+                                        question.isAnnotated
+                                          ? ''
+                                          : 'opacity-50 hover:opacity-100'
+                                      }`}
+                                      title={
+                                        question.isAnnotated
+                                          ? t('lectureTrain.annotated')
+                                          : t('lectureTrain.annotate')
+                                      }
+                                    >
+                                      <span
+                                        className={`text-xl ${
+                                          question.isAnnotated
+                                            ? ''
+                                            : 'grayscale'
+                                        }`}
+                                      >
+                                        🦉
+                                      </span>
+                                    </button>
+                                    <SpeechPlayButton
+                                      text={question.question}
+                                      language={
+                                        i18n.language.startsWith('de')
+                                          ? 'de'
+                                          : 'en'
+                                      }
+                                    />
+                                  </span>
+                                }
+                              >
+                                {question.answer ? (
+                                  <div>
+                                    <div className="prose prose-lg max-w-none">
+                                      <ReactMarkdown>
+                                        {question.answer}
+                                      </ReactMarkdown>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <p className="text-on-surface-variant italic">
+                                    {t('lectureTrain.noAnswerYet')}
+                                  </p>
+                                )}
+                              </Accordion>
+                            </div>
+                          );
+                        })()}
+                      </div>
+                    ) : (
+                      <p className="text-on-surface-variant italic">
+                        {t('lectureTrain.noContentYet')}
+                      </p>
+                    )}
+
+                    <LectureNavigation
+                      onPrev={handlePrevQuestion}
+                      onNext={handleNextQuestion}
+                      disablePrev={isFirstQuestion}
+                      disableNext={isLastQuestion}
+                    />
+                  </div>
                 </>
               ) : (
                 <p className="text-on-surface-variant">
