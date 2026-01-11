@@ -12,7 +12,6 @@ import { LectureTrain } from './pages/LectureTrain';
 import { LectureTrainRandomized } from './pages/LectureTrainRandomized';
 import { LectureVoice } from './pages/LectureVoice';
 import { Overview } from './pages/Overview';
-import { VoiceInput } from './pages/VoiceInput';
 import { trpc } from './utils/trpc';
 
 export default function App() {
@@ -44,7 +43,6 @@ export default function App() {
               element={<LectureTrainRandomized />}
             />
             <Route path="/learn/:id/:chapterId?" element={<LectureLearn />} />
-            <Route path="/voice-input" element={<VoiceInput />} />
             <Route
               path="/voice/:id/:chapterId?/:questionId?"
               element={<LectureVoice />}
