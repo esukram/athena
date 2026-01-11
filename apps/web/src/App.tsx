@@ -10,6 +10,7 @@ import { EditLecture } from './pages/LectureEdit';
 import { LectureLearn } from './pages/LectureLearn';
 import { LectureTrain } from './pages/LectureTrain';
 import { LectureTrainRandomized } from './pages/LectureTrainRandomized';
+import { LectureVoice } from './pages/LectureVoice';
 import { Overview } from './pages/Overview';
 import { VoiceInput } from './pages/VoiceInput';
 import { trpc } from './utils/trpc';
@@ -44,6 +45,10 @@ export default function App() {
             />
             <Route path="/learn/:id/:chapterId?" element={<LectureLearn />} />
             <Route path="/voice-input" element={<VoiceInput />} />
+            <Route
+              path="/voice/:id/:chapterId?/:questionId?"
+              element={<LectureVoice />}
+            />
           </Routes>
         </HashRouter>
       </QueryClientProvider>

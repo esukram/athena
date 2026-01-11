@@ -82,6 +82,10 @@ export const LectureCard = ({ lecture }: { lecture: Lecture }) => {
                 label: t('lectureCard.trainRandomized'),
                 onClick: () => navigate(`/train-random/${lecture.id}`),
               },
+              {
+                label: t('lectureCard.trainVoice'),
+                onClick: () => navigate(`/voice/${lecture.id}`),
+              },
             ]}
             className="flex-1"
             buttonClassName="py-2.5 active:from-primary-800 active:to-primary-900"

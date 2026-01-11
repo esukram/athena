@@ -31,6 +31,7 @@
     "learn": "Lernen",
     "train": "Trainieren",
     "trainRandomized": "Zufällig",
+    "trainVoice": "Sprache",
     "editLecture": "Fach bearbeiten",
     "deleteLecture": "Fach löschen",
     "confirmDelete": "Möchten Sie \"{{title}}\" wirklich löschen?"
@@ -117,6 +118,29 @@
     "deleteQuestion": "Frage löschen",
     "answerPlaceholder": "Schreiben Sie Ihre Antwort in Markdown...",
     "confirmDiscardChanges": "Sie haben ungespeicherte Änderungen. Verwerfen?"
+  },
+  "lectureVoice": {
+    "backToLectures": "Zurück zu den Fächern",
+    "noChaptersYet": "Dieses Fach hat noch keine Kapitel.",
+    "addChapters": "Kapitel hinzufügen",
+    "noContentYet": "Dieses Kapitel hat noch keinen Inhalt.",
+    "selectAChapter": "Wählen Sie ein Kapitel",
+    "voiceMode": "Sprache",
+    "recordResponse": "Tippen Sie, um Ihre Antwort aufzunehmen",
+    "stopRecording": "Tippen Sie, um die Aufnahme zu beenden",
+    "transcribing": "Wird transkribiert...",
+    "noSpeechRecognized": "Keine Sprache erkannt.",
+    "yourResponse": "Ihre Antwort",
+    "playQuestion": "Frage abspielen",
+    "questionProgress": "Frage {{current}} von {{total}}",
+    "progressLabel": "Trainingsfortschritt: {{current}} von {{total}} Fragen ({{percent}}%)",
+    "readingQuestion": "Frage wird vorgelesen...",
+    "playingQuestion": "Frage wird abgespielt...",
+    "playAgain": "Erneut abspielen",
+    "microphoneError": "Mikrofon konnte nicht aufgerufen werden.",
+    "noAudioRecorded": "Keine Aufnahme vorhanden.",
+    "processingError": "Audio konnte nicht verarbeitet werden.",
+    "transcriptionError": "Audio konnte nicht transkribiert werden."
   },
   "speech": {
     "playQuestion": "Frage vorlesen",

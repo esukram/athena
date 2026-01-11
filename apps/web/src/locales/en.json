@@ -31,6 +31,7 @@
     "learn": "Learn",
     "train": "Train",
     "trainRandomized": "Randomized",
+    "trainVoice": "Voice",
     "editLecture": "Edit Lecture",
     "deleteLecture": "Delete Lecture",
     "confirmDelete": "Are you sure you want to delete \"{{title}}\"?"
@@ -117,6 +118,29 @@
     "deleteQuestion": "Delete question",
     "answerPlaceholder": "Write your answer in Markdown...",
     "confirmDiscardChanges": "You have unsaved changes. Discard them?"
+  },
+  "lectureVoice": {
+    "backToLectures": "Back to Lectures",
+    "noChaptersYet": "This lecture has no chapters yet.",
+    "addChapters": "Add Chapters",
+    "noContentYet": "This chapter has no content yet.",
+    "selectAChapter": "Select a chapter",
+    "voiceMode": "Voice",
+    "recordResponse": "Tap to record your response",
+    "stopRecording": "Tap to stop recording",
+    "transcribing": "Transcribing...",
+    "noSpeechRecognized": "No speech recognized.",
+    "yourResponse": "Your Response",
+    "playQuestion": "Play question",
+    "questionProgress": "Question {{current}} of {{total}}",
+    "progressLabel": "Training progress: {{current}} of {{total}} questions ({{percent}}%)",
+    "readingQuestion": "Reading question...",
+    "playingQuestion": "Playing question...",
+    "playAgain": "Play again",
+    "microphoneError": "Could not access microphone.",
+    "noAudioRecorded": "No audio recorded.",
+    "processingError": "Failed to process audio.",
+    "transcriptionError": "Failed to transcribe audio."
   },
   "speech": {
     "playQuestion": "Read question aloud",
