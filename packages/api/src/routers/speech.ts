@@ -20,4 +20,18 @@ export const speechRouter = router({
   isConfigured: publicProcedure.query(({ ctx }) => {
     return ctx.speechService?.isConfigured() ?? false;
   }),
+
+  transcribe: publicProcedure
+    .input(
+      z.object({
+        audioData: z.string().min(1),
+        language: z.enum(['de', 'en']),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      if (!ctx.speechService) {
+        throw new Error('Speech service not configured');
+      }
+      return ctx.speechService.transcribe(input.audioData, input.language);
+    }),
 });

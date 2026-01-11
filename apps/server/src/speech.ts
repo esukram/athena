@@ -86,5 +86,49 @@ export function createSpeechService(): SpeechService | undefined {
         );
       });
     },
+
+    async transcribe(
+      audioData: string,
+      language: 'de' | 'en',
+    ): Promise<string> {
+      console.log('Transcribing speech...');
+      speechConfig.speechRecognitionLanguage =
+        language === 'de' ? 'de-DE' : 'en-US';
+
+      // Assume audioData is raw PCM (16kHz, 16-bit, Mono) sent as Base64
+      const audioBuffer = Buffer.from(audioData, 'base64');
+      const pushStream = sdk.AudioInputStream.createPushStream(
+        sdk.AudioStreamFormat.getWaveFormatPCM(16000, 16, 1),
+      );
+      pushStream.write(audioBuffer.buffer as ArrayBuffer);
+      pushStream.close();
+
+      const audioConfig = sdk.AudioConfig.fromStreamInput(pushStream);
+      const recognizer = new sdk.SpeechRecognizer(speechConfig, audioConfig);
+
+      return new Promise((resolve, reject) => {
+        recognizer.recognizeOnceAsync(
+          (result) => {
+            if (result.reason === sdk.ResultReason.RecognizedSpeech) {
+              resolve(result.text);
+            } else if (result.reason === sdk.ResultReason.NoMatch) {
+              resolve(''); // No speech recognized
+            } else if (result.reason === sdk.ResultReason.Canceled) {
+              const cancellation = sdk.CancellationDetails.fromResult(result);
+              reject(
+                new Error(
+                  `Speech recognition canceled: ${cancellation.reason} ${cancellation.errorDetails}`,
+                ),
+              );
+            }
+            recognizer.close();
+          },
+          (error) => {
+            recognizer.close();
+            reject(new Error(`Speech recognition error: ${error}`));
+          },
+        );
+      });
+    },
   };
 }
