@@ -27,6 +27,10 @@ export interface SpeechResult {
 
 export interface SpeechService {
   synthesize(text: string, language: 'de' | 'en'): Promise<SpeechResult>;
-  transcribe(audioData: string, language: 'de' | 'en'): Promise<string>;
+  transcribe(
+    audioData: string,
+    language: 'de' | 'en',
+    sampleRate: number,
+  ): Promise<string>;
   isConfigured(): boolean;
 }

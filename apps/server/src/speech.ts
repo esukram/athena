@@ -90,23 +90,32 @@ export function createSpeechService(): SpeechService | undefined {
     async transcribe(
       audioData: string,
       language: 'de' | 'en',
+      sampleRate: number,
     ): Promise<string> {
       console.log(
-        `[SpeechService] Transcribing speech (len: ${audioData.length})...`,
+        `[SpeechService] Transcribing speech (len: ${audioData.length}, rate: ${sampleRate}Hz)...`,
       );
       speechConfig.speechRecognitionLanguage =
         language === 'de' ? 'de-DE' : 'en-US';
 
-      // Assume audioData is raw PCM (16kHz, 16-bit, Mono) sent as Base64
+      // Assume audioData is raw PCM (16-bit, Mono) sent as Base64
       const audioBuffer = Buffer.from(audioData, 'base64');
       console.log(
         `[SpeechService] Decoded audio buffer size: ${audioBuffer.length} bytes`,
       );
 
       const pushStream = sdk.AudioInputStream.createPushStream(
-        sdk.AudioStreamFormat.getWaveFormatPCM(16000, 16, 1),
+        sdk.AudioStreamFormat.getWaveFormatPCM(sampleRate, 16, 1),
       );
-      pushStream.write(audioBuffer.buffer as ArrayBuffer);
+
+      // key-fix: Buffer.from might use a shared buffer pool.
+      // accessing .buffer gives the whole pool. We must slice it.
+      const arrayBuffer = audioBuffer.buffer.slice(
+        audioBuffer.byteOffset,
+        audioBuffer.byteOffset + audioBuffer.byteLength,
+      );
+
+      pushStream.write(arrayBuffer);
       pushStream.close();
 
       const audioConfig = sdk.AudioConfig.fromStreamInput(pushStream);

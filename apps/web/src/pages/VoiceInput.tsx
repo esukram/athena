@@ -47,16 +47,19 @@ export const VoiceInput = () => {
       audioDataRef.current = [];
       isRecordingRef.current = true;
 
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          echoCancellation: false,
+          noiseSuppression: false,
+          autoGainControl: false,
+        },
+      });
 
-      // We need to resample to 16kHz
       const audioContext = new (
         window.AudioContext ||
         (window as unknown as { webkitAudioContext: typeof AudioContext })
           .webkitAudioContext
-      )({
-        sampleRate: 16000,
-      });
+      )();
       audioContextRef.current = audioContext;
 
       // Load the worklet module
@@ -117,37 +120,66 @@ export const VoiceInput = () => {
       (acc, val) => acc + val.length,
       0,
     );
-    console.log(`[VoiceInput] Total audio length (samples): ${totalLength}`);
 
     if (totalLength === 0) {
       setError('No audio recorded (length 0).');
       return;
     }
 
-    const resultBuffer = new Float32Array(totalLength);
+    // Merge chunks
+    const rawBuffer = new Float32Array(totalLength);
     let offset = 0;
     for (const chunk of audioDataRef.current) {
-      resultBuffer.set(chunk, offset);
+      rawBuffer.set(chunk, offset);
       offset += chunk.length;
     }
 
+    // Resample to 16kHz if needed
+    let finalBuffer = rawBuffer;
+    const currentSampleRate = audioContextRef.current?.sampleRate || 48000;
+    const targetSampleRate = 16000;
+
+    if (currentSampleRate !== targetSampleRate) {
+      try {
+        const offlineCtx = new OfflineAudioContext(
+          1,
+          (rawBuffer.length * targetSampleRate) / currentSampleRate,
+          targetSampleRate,
+        );
+        const source = offlineCtx.createBufferSource();
+        const audioBuffer = offlineCtx.createBuffer(
+          1,
+          rawBuffer.length,
+          currentSampleRate,
+        );
+        audioBuffer.copyToChannel(rawBuffer, 0);
+        source.buffer = audioBuffer;
+        source.connect(offlineCtx.destination);
+        source.start();
+        const renderedBuffer = await offlineCtx.startRendering();
+        finalBuffer = renderedBuffer.getChannelData(0);
+      } catch (err) {
+        console.error('[VoiceInput] Resampling failed:', err);
+        setError('Failed to process audio (resampling).');
+        return;
+      }
+    }
+
     // Convert to PCM
-    const buffer = new ArrayBuffer(resultBuffer.length * 2);
+    const buffer = new ArrayBuffer(finalBuffer.length * 2);
     const view = new DataView(buffer);
-    floatTo16BitPCM(view, 0, resultBuffer);
-    console.log(`[VoiceInput] PCM Buffer size: ${buffer.byteLength} bytes`);
+    floatTo16BitPCM(view, 0, finalBuffer);
 
     // Send to backend
     const base64Audio = arrayBufferToBase64(buffer);
-    console.log(`[VoiceInput] Base64 string length: ${base64Audio.length}`);
 
     try {
-      console.log('[VoiceInput] Sending to backend...');
+      // We always send 16000 now
       const result = await transcribeMutation.mutateAsync({
         audioData: base64Audio,
         language: language,
+        sampleRate: 16000,
       });
-      console.log('[VoiceInput] Received result:', result);
       setTranscription(result || 'No speech recognized.');
     } catch (err) {
       console.error('[VoiceInput] Transcription error:', err);

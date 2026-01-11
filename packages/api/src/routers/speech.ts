@@ -26,12 +26,17 @@ export const speechRouter = router({
       z.object({
         audioData: z.string().min(1),
         language: z.enum(['de', 'en']),
+        sampleRate: z.number().min(8000).max(48000).default(16000),
       }),
     )
     .mutation(async ({ ctx, input }) => {
       if (!ctx.speechService) {
         throw new Error('Speech service not configured');
       }
-      return ctx.speechService.transcribe(input.audioData, input.language);
+      return ctx.speechService.transcribe(
+        input.audioData,
+        input.language,
+        input.sampleRate,
+      );
     }),
 });
