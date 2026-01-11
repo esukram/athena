@@ -140,7 +140,8 @@
     "microphoneError": "Could not access microphone.",
     "noAudioRecorded": "No audio recorded.",
     "processingError": "Failed to process audio.",
-    "transcriptionError": "Failed to transcribe audio."
+    "transcriptionError": "Failed to transcribe audio.",
+    "inactivityTimeout": "Recording stopped due to inactivity."
   },
   "speech": {
     "playQuestion": "Read question aloud",

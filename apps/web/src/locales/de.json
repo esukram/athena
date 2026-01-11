@@ -140,7 +140,8 @@
     "microphoneError": "Mikrofon konnte nicht aufgerufen werden.",
     "noAudioRecorded": "Keine Aufnahme vorhanden.",
     "processingError": "Audio konnte nicht verarbeitet werden.",
-    "transcriptionError": "Audio konnte nicht transkribiert werden."
+    "transcriptionError": "Audio konnte nicht transkribiert werden.",
+    "inactivityTimeout": "Aufnahme wegen Inaktivität gestoppt."
   },
   "speech": {
     "playQuestion": "Frage vorlesen",

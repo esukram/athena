@@ -73,13 +73,15 @@ const LectureVoiceContent = ({
   const isRecordingRef = useRef(false);
   const silenceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const initialTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const stopRecordingRef = useRef<() => void>(() => {});
+  const stopRecordingRef = useRef<(skipProcessing?: boolean) => void>(() => {});
   const hasSpeechStartedRef = useRef(false);
 
   // Silence detection constants
-  const SILENCE_THRESHOLD = 0.01; // RMS threshold for detecting speech
+  const SILENCE_THRESHOLD = 0.03; // RMS threshold for detecting speech (increased to avoid noise)
   const SILENCE_TIMEOUT_MS = 5000; // 5 seconds of silence after speech
   const INITIAL_TIMEOUT_MS = 10000; // 10 seconds to start speaking
+  const SPEECH_SAMPLES_REQUIRED = 5; // Require consecutive samples above threshold
+  const speechSampleCountRef = useRef(0);
 
   // TTS playback state
   const [isTtsPlaying, setIsTtsPlaying] = useState(false);
@@ -419,6 +421,7 @@ const LectureVoiceContent = ({
       audioDataRef.current = [];
       isRecordingRef.current = true;
       hasSpeechStartedRef.current = false;
+      speechSampleCountRef.current = 0;
 
       // Clear any existing timers
       if (silenceTimerRef.current) {
@@ -434,7 +437,8 @@ const LectureVoiceContent = ({
       initialTimeoutRef.current = setTimeout(() => {
         if (!hasSpeechStartedRef.current && isRecordingRef.current) {
           console.log('[LectureVoice] Initial timeout - no speech detected');
-          stopRecordingRef.current();
+          setRecordingError(t('lectureVoice.inactivityTimeout'));
+          stopRecordingRef.current(true); // Skip processing - no audio to transcribe
         }
       }, INITIAL_TIMEOUT_MS);
 
@@ -480,24 +484,40 @@ const LectureVoiceContent = ({
         const rms = Math.sqrt(sum / inputData.length);
 
         if (rms > SILENCE_THRESHOLD) {
-          // Speech detected
-          hasSpeechStartedRef.current = true;
-          // Clear initial timeout since user started speaking
-          if (initialTimeoutRef.current) {
-            clearTimeout(initialTimeoutRef.current);
-            initialTimeoutRef.current = null;
+          // Increment speech sample counter
+          speechSampleCountRef.current++;
+
+          // Only consider speech started after sustained samples above threshold
+          if (
+            speechSampleCountRef.current >= SPEECH_SAMPLES_REQUIRED &&
+            !hasSpeechStartedRef.current
+          ) {
+            hasSpeechStartedRef.current = true;
+            // Clear initial timeout since user started speaking
+            if (initialTimeoutRef.current) {
+              clearTimeout(initialTimeoutRef.current);
+              initialTimeoutRef.current = null;
+            }
           }
-          // Clear silence timer if it's running
-          if (silenceTimerRef.current) {
+
+          // Clear silence timer if it's running (speech ongoing)
+          if (hasSpeechStartedRef.current && silenceTimerRef.current) {
             clearTimeout(silenceTimerRef.current);
             silenceTimerRef.current = null;
           }
-        } else if (hasSpeechStartedRef.current && !silenceTimerRef.current) {
-          // Silence detected after speech started - start timer
-          silenceTimerRef.current = setTimeout(() => {
-            console.log('[LectureVoice] Silence timeout - stopping recording');
-            stopRecordingRef.current();
-          }, SILENCE_TIMEOUT_MS);
+        } else {
+          // Reset speech sample counter on silence
+          speechSampleCountRef.current = 0;
+
+          if (hasSpeechStartedRef.current && !silenceTimerRef.current) {
+            // Silence detected after speech started - start timer
+            silenceTimerRef.current = setTimeout(() => {
+              console.log(
+                '[LectureVoice] Silence timeout - stopping recording',
+              );
+              stopRecordingRef.current();
+            }, SILENCE_TIMEOUT_MS);
+          }
         }
       };
 
@@ -517,100 +537,113 @@ const LectureVoiceContent = ({
     startRecordingRef.current = startRecording;
   }, [startRecording]);
 
-  const stopRecording = useCallback(async () => {
-    // Clear all timers
-    if (silenceTimerRef.current) {
-      clearTimeout(silenceTimerRef.current);
-      silenceTimerRef.current = null;
-    }
-    if (initialTimeoutRef.current) {
-      clearTimeout(initialTimeoutRef.current);
-      initialTimeoutRef.current = null;
-    }
-
-    setIsRecording(false);
-    isRecordingRef.current = false;
-
-    await new Promise((resolve) => setTimeout(resolve, 100));
-
-    if (sourceRef.current) sourceRef.current.disconnect();
-    if (audioContextRef.current) {
-      if (audioContextRef.current.state !== 'closed') {
-        await audioContextRef.current.close();
+  const stopRecording = useCallback(
+    async (skipProcessing = false) => {
+      // Clear all timers
+      if (silenceTimerRef.current) {
+        clearTimeout(silenceTimerRef.current);
+        silenceTimerRef.current = null;
       }
-    }
+      if (initialTimeoutRef.current) {
+        clearTimeout(initialTimeoutRef.current);
+        initialTimeoutRef.current = null;
+      }
 
-    if (audioDataRef.current.length === 0) {
-      setRecordingError(t('lectureVoice.noAudioRecorded'));
-      return;
-    }
+      setIsRecording(false);
+      isRecordingRef.current = false;
 
-    const totalLength = audioDataRef.current.reduce(
-      (acc, val) => acc + val.length,
-      0,
-    );
+      await new Promise((resolve) => setTimeout(resolve, 100));
 
-    if (totalLength === 0) {
-      setRecordingError(t('lectureVoice.noAudioRecorded'));
-      return;
-    }
+      if (sourceRef.current) sourceRef.current.disconnect();
+      if (audioContextRef.current) {
+        if (audioContextRef.current.state !== 'closed') {
+          await audioContextRef.current.close();
+        }
+      }
 
-    const rawBuffer = new Float32Array(totalLength);
-    let offset = 0;
-    for (const chunk of audioDataRef.current) {
-      rawBuffer.set(chunk, offset);
-      offset += chunk.length;
-    }
-
-    let finalBuffer = rawBuffer;
-    const currentSampleRate = audioContextRef.current?.sampleRate || 48000;
-    const targetSampleRate = 16000;
-
-    if (currentSampleRate !== targetSampleRate) {
-      try {
-        const offlineCtx = new OfflineAudioContext(
-          1,
-          (rawBuffer.length * targetSampleRate) / currentSampleRate,
-          targetSampleRate,
-        );
-        const source = offlineCtx.createBufferSource();
-        const audioBuffer = offlineCtx.createBuffer(
-          1,
-          rawBuffer.length,
-          currentSampleRate,
-        );
-        audioBuffer.copyToChannel(rawBuffer, 0);
-        source.buffer = audioBuffer;
-        source.connect(offlineCtx.destination);
-        source.start();
-        const renderedBuffer = await offlineCtx.startRendering();
-        finalBuffer = renderedBuffer.getChannelData(0);
-      } catch (err) {
-        console.error('[LectureVoice] Resampling failed:', err);
-        setRecordingError(t('lectureVoice.processingError'));
+      // Skip audio processing if requested (e.g., inactivity timeout)
+      if (skipProcessing) {
+        setTranscription(''); // Ensure transcription area is hidden
         return;
       }
-    }
 
-    const buffer = new ArrayBuffer(finalBuffer.length * 2);
-    const view = new DataView(buffer);
-    floatTo16BitPCM(view, 0, finalBuffer);
+      if (audioDataRef.current.length === 0) {
+        setRecordingError(t('lectureVoice.noAudioRecorded'));
+        return;
+      }
 
-    const base64Audio = arrayBufferToBase64(buffer);
+      const totalLength = audioDataRef.current.reduce(
+        (acc, val) => acc + val.length,
+        0,
+      );
 
-    try {
-      const language = i18n.language.startsWith('de') ? 'de' : 'en';
-      const result = await transcribeMutation.mutateAsync({
-        audioData: base64Audio,
-        language: language,
-        sampleRate: 16000,
-      });
-      setTranscription(result || t('lectureVoice.noSpeechRecognized'));
-    } catch (err) {
-      console.error('[LectureVoice] Transcription error:', err);
-      setRecordingError(t('lectureVoice.transcriptionError'));
-    }
-  }, [t, i18n.language, transcribeMutation]);
+      if (totalLength === 0) {
+        setRecordingError(t('lectureVoice.noAudioRecorded'));
+        return;
+      }
+
+      const rawBuffer = new Float32Array(totalLength);
+      let offset = 0;
+      for (const chunk of audioDataRef.current) {
+        rawBuffer.set(chunk, offset);
+        offset += chunk.length;
+      }
+
+      let finalBuffer = rawBuffer;
+      const currentSampleRate = audioContextRef.current?.sampleRate || 48000;
+      const targetSampleRate = 16000;
+
+      if (currentSampleRate !== targetSampleRate) {
+        try {
+          const offlineCtx = new OfflineAudioContext(
+            1,
+            (rawBuffer.length * targetSampleRate) / currentSampleRate,
+            targetSampleRate,
+          );
+          const source = offlineCtx.createBufferSource();
+          const audioBuffer = offlineCtx.createBuffer(
+            1,
+            rawBuffer.length,
+            currentSampleRate,
+          );
+          audioBuffer.copyToChannel(rawBuffer, 0);
+          source.buffer = audioBuffer;
+          source.connect(offlineCtx.destination);
+          source.start();
+          const renderedBuffer = await offlineCtx.startRendering();
+          finalBuffer = renderedBuffer.getChannelData(0);
+        } catch (err) {
+          console.error('[LectureVoice] Resampling failed:', err);
+          setRecordingError(t('lectureVoice.processingError'));
+          return;
+        }
+      }
+
+      const buffer = new ArrayBuffer(finalBuffer.length * 2);
+      const view = new DataView(buffer);
+      floatTo16BitPCM(view, 0, finalBuffer);
+
+      const base64Audio = arrayBufferToBase64(buffer);
+
+      try {
+        const language = i18n.language.startsWith('de') ? 'de' : 'en';
+        const result = await transcribeMutation.mutateAsync({
+          audioData: base64Audio,
+          language: language,
+          sampleRate: 16000,
+        });
+        if (result) {
+          setTranscription(result);
+        } else {
+          setRecordingError(t('lectureVoice.noSpeechRecognized'));
+        }
+      } catch (err) {
+        console.error('[LectureVoice] Transcription error:', err);
+        setRecordingError(t('lectureVoice.transcriptionError'));
+      }
+    },
+    [t, i18n.language, transcribeMutation],
+  );
 
   // Update the ref whenever stopRecording changes
   useEffect(() => {
@@ -745,7 +778,7 @@ const LectureVoiceContent = ({
                               </button>
                             ) : (
                               <button
-                                onClick={stopRecording}
+                                onClick={() => stopRecording()}
                                 className="w-20 h-20 rounded-full bg-error text-on-error flex items-center justify-center hover:opacity-90 transition-opacity animate-pulse"
                                 aria-label={t('lectureVoice.stopRecording')}
                               >
