@@ -71,6 +71,13 @@ const LectureVoiceContent = ({
   const sourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
   const audioDataRef = useRef<Float32Array[]>([]);
   const isRecordingRef = useRef(false);
+  const silenceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const stopRecordingRef = useRef<() => void>(() => {});
+  const hasSpeechStartedRef = useRef(false);
+
+  // Silence detection constants
+  const SILENCE_THRESHOLD = 0.01; // RMS threshold for detecting speech
+  const SILENCE_TIMEOUT_MS = 5000; // 5 seconds of silence
 
   // TTS playback state
   const [isTtsPlaying, setIsTtsPlaying] = useState(false);
@@ -409,6 +416,13 @@ const LectureVoiceContent = ({
       setTranscription('');
       audioDataRef.current = [];
       isRecordingRef.current = true;
+      hasSpeechStartedRef.current = false;
+
+      // Clear any existing silence timer
+      if (silenceTimerRef.current) {
+        clearTimeout(silenceTimerRef.current);
+        silenceTimerRef.current = null;
+      }
 
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
@@ -441,8 +455,31 @@ const LectureVoiceContent = ({
 
       workletNode.port.onmessage = (event) => {
         if (!isRecordingRef.current) return;
-        const inputData = event.data;
-        audioDataRef.current.push(new Float32Array(inputData));
+        const inputData = new Float32Array(event.data);
+        audioDataRef.current.push(inputData);
+
+        // Calculate RMS for silence detection
+        let sum = 0;
+        for (let i = 0; i < inputData.length; i++) {
+          sum += inputData[i] * inputData[i];
+        }
+        const rms = Math.sqrt(sum / inputData.length);
+
+        if (rms > SILENCE_THRESHOLD) {
+          // Speech detected
+          hasSpeechStartedRef.current = true;
+          // Clear silence timer if it's running
+          if (silenceTimerRef.current) {
+            clearTimeout(silenceTimerRef.current);
+            silenceTimerRef.current = null;
+          }
+        } else if (hasSpeechStartedRef.current && !silenceTimerRef.current) {
+          // Silence detected after speech started - start timer
+          silenceTimerRef.current = setTimeout(() => {
+            console.log('[LectureVoice] Silence timeout - stopping recording');
+            stopRecordingRef.current();
+          }, SILENCE_TIMEOUT_MS);
+        }
       };
 
       source.connect(workletNode);
@@ -461,7 +498,13 @@ const LectureVoiceContent = ({
     startRecordingRef.current = startRecording;
   }, [startRecording]);
 
-  const stopRecording = async () => {
+  const stopRecording = useCallback(async () => {
+    // Clear silence timer
+    if (silenceTimerRef.current) {
+      clearTimeout(silenceTimerRef.current);
+      silenceTimerRef.current = null;
+    }
+
     setIsRecording(false);
     isRecordingRef.current = false;
 
@@ -544,7 +587,12 @@ const LectureVoiceContent = ({
       console.error('[LectureVoice] Transcription error:', err);
       setRecordingError(t('lectureVoice.transcriptionError'));
     }
-  };
+  }, [t, i18n.language, transcribeMutation]);
+
+  // Update the ref whenever stopRecording changes
+  useEffect(() => {
+    stopRecordingRef.current = stopRecording;
+  }, [stopRecording]);
 
   return (
     <div className="min-h-screen bg-background">
