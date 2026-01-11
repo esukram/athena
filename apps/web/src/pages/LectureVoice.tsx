@@ -378,6 +378,21 @@ const LectureVoiceContent = ({
   const prevQuestionIdRef = useRef<string | null>(null);
   useEffect(() => {
     if (currentQuestion && currentQuestion.id !== prevQuestionIdRef.current) {
+      // Stop any ongoing recording when navigating
+      if (isRecordingRef.current) {
+        isRecordingRef.current = false;
+        setIsRecording(false);
+        if (sourceRef.current) {
+          sourceRef.current.disconnect();
+        }
+        if (
+          audioContextRef.current &&
+          audioContextRef.current.state !== 'closed'
+        ) {
+          audioContextRef.current.close();
+        }
+      }
+
       prevQuestionIdRef.current = currentQuestion.id;
       // Clear previous transcription when navigating
       setTranscription('');
