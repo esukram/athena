@@ -34,7 +34,6 @@ export const VoiceInput = () => {
   const [language, setLanguage] = useState<'en' | 'de'>('en');
 
   const audioContextRef = useRef<AudioContext | null>(null);
-  const processorRef = useRef<ScriptProcessorNode | null>(null);
   const sourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
   const audioDataRef = useRef<Float32Array[]>([]);
   const isRecordingRef = useRef(false);
@@ -60,22 +59,30 @@ export const VoiceInput = () => {
       });
       audioContextRef.current = audioContext;
 
+      // Load the worklet module
+      try {
+        await audioContext.audioWorklet.addModule('/audio-processor.js');
+      } catch (e) {
+        console.error('Failed to load audio worklet:', e);
+        throw new Error(
+          'Failed to load audio worklet. Ensure audio-processor.js is in public/.',
+        );
+      }
+
       const source = audioContext.createMediaStreamSource(stream);
       sourceRef.current = source;
 
-      // Use ScriptProcessor for raw access (AudioWorklet is better but more complex to setup in this context without extra files)
-      const processor = audioContext.createScriptProcessor(4096, 1, 1);
-      processorRef.current = processor;
+      const workletNode = new AudioWorkletNode(audioContext, 'audio-processor');
 
-      processor.onaudioprocess = (e) => {
+      workletNode.port.onmessage = (event) => {
         if (!isRecordingRef.current) return;
-        const inputData = e.inputBuffer.getChannelData(0);
-        // Clone the data because input buffer is reused
+        const inputData = event.data;
+        // Clone the data by creating a new Float32Array from the transferred buffer
         audioDataRef.current.push(new Float32Array(inputData));
       };
 
-      source.connect(processor);
-      processor.connect(audioContext.destination);
+      source.connect(workletNode);
+      workletNode.connect(audioContext.destination);
 
       setIsRecording(true);
     } catch (err) {
@@ -92,9 +99,13 @@ export const VoiceInput = () => {
     // Tiny delay to ensure last chunk is processed
     await new Promise((resolve) => setTimeout(resolve, 100));
 
+    // Cleanup
     if (sourceRef.current) sourceRef.current.disconnect();
-    if (processorRef.current) processorRef.current.disconnect();
-    if (audioContextRef.current) audioContextRef.current.close();
+    if (audioContextRef.current) {
+      if (audioContextRef.current.state !== 'closed') {
+        await audioContextRef.current.close();
+      }
+    }
 
     if (audioDataRef.current.length === 0) {
       setError('No audio recorded.');
