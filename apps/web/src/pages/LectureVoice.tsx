@@ -72,12 +72,14 @@ const LectureVoiceContent = ({
   const audioDataRef = useRef<Float32Array[]>([]);
   const isRecordingRef = useRef(false);
   const silenceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const initialTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const stopRecordingRef = useRef<() => void>(() => {});
   const hasSpeechStartedRef = useRef(false);
 
   // Silence detection constants
   const SILENCE_THRESHOLD = 0.01; // RMS threshold for detecting speech
-  const SILENCE_TIMEOUT_MS = 5000; // 5 seconds of silence
+  const SILENCE_TIMEOUT_MS = 5000; // 5 seconds of silence after speech
+  const INITIAL_TIMEOUT_MS = 10000; // 10 seconds to start speaking
 
   // TTS playback state
   const [isTtsPlaying, setIsTtsPlaying] = useState(false);
@@ -418,11 +420,23 @@ const LectureVoiceContent = ({
       isRecordingRef.current = true;
       hasSpeechStartedRef.current = false;
 
-      // Clear any existing silence timer
+      // Clear any existing timers
       if (silenceTimerRef.current) {
         clearTimeout(silenceTimerRef.current);
         silenceTimerRef.current = null;
       }
+      if (initialTimeoutRef.current) {
+        clearTimeout(initialTimeoutRef.current);
+        initialTimeoutRef.current = null;
+      }
+
+      // Start initial timeout - stop if user doesn't speak within 10 seconds
+      initialTimeoutRef.current = setTimeout(() => {
+        if (!hasSpeechStartedRef.current && isRecordingRef.current) {
+          console.log('[LectureVoice] Initial timeout - no speech detected');
+          stopRecordingRef.current();
+        }
+      }, INITIAL_TIMEOUT_MS);
 
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
@@ -468,6 +482,11 @@ const LectureVoiceContent = ({
         if (rms > SILENCE_THRESHOLD) {
           // Speech detected
           hasSpeechStartedRef.current = true;
+          // Clear initial timeout since user started speaking
+          if (initialTimeoutRef.current) {
+            clearTimeout(initialTimeoutRef.current);
+            initialTimeoutRef.current = null;
+          }
           // Clear silence timer if it's running
           if (silenceTimerRef.current) {
             clearTimeout(silenceTimerRef.current);
@@ -499,10 +518,14 @@ const LectureVoiceContent = ({
   }, [startRecording]);
 
   const stopRecording = useCallback(async () => {
-    // Clear silence timer
+    // Clear all timers
     if (silenceTimerRef.current) {
       clearTimeout(silenceTimerRef.current);
       silenceTimerRef.current = null;
+    }
+    if (initialTimeoutRef.current) {
+      clearTimeout(initialTimeoutRef.current);
+      initialTimeoutRef.current = null;
     }
 
     setIsRecording(false);
