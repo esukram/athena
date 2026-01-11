@@ -436,7 +436,6 @@ const LectureVoiceContent = ({
       // Start initial timeout - stop if user doesn't speak within 10 seconds
       initialTimeoutRef.current = setTimeout(() => {
         if (!hasSpeechStartedRef.current && isRecordingRef.current) {
-          console.log('[LectureVoice] Initial timeout - no speech detected');
           setRecordingError(t('lectureVoice.inactivityTimeout'));
           stopRecordingRef.current(true); // Skip processing - no audio to transcribe
         }
@@ -512,9 +511,6 @@ const LectureVoiceContent = ({
           if (hasSpeechStartedRef.current && !silenceTimerRef.current) {
             // Silence detected after speech started - start timer
             silenceTimerRef.current = setTimeout(() => {
-              console.log(
-                '[LectureVoice] Silence timeout - stopping recording',
-              );
               stopRecordingRef.current();
             }, SILENCE_TIMEOUT_MS);
           }
