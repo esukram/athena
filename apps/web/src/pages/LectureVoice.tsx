@@ -76,6 +76,7 @@ const LectureVoiceContent = ({
   const [isTtsPlaying, setIsTtsPlaying] = useState(false);
   const [isTtsLoading, setIsTtsLoading] = useState(false);
   const ttsAudioRef = useRef<HTMLAudioElement | null>(null);
+  const startRecordingRef = useRef<() => void>(() => {});
 
   const basePath = 'voice';
 
@@ -355,6 +356,8 @@ const LectureVoiceContent = ({
       audio.onended = () => {
         setIsTtsPlaying(false);
         URL.revokeObjectURL(audioUrl);
+        // Auto-start recording after TTS finishes
+        startRecordingRef.current();
       };
 
       audio.onerror = () => {
@@ -385,7 +388,7 @@ const LectureVoiceContent = ({
   }, [currentQuestion, playTts]);
 
   // Voice recording functions
-  const startRecording = async () => {
+  const startRecording = useCallback(async () => {
     try {
       setRecordingError('');
       setTranscription('');
@@ -436,7 +439,12 @@ const LectureVoiceContent = ({
       setRecordingError(t('lectureVoice.microphoneError'));
       isRecordingRef.current = false;
     }
-  };
+  }, [t]);
+
+  // Update the ref whenever startRecording changes
+  useEffect(() => {
+    startRecordingRef.current = startRecording;
+  }, [startRecording]);
 
   const stopRecording = async () => {
     setIsRecording(false);
