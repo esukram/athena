@@ -124,7 +124,18 @@ test.describe('Lecture Voice', () => {
 
     // Mock Audio API
     await page.addInitScript(() => {
-      (window as any).AudioContext = class MockAudioContext {
+      // Helper interfaces for Mocks
+      interface MockPort {
+        onmessage: ((e: { data: unknown }) => void) | null;
+        _onmessage: ((e: { data: unknown }) => void) | null;
+        _interval?: number;
+      }
+
+      interface MockMediaStream {
+        getTracks: () => { stop: () => void }[];
+      }
+
+      class MockAudioContext {
         state = 'running';
         createMediaStreamSource() {
           return { connect: () => {} };
@@ -141,14 +152,14 @@ test.describe('Lecture Voice', () => {
           this.state = 'closed';
           return Promise.resolve();
         }
-      };
+      }
 
-      (window as any).AudioWorkletNode = class MockAudioWorkletNode {
-        port: any;
+      class MockAudioWorkletNode {
+        port: MockPort;
         constructor() {
           this.port = {
             _onmessage: null,
-            set onmessage(cb: any) {
+            set onmessage(cb: ((e: { data: unknown }) => void) | null) {
               this._onmessage = cb;
               if (cb) {
                 // Send fake audio data to trigger recording logic
@@ -158,7 +169,7 @@ test.describe('Lecture Voice', () => {
                   for (let i = 0; i < buffer.length; i++) buffer[i] = 0.1;
                   cb({ data: buffer.buffer });
                 }, 50);
-                (this as any)._interval = interval;
+                this._interval = interval;
               }
             },
             get onmessage() {
@@ -168,13 +179,14 @@ test.describe('Lecture Voice', () => {
         }
         connect() {}
         disconnect() {
-          if ((this.port as any)._interval)
-            clearInterval((this.port as any)._interval);
+          if (this.port._interval) {
+            clearInterval(this.port._interval);
+          }
         }
-      };
+      }
 
       // Mock OfflineAudioContext for resampling
-      (window as any).OfflineAudioContext = class MockOfflineAudioContext {
+      class MockOfflineAudioContext {
         constructor() {}
         createBufferSource() {
           return { connect: () => {}, start: () => {}, buffer: {} };
@@ -190,28 +202,44 @@ test.describe('Lecture Voice', () => {
         get destination() {
           return {};
         }
+      }
+
+      // Override Window properties
+      const win = window as unknown as {
+        AudioContext: typeof MockAudioContext;
+        AudioWorkletNode: typeof MockAudioWorkletNode;
+        OfflineAudioContext: typeof MockOfflineAudioContext;
+        navigator: {
+          mediaDevices: {
+            getUserMedia: () => Promise<MockMediaStream>;
+          };
+        };
       };
 
-      (window as any).navigator.mediaDevices = {
+      win.AudioContext = MockAudioContext;
+      win.AudioWorkletNode = MockAudioWorkletNode;
+      win.OfflineAudioContext = MockOfflineAudioContext;
+
+      const mockMediaDevices = {
         getUserMedia: async () => {
           return {
             getTracks: () => [{ stop: () => {} }],
           };
         },
       };
-      // Ensure we force the mock if the above didn't stick
+
+      // Mock navigator.mediaDevices.getUserMedia
       try {
         Object.defineProperty(navigator, 'mediaDevices', {
-          value: {
-            getUserMedia: async () => {
-              return {
-                getTracks: () => [{ stop: () => {} }],
-              };
-            },
-          },
+          value: mockMediaDevices,
           writable: true,
         });
-      } catch (e) {}
+      } catch {
+        // Fallback if defineProperty fails (though it usually works for navigator)
+        if (win.navigator) {
+          win.navigator.mediaDevices = mockMediaDevices;
+        }
+      }
     });
 
     await page.goto(`/#/voice/${lectureId}`);
