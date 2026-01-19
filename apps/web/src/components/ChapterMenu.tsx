@@ -223,7 +223,7 @@ export const ChapterMenu = ({ chapter, lectureId }: ChapterMenuProps) => {
         <EditChapterModal
           association={editingAssociation}
           questions={editingQuestions}
-          isSaving={updateQuestion.isLoading || createQuestion.isLoading}
+          isSaving={updateQuestion.isPending || createQuestion.isPending}
           existingAssociations={existingAssociations}
           initialAssociation={initialAssociation}
           initialQuestions={initialQuestions}

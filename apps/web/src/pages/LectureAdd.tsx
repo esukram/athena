@@ -89,10 +89,10 @@ export const AddLecture = () => {
             type="submit"
             variant="primary"
             size="lg"
-            disabled={createLecture.isLoading}
+            disabled={createLecture.isPending}
             className="flex-1"
           >
-            {createLecture.isLoading
+            {createLecture.isPending
               ? t('lectureAdd.creating')
               : t('lectureAdd.createLecture')}
           </Button>
