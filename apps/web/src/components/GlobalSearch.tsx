@@ -206,7 +206,9 @@ export const GlobalSearch = () => {
               {results.map((chapter, index) => (
                 <li key={chapter.id}>
                   <button
-                    ref={(el) => (itemsRef.current[index] = el)}
+                    ref={(el) => {
+                      itemsRef.current[index] = el;
+                    }}
                     onClick={() =>
                       handleResultClick(chapter.lectureId, chapter.id)
                     }
