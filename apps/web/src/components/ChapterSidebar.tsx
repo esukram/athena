@@ -32,9 +32,9 @@ interface ChapterSidebarProps<T extends ChapterItem> {
   /** Optional set of chapter IDs to highlight (e.g., annotated chapters) */
   highlightedChapterIds?: Set<string>;
   /** Optional ref for search input */
-  searchInputRef?: RefObject<HTMLInputElement>;
+  searchInputRef?: React.Ref<HTMLInputElement>;
   /** Optional ref map for chapter buttons (for scroll-into-view) */
-  chapterButtonsRef?: RefObject<Map<number, HTMLButtonElement>>;
+  chapterButtonsRef?: RefObject<Map<number, HTMLButtonElement> | null>;
 }
 
 /**
