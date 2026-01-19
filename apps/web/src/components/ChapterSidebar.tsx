@@ -1,7 +1,8 @@
 import { ListFilter, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import React, { RefObject } from 'react';
+import React from 'react';
+import { RefObject } from 'react';
 
 export interface ChapterItem {
   id: string;
