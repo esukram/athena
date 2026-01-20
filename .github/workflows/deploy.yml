@@ -1,5 +1,8 @@
 name: Deploy to GHCR
 
+permissions:
+  contents: read
+
 on:
   push:
     tags:
