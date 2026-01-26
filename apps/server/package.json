@@ -14,7 +14,7 @@
     "@fastify/static": "^9.0.0",
     "@trpc/server": "^11.8.1",
     "better-sqlite3": "^12.5.0",
-    "cors": "^2.8.5",
+    "cors": "^2.8.6",
     "dotenv": "^17.2.3",
     "fastify": "^5.7.1",
     "microsoft-cognitiveservices-speech-sdk": "^1.47.0"
