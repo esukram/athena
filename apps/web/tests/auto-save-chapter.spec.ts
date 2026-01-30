@@ -4,7 +4,9 @@ test.describe('Auto-Save Chapter Questions', () => {
   const lectureId = 'lecture-auto-save-1';
   const chapterId = 'chapter-1';
 
-  test('auto-saves when editing an existing question', async ({ page }) => {
+  test('auto-saves when clicking Add Question on existing chapter', async ({
+    page,
+  }) => {
     // Setup: Mock lecture data
     const lecture = {
       id: lectureId,
@@ -77,14 +79,13 @@ test.describe('Auto-Save Chapter Questions', () => {
       page.getByRole('heading', { name: 'Edit Chapter' }),
     ).toBeVisible();
 
-    // Modify the question text
-    const questionInput = page.getByPlaceholder('Enter question');
-    await questionInput.fill('Modified Question Text');
+    // Click Add Question - this should trigger auto-save
+    await page.getByRole('button', { name: 'Add Question' }).click();
 
-    // Wait for debounce (1.5s) + some buffer
-    await page.waitForTimeout(2000);
+    // Wait for auto-save
+    await page.waitForTimeout(500);
 
-    // Verify that updateQuestion was called
+    // Verify that updateQuestion was called to save the existing question
     expect(updateQuestionCalled).toBe(true);
 
     // Verify toast appears
@@ -92,103 +93,9 @@ test.describe('Auto-Save Chapter Questions', () => {
     await expect(page.getByText('Changes saved')).toBeVisible();
   });
 
-  test('auto-saves when adding a new question', async ({ page }) => {
-    // Setup: Mock lecture data
-    const lecture = {
-      id: lectureId,
-      title: 'Test Lecture',
-      description: 'Test Description',
-    };
-    const chapters = [
-      { id: chapterId, lectureId, order: 0, association: 'Test Association' },
-    ];
-    const existingQuestions = [
-      {
-        id: 'q1',
-        chapterId,
-        question: 'Existing Question',
-        answer: 'Existing Answer',
-        order: 0,
-        isAnnotated: false,
-      },
-    ];
-    const firstQuestions = {
-      [chapterId]: { question: 'Existing Question' },
-    };
-
-    // Mock API routes
-    await page.route('**/api/trpc/lectures.getLecture?*', async (route) => {
-      await route.fulfill({ json: { result: { data: lecture } } });
-    });
-    await page.route('**/api/trpc/chapters.getChapters*', async (route) => {
-      await route.fulfill({ json: { result: { data: chapters } } });
-    });
-    await page.route(
-      '**/api/trpc/chapters.getDistinctAssociations*',
-      async (route) => {
-        await route.fulfill({
-          json: { result: { data: ['Test Association'] } },
-        });
-      },
-    );
-    await page.route(
-      '**/api/trpc/questions.getFirstQuestionsByLecture*',
-      async (route) => {
-        await route.fulfill({ json: { result: { data: firstQuestions } } });
-      },
-    );
-    await page.route('**/api/trpc/questions.getQuestions?*', async (route) => {
-      await route.fulfill({ json: { result: { data: existingQuestions } } });
-    });
-
-    // Track if createQuestion was called
-    let createQuestionCalled = false;
-
-    await page.route('**/api/trpc/questions.createQuestion*', async (route) => {
-      createQuestionCalled = true;
-      const postData = route.request().postDataJSON();
-      await route.fulfill({
-        json: {
-          result: {
-            data: { id: 'new-q-id', ...postData },
-          },
-        },
-      });
-    });
-
-    await page.route('**/api/trpc/questions.updateQuestion*', async (route) => {
-      await route.fulfill({
-        json: { result: { data: { success: true } } },
-      });
-    });
-
-    // Navigate to edit page
-    await page.goto(`/#/edit/${lectureId}`);
-
-    // Wait for the chapter to be visible
-    await expect(page.getByText('Existing Question')).toBeVisible();
-
-    // Click the edit button for the chapter
-    await page.getByRole('button', { name: 'Edit Chapter' }).click();
-
-    // Click "Add Question" button
-    await page.getByRole('button', { name: 'Add Question' }).click();
-
-    // Fill in the new question
-    const questionInput = page.getByPlaceholder('Enter question');
-    await questionInput.fill('New Auto-Saved Question');
-
-    // Wait for debounce
-    await page.waitForTimeout(2000);
-
-    // Verify that createQuestion was called
-    expect(createQuestionCalled).toBe(true);
-
-    // Verify toast appears
-    await expect(page.getByRole('status')).toBeVisible();
-  });
-
-  test('auto-saves when creating a new chapter', async ({ page }) => {
+  test('auto-saves when clicking Add Question on new chapter', async ({
+    page,
+  }) => {
     // Setup: Mock lecture data
     const lecture = {
       id: lectureId,
@@ -253,7 +160,7 @@ test.describe('Auto-Save Chapter Questions', () => {
     // Navigate to edit page
     await page.goto(`/#/edit/${lectureId}`);
 
-    // Add a new chapter
+    // Add a new chapter with initial question text
     const newChapterInput = page.getByPlaceholder('New chapter question');
     await newChapterInput.fill('First Question');
     await page.getByRole('button', { name: 'Add' }).click();
@@ -263,12 +170,11 @@ test.describe('Auto-Save Chapter Questions', () => {
       page.getByRole('heading', { name: 'Edit Chapter' }),
     ).toBeVisible();
 
-    // Modify the pre-populated question to trigger isDirty detection
-    const questionInput = page.getByPlaceholder('Enter question');
-    await questionInput.fill('First Question - Modified');
+    // Click Add Question - this should trigger auto-save for the new chapter
+    await page.getByRole('button', { name: 'Add Question' }).click();
 
-    // Wait for debounce
-    await page.waitForTimeout(2000);
+    // Wait for auto-save
+    await page.waitForTimeout(500);
 
     // Verify chapter and question were created
     expect(createChapterCalled).toBe(true);
@@ -276,5 +182,92 @@ test.describe('Auto-Save Chapter Questions', () => {
 
     // Verify toast appears
     await expect(page.getByRole('status')).toBeVisible();
+  });
+
+  test('does NOT auto-save just by editing question text', async ({ page }) => {
+    // Setup: Mock lecture data
+    const lecture = {
+      id: lectureId,
+      title: 'Test Lecture',
+      description: 'Test Description',
+    };
+    const chapters = [
+      { id: chapterId, lectureId, order: 0, association: 'Test Association' },
+    ];
+    const existingQuestions = [
+      {
+        id: 'q1',
+        chapterId,
+        question: 'Existing Question',
+        answer: 'Existing Answer',
+        order: 0,
+        isAnnotated: false,
+      },
+    ];
+    const firstQuestions = {
+      [chapterId]: { question: 'Existing Question' },
+    };
+
+    // Mock API routes
+    await page.route('**/api/trpc/lectures.getLecture?*', async (route) => {
+      await route.fulfill({ json: { result: { data: lecture } } });
+    });
+    await page.route('**/api/trpc/chapters.getChapters*', async (route) => {
+      await route.fulfill({ json: { result: { data: chapters } } });
+    });
+    await page.route(
+      '**/api/trpc/chapters.getDistinctAssociations*',
+      async (route) => {
+        await route.fulfill({
+          json: { result: { data: ['Test Association'] } },
+        });
+      },
+    );
+    await page.route(
+      '**/api/trpc/questions.getFirstQuestionsByLecture*',
+      async (route) => {
+        await route.fulfill({ json: { result: { data: firstQuestions } } });
+      },
+    );
+    await page.route('**/api/trpc/questions.getQuestions?*', async (route) => {
+      await route.fulfill({ json: { result: { data: existingQuestions } } });
+    });
+
+    // Track if updateQuestion was called
+    let updateQuestionCalled = false;
+
+    await page.route('**/api/trpc/questions.updateQuestion*', async (route) => {
+      updateQuestionCalled = true;
+      await route.fulfill({
+        json: { result: { data: { success: true } } },
+      });
+    });
+
+    // Navigate to edit page
+    await page.goto(`/#/edit/${lectureId}`);
+
+    // Wait for the chapter to be visible
+    await expect(page.getByText('Existing Question')).toBeVisible();
+
+    // Click the edit button for the chapter
+    await page.getByRole('button', { name: 'Edit Chapter' }).click();
+
+    // Verify the modal is open
+    await expect(
+      page.getByRole('heading', { name: 'Edit Chapter' }),
+    ).toBeVisible();
+
+    // Edit the question text (but don't click Add Question)
+    const questionInput = page.getByPlaceholder('Enter question');
+    await questionInput.fill('Modified Question Text');
+
+    // Wait to see if auto-save triggers (it shouldn't)
+    await page.waitForTimeout(2000);
+
+    // Verify that updateQuestion was NOT called
+    expect(updateQuestionCalled).toBe(false);
+
+    // Verify no toast appears
+    await expect(page.getByRole('status')).not.toBeVisible();
   });
 });

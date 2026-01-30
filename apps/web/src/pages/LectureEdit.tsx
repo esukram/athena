@@ -228,28 +228,15 @@ export const EditLecture = () => {
   // Fetch all lectures for the move chapter modal
   const lecturesQuery = trpc.lectures.getLectures.useQuery();
 
-  // Auto-save logic for questions
+  // Auto-save logic for questions - only called from handleAddQuestion
   const autoSaveQuestions = useCallback(async () => {
     if (!editingChapter || isAutoSavingRef.current) return;
 
-    // Check that at least one question has content
-    const hasValidQuestion = editingQuestions.some((q) => q.question.trim());
-    if (!hasValidQuestion) return;
-
-    // Check if there are actual changes (isDirty check)
-    const hasChanges = (() => {
-      if (editingQuestions.length !== initialQuestions.length) return true;
-      for (let i = 0; i < editingQuestions.length; i++) {
-        const current = editingQuestions[i];
-        const initial = initialQuestions[i];
-        if (!initial) return true;
-        if (current.question !== initial.question) return true;
-        if (current.answer !== initial.answer) return true;
-      }
-      return false;
-    })();
-
-    if (!hasChanges) return;
+    // Need at least one question with content to save
+    const questionsWithContent = editingQuestions.filter((q) =>
+      q.question.trim(),
+    );
+    if (questionsWithContent.length === 0) return;
 
     isAutoSavingRef.current = true;
 
@@ -340,34 +327,11 @@ export const EditLecture = () => {
     editingAssociation,
     isCreatingNewChapter,
     savedChapterId,
-    initialQuestions,
     createChapter,
     createQuestion,
     updateQuestion,
   ]);
-
-  // Debounced auto-save effect - triggers when questions change
-  useEffect(() => {
-    // Skip if modal is not open or questions not synced yet
-    if (!editingChapter || !questionsSynced) return;
-
-    // Clear any existing timeout
-    if (autoSaveTimeoutRef.current) {
-      clearTimeout(autoSaveTimeoutRef.current);
-    }
-
-    // Set a new timeout for debounced save
-    autoSaveTimeoutRef.current = setTimeout(() => {
-      autoSaveQuestions();
-    }, 1500);
-
-    // Cleanup on unmount or when questions change again
-    return () => {
-      if (autoSaveTimeoutRef.current) {
-        clearTimeout(autoSaveTimeoutRef.current);
-      }
-    };
-  }, [editingQuestions, editingChapter, questionsSynced, autoSaveQuestions]);
+  // Note: Auto-save is now triggered directly from handleAddQuestion, not on every change
 
   // Cleanup auto-save timeout when modal closes
   useEffect(() => {
@@ -527,6 +491,11 @@ export const EditLecture = () => {
         showPreview: false,
       },
     ]);
+
+    // Trigger auto-save after adding question (with small delay to let state update)
+    setTimeout(() => {
+      autoSaveQuestions();
+    }, 100);
   };
 
   const handleUpdateEditingQuestion = (
