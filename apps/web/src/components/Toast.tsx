@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 interface ToastProps {
   message: string;
@@ -14,17 +14,37 @@ export const Toast = ({
   onDismiss,
 }: ToastProps) => {
   const [isShowing, setIsShowing] = useState(false);
+  const onDismissRef = useRef(onDismiss);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Keep ref updated
+  onDismissRef.current = onDismiss;
 
   useEffect(() => {
     if (visible) {
       setIsShowing(true);
-      const timer = setTimeout(() => {
+
+      // Clear any existing timer
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
+
+      // Set timer to hide after duration
+      timerRef.current = setTimeout(() => {
         setIsShowing(false);
-        setTimeout(onDismiss, 300); // Wait for fade-out animation
+        // Wait for fade-out animation, then call dismiss
+        setTimeout(() => {
+          onDismissRef.current();
+        }, 300);
       }, duration);
-      return () => clearTimeout(timer);
     }
-  }, [visible, duration, onDismiss]);
+
+    return () => {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
+    };
+  }, [visible, duration]);
 
   if (!visible && !isShowing) return null;
 

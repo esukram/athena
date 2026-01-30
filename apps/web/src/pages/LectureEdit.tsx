@@ -236,6 +236,21 @@ export const EditLecture = () => {
     const hasValidQuestion = editingQuestions.some((q) => q.question.trim());
     if (!hasValidQuestion) return;
 
+    // Check if there are actual changes (isDirty check)
+    const hasChanges = (() => {
+      if (editingQuestions.length !== initialQuestions.length) return true;
+      for (let i = 0; i < editingQuestions.length; i++) {
+        const current = editingQuestions[i];
+        const initial = initialQuestions[i];
+        if (!initial) return true;
+        if (current.question !== initial.question) return true;
+        if (current.answer !== initial.answer) return true;
+      }
+      return false;
+    })();
+
+    if (!hasChanges) return;
+
     isAutoSavingRef.current = true;
 
     try {
@@ -325,6 +340,7 @@ export const EditLecture = () => {
     editingAssociation,
     isCreatingNewChapter,
     savedChapterId,
+    initialQuestions,
     createChapter,
     createQuestion,
     updateQuestion,

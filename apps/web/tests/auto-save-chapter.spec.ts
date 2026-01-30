@@ -263,6 +263,10 @@ test.describe('Auto-Save Chapter Questions', () => {
       page.getByRole('heading', { name: 'Edit Chapter' }),
     ).toBeVisible();
 
+    // Modify the pre-populated question to trigger isDirty detection
+    const questionInput = page.getByPlaceholder('Enter question');
+    await questionInput.fill('First Question - Modified');
+
     // Wait for debounce
     await page.waitForTimeout(2000);
 
