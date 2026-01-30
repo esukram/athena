@@ -116,7 +116,8 @@
     "newQuestion": "New Question",
     "deleteQuestion": "Delete question",
     "answerPlaceholder": "Write your answer in Markdown...",
-    "confirmDiscardChanges": "You have unsaved changes. Discard them?"
+    "confirmDiscardChanges": "You have unsaved changes. Discard them?",
+    "autoSaved": "Changes saved"
   },
   "speech": {
     "playQuestion": "Read question aloud",

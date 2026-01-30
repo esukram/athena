@@ -2,7 +2,7 @@ import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import type { Chapter, Question } from '@athena/api';
 
@@ -14,6 +14,7 @@ import {
   type EditingQuestion,
 } from '../components/EditChapterModal';
 import { MoveChapterModal } from '../components/MoveChapterModal';
+import { Toast } from '../components/Toast';
 import { IconButtonDelete } from '../components/buttons/IconButtonDelete';
 import { IconButtonEdit } from '../components/buttons/IconButtonEdit';
 import { IconButtonMove } from '../components/buttons/IconButtonMove';
@@ -45,6 +46,12 @@ export const EditLecture = () => {
 
   // Track if questions have been synced for current editing chapter
   const [questionsSynced, setQuestionsSynced] = useState(false);
+
+  // Auto-save state
+  const [showSavedToast, setShowSavedToast] = useState(false);
+  const [savedChapterId, setSavedChapterId] = useState<string | null>(null);
+  const autoSaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isAutoSavingRef = useRef(false);
 
   // Fetch questions for the editing chapter (only for existing chapters)
   const chapterQuestionsQuery = trpc.questions.getQuestions.useQuery(
@@ -221,6 +228,135 @@ export const EditLecture = () => {
   // Fetch all lectures for the move chapter modal
   const lecturesQuery = trpc.lectures.getLectures.useQuery();
 
+  // Auto-save logic for questions - only called from handleAddQuestion
+  const autoSaveQuestions = useCallback(async () => {
+    if (!editingChapter || isAutoSavingRef.current) return;
+
+    // Need at least one question with content to save
+    const questionsWithContent = editingQuestions.filter((q) =>
+      q.question.trim(),
+    );
+    if (questionsWithContent.length === 0) return;
+
+    isAutoSavingRef.current = true;
+
+    try {
+      // Determine the chapter ID (use savedChapterId if we already created this chapter)
+      let chapterId = savedChapterId || editingChapter.id;
+
+      // If creating a new chapter and haven't saved it yet, create it first
+      if (isCreatingNewChapter && !savedChapterId) {
+        const newChapter = await createChapter.mutateAsync({
+          lectureId: editingChapter.lectureId,
+          order: editingChapter.order,
+          association: editingAssociation,
+        });
+        chapterId = newChapter.id;
+        setSavedChapterId(chapterId);
+      }
+
+      // Collect all mutation promises
+      const mutationPromises: Promise<unknown>[] = [];
+
+      // Save questions - only new ones or modified existing ones
+      for (const eq of editingQuestions) {
+        if (!eq.question.trim()) continue; // Skip empty questions
+
+        if (eq.id) {
+          // Check if this existing question was actually modified
+          const initial = initialQuestions.find((iq) => iq.id === eq.id);
+          const wasModified =
+            !initial ||
+            initial.question !== eq.question ||
+            initial.answer !== eq.answer;
+
+          if (wasModified) {
+            // Update existing question only if changed
+            mutationPromises.push(
+              updateQuestion.mutateAsync({
+                id: eq.id,
+                question: eq.question.trim(),
+                answer: eq.answer,
+                order: eq.order,
+              }),
+            );
+          }
+        } else {
+          // Create new question and update local state with the returned ID
+          mutationPromises.push(
+            createQuestion
+              .mutateAsync({
+                chapterId: chapterId,
+                question: eq.question.trim(),
+                answer: eq.answer,
+                order: eq.order,
+              })
+              .then((newQuestion) => {
+                // Update the local question with its new ID
+                setEditingQuestions((prev) =>
+                  prev.map((q) =>
+                    q.order === eq.order && !q.id
+                      ? { ...q, id: newQuestion.id }
+                      : q,
+                  ),
+                );
+                // Also update initial questions to prevent isDirty issues
+                setInitialQuestions((prev) =>
+                  prev.map((q) =>
+                    q.order === eq.order && !q.id
+                      ? { ...q, id: newQuestion.id }
+                      : q,
+                  ),
+                );
+                return newQuestion;
+              }),
+          );
+        }
+      }
+
+      // Wait for all mutations to complete
+      await Promise.all(mutationPromises);
+
+      // Only show toast and update state if we actually saved something
+      if (mutationPromises.length > 0) {
+        // Update initial questions to match current state (prevents isDirty issues)
+        setInitialQuestions(
+          editingQuestions.map((q) => ({
+            ...q,
+            // Preserve the ID if we just created it
+          })),
+        );
+
+        // Show toast
+        setShowSavedToast(true);
+      }
+    } finally {
+      isAutoSavingRef.current = false;
+    }
+  }, [
+    editingChapter,
+    editingQuestions,
+    editingAssociation,
+    isCreatingNewChapter,
+    savedChapterId,
+    initialQuestions,
+    createChapter,
+    createQuestion,
+    updateQuestion,
+  ]);
+  // Note: Auto-save is now triggered directly from handleAddQuestion, not on every change
+
+  // Cleanup auto-save timeout when modal closes
+  useEffect(() => {
+    if (!editingChapter) {
+      if (autoSaveTimeoutRef.current) {
+        clearTimeout(autoSaveTimeoutRef.current);
+        autoSaveTimeoutRef.current = null;
+      }
+      setSavedChapterId(null);
+    }
+  }, [editingChapter]);
+
   const handleUpdateLecture = (e: React.FormEvent) => {
     e.preventDefault();
     if (!id) return;
@@ -260,6 +396,7 @@ export const EditLecture = () => {
     setEditingQuestions([newQuestion]);
     setInitialAssociation('');
     setInitialQuestions([{ ...newQuestion }]);
+    setQuestionsSynced(true); // Enable auto-save for new chapters
     setNewChapterQuestion('');
   };
 
@@ -367,6 +504,11 @@ export const EditLecture = () => {
         showPreview: false,
       },
     ]);
+
+    // Trigger auto-save after adding question (with small delay to let state update)
+    setTimeout(() => {
+      autoSaveQuestions();
+    }, 100);
   };
 
   const handleUpdateEditingQuestion = (
@@ -722,6 +864,13 @@ export const EditLecture = () => {
             onCancel={() => setMovingChapter(null)}
           />
         )}
+
+        {/* Auto-save Toast */}
+        <Toast
+          message={t('editChapterModal.autoSaved')}
+          visible={showSavedToast}
+          onDismiss={() => setShowSavedToast(false)}
+        />
       </main>
     </div>
   );

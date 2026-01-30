@@ -116,7 +116,8 @@
     "newQuestion": "Neue Frage",
     "deleteQuestion": "Frage löschen",
     "answerPlaceholder": "Schreiben Sie Ihre Antwort in Markdown...",
-    "confirmDiscardChanges": "Sie haben ungespeicherte Änderungen. Verwerfen?"
+    "confirmDiscardChanges": "Sie haben ungespeicherte Änderungen. Verwerfen?",
+    "autoSaved": "Änderungen gespeichert"
   },
   "speech": {
     "playQuestion": "Frage vorlesen",
