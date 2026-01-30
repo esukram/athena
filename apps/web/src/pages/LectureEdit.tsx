@@ -258,20 +258,29 @@ export const EditLecture = () => {
       // Collect all mutation promises
       const mutationPromises: Promise<unknown>[] = [];
 
-      // Save all questions
+      // Save questions - only new ones or modified existing ones
       for (const eq of editingQuestions) {
         if (!eq.question.trim()) continue; // Skip empty questions
 
         if (eq.id) {
-          // Update existing question
-          mutationPromises.push(
-            updateQuestion.mutateAsync({
-              id: eq.id,
-              question: eq.question.trim(),
-              answer: eq.answer,
-              order: eq.order,
-            }),
-          );
+          // Check if this existing question was actually modified
+          const initial = initialQuestions.find((iq) => iq.id === eq.id);
+          const wasModified =
+            !initial ||
+            initial.question !== eq.question ||
+            initial.answer !== eq.answer;
+
+          if (wasModified) {
+            // Update existing question only if changed
+            mutationPromises.push(
+              updateQuestion.mutateAsync({
+                id: eq.id,
+                question: eq.question.trim(),
+                answer: eq.answer,
+                order: eq.order,
+              }),
+            );
+          }
         } else {
           // Create new question and update local state with the returned ID
           mutationPromises.push(
@@ -308,16 +317,19 @@ export const EditLecture = () => {
       // Wait for all mutations to complete
       await Promise.all(mutationPromises);
 
-      // Update initial questions to match current state (prevents isDirty issues)
-      setInitialQuestions(
-        editingQuestions.map((q) => ({
-          ...q,
-          // Preserve the ID if we just created it
-        })),
-      );
+      // Only show toast and update state if we actually saved something
+      if (mutationPromises.length > 0) {
+        // Update initial questions to match current state (prevents isDirty issues)
+        setInitialQuestions(
+          editingQuestions.map((q) => ({
+            ...q,
+            // Preserve the ID if we just created it
+          })),
+        );
 
-      // Show toast
-      setShowSavedToast(true);
+        // Show toast
+        setShowSavedToast(true);
+      }
     } finally {
       isAutoSavingRef.current = false;
     }
@@ -327,6 +339,7 @@ export const EditLecture = () => {
     editingAssociation,
     isCreatingNewChapter,
     savedChapterId,
+    initialQuestions,
     createChapter,
     createQuestion,
     updateQuestion,
