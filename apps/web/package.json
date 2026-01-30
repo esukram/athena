@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "lint": "eslint .",
-    "format": "prettier --write .",
+    "format": "prettier --write \"src/**/*.{ts,tsx,css}\" \"tests/**/*.ts\" \"*.{js,ts,json}\"",
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
