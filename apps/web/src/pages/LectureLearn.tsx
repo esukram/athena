@@ -21,7 +21,6 @@ export const LectureLearn = () => {
   const { t } = useTranslation();
   const { id, chapterId } = useParams<{ id: string; chapterId?: string }>();
   const navigate = useNavigate();
-  const [selectedChapterIndex, setSelectedChapterIndex] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -62,18 +61,13 @@ export const LectureLearn = () => {
     return map;
   }, [firstQuestionsQuery.data]);
 
-  // Set selected chapter based on URL chapterId parameter
-  useEffect(() => {
-    if (chapters.length > 0) {
-      if (chapterId) {
-        const index = chapters.findIndex((c) => c.id === chapterId);
-        if (index !== -1) {
-          setSelectedChapterIndex(index);
-        }
-      } else {
-        setSelectedChapterIndex(0);
-      }
+  // Derive selected chapter index from URL chapterId parameter
+  const selectedChapterIndex = useMemo(() => {
+    if (chapters.length > 0 && chapterId) {
+      const index = chapters.findIndex((c) => c.id === chapterId);
+      if (index !== -1) return index;
     }
+    return 0;
   }, [chapterId, chapters]);
 
   // Tokenized search filter
