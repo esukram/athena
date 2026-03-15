@@ -88,6 +88,24 @@ describe('ChapterSidebar', () => {
     expect(chapter2Button?.className).toContain('text-primary-700');
   });
 
+  it('renders sequential numbers even with gaps in order values', () => {
+    const gappedChapters = [
+      { id: '1', order: 0 },
+      { id: '2', order: 3 },
+      { id: '3', order: 7 },
+    ];
+    render(
+      <ChapterSidebar
+        {...defaultProps}
+        chapters={gappedChapters}
+        filteredChapters={gappedChapters}
+      />,
+    );
+    expect(screen.getByText('1. Chapter 1')).toBeInTheDocument();
+    expect(screen.getByText('2. Chapter 2')).toBeInTheDocument();
+    expect(screen.getByText('3. Chapter 3')).toBeInTheDocument();
+  });
+
   it('shows empty state when no chapters are filtered', () => {
     render(<ChapterSidebar {...defaultProps} filteredChapters={[]} />);
     expect(

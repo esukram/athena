@@ -18,10 +18,13 @@ export const Toast = ({
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Keep ref updated
-  onDismissRef.current = onDismiss;
+  useEffect(() => {
+    onDismissRef.current = onDismiss;
+  }, [onDismiss]);
 
   useEffect(() => {
     if (visible) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsShowing(true);
 
       // Clear any existing timer

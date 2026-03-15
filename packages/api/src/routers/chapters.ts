@@ -1,6 +1,19 @@
 import { z } from 'zod';
 
+import type { ChapterRepository } from '../trpc.js';
 import { publicProcedure, router } from '../trpc.js';
+
+function normalizeChapterOrders(
+  chapterRepository: Pick<ChapterRepository, 'getByLectureId' | 'update'>,
+  lectureId: string,
+): void {
+  const chapters = chapterRepository.getByLectureId(lectureId);
+  for (let i = 0; i < chapters.length; i++) {
+    if (chapters[i].order !== i) {
+      chapterRepository.update(chapters[i].id, { order: i });
+    }
+  }
+}
 
 export const chaptersRouter = router({
   getChapters: publicProcedure
@@ -42,7 +55,12 @@ export const chaptersRouter = router({
   deleteChapter: publicProcedure
     .input(z.object({ id: z.string() }))
     .mutation(({ ctx, input }) => {
-      return ctx.chapterRepository.delete(input.id);
+      const chapter = ctx.chapterRepository.getById(input.id);
+      const result = ctx.chapterRepository.delete(input.id);
+      if (result && chapter) {
+        normalizeChapterOrders(ctx.chapterRepository, chapter.lectureId);
+      }
+      return result;
     }),
   moveChapter: publicProcedure
     .input(
@@ -52,6 +70,10 @@ export const chaptersRouter = router({
       }),
     )
     .mutation(({ ctx, input }) => {
+      const chapter = ctx.chapterRepository.getById(input.chapterId);
+      if (!chapter) throw new Error('Chapter not found');
+      const sourceLectureId = chapter.lectureId;
+
       // Get max order in target lecture
       const targetChapters = ctx.chapterRepository.getByLectureId(
         input.targetLectureId,
@@ -62,10 +84,16 @@ export const chaptersRouter = router({
           : -1;
 
       // Update chapter with new lectureId and order
-      return ctx.chapterRepository.update(input.chapterId, {
+      const result = ctx.chapterRepository.update(input.chapterId, {
         lectureId: input.targetLectureId,
         order: maxOrder + 1,
       });
+
+      if (sourceLectureId !== input.targetLectureId) {
+        normalizeChapterOrders(ctx.chapterRepository, sourceLectureId);
+      }
+
+      return result;
     }),
   reorderChapter: publicProcedure
     .input(

@@ -55,6 +55,7 @@ export const ChapterMenu = ({ chapter, lectureId }: ChapterMenuProps) => {
           isExpanded: index === 0,
           showPreview: false,
         }));
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setEditingQuestions(mappedQuestions);
         setInitialQuestions(mappedQuestions.map((q) => ({ ...q })));
       } else {
