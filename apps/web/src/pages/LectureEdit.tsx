@@ -422,12 +422,24 @@ export const EditLecture = () => {
 
     // If creating a new chapter, save it to the database first
     if (isCreatingNewChapter) {
-      const newChapter = await createChapter.mutateAsync({
-        lectureId: editingChapter.lectureId,
-        order: editingChapter.order,
-        association: editingAssociation,
-      });
-      chapterId = newChapter.id;
+      if (savedChapterId) {
+        // Auto-save already created the chapter — reuse it
+        chapterId = savedChapterId;
+        // Update association if it changed since auto-save
+        if (editingAssociation !== editingChapter.association) {
+          await updateChapter.mutateAsync({
+            id: chapterId,
+            association: editingAssociation,
+          });
+        }
+      } else {
+        const newChapter = await createChapter.mutateAsync({
+          lectureId: editingChapter.lectureId,
+          order: editingChapter.order,
+          association: editingAssociation,
+        });
+        chapterId = newChapter.id;
+      }
     } else {
       // Update chapter association if changed (only for existing chapters)
       if (editingAssociation !== editingChapter.association) {
