@@ -88,6 +88,25 @@ export function runMigrations(db: Database) {
         CREATE INDEX IF NOT EXISTS idx_chapters_association ON chapters(association);
       `);
     },
+    // Migration 4: Normalize chapter ordering to remove gaps
+    (db: Database) => {
+      const lectures = db
+        .prepare('SELECT DISTINCT lectureId FROM chapters')
+        .all() as { lectureId: string }[];
+      for (const { lectureId } of lectures) {
+        const chapters = db
+          .prepare(
+            'SELECT id FROM chapters WHERE lectureId = ? ORDER BY "order"',
+          )
+          .all(lectureId) as { id: string }[];
+        for (let i = 0; i < chapters.length; i++) {
+          db.prepare('UPDATE chapters SET "order" = ? WHERE id = ?').run(
+            i,
+            chapters[i].id,
+          );
+        }
+      }
+    },
   ];
 
   for (let i = currentVersion; i < migrations.length; i++) {
