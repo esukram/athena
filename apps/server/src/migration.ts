@@ -31,7 +31,6 @@ export function runMigrations(db: Database) {
     } else {
       // Fresh DB, start at 0
       db.prepare('INSERT INTO version (version) VALUES (0)').run();
-      currentVersion = 0;
     }
   } else {
     currentVersion = row.version;

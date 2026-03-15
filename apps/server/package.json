@@ -10,22 +10,22 @@
   },
   "dependencies": {
     "@athena/api": "workspace:*",
-    "@fastify/cors": "^10.0.1",
+    "@fastify/cors": "^11.2.0",
     "@fastify/static": "^9.0.0",
-    "@trpc/server": "^11.8.1",
-    "better-sqlite3": "^12.5.0",
+    "@trpc/server": "^11.12.1",
+    "better-sqlite3": "^12.8.0",
     "cors": "^2.8.6",
-    "dotenv": "^17.2.3",
-    "fastify": "^5.7.3",
-    "microsoft-cognitiveservices-speech-sdk": "^1.47.0"
+    "dotenv": "^17.3.1",
+    "fastify": "^5.8.2",
+    "microsoft-cognitiveservices-speech-sdk": "^1.48.0"
   },
   "devDependencies": {
     "@athena/eslint-config": "workspace:*",
     "@athena/typescript-config": "workspace:*",
     "@types/better-sqlite3": "^7.6.13",
-    "@types/node": "^20.0.0",
-    "eslint": "^9.0.0",
-    "tsx": "^4.7.0",
-    "typescript": "^5.0.0"
+    "@types/node": "^25.5.0",
+    "eslint": "^9.39.4",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
   }
 }
