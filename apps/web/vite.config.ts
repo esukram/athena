@@ -8,6 +8,7 @@ export default defineConfig(({ command }) => ({
   assetsInclude: ['assets/**/*'],
   plugins: [react(), tailwindcss()],
   server: {
+    host: '0.0.0.0',
     hmr: {
       overlay: true,
     },
