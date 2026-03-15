@@ -11,14 +11,14 @@
     "test:e2e": "turbo test:e2e",
     "test:e2e:report": "pnpm --filter web exec playwright show-report",
     "clean": "turbo clean",
-    "prepare": "husky"
+    "prepare": "command -v git >/dev/null 2>&1 && husky || true"
   },
   "devDependencies": {
     "@trivago/prettier-plugin-sort-imports": "^6.0.2",
     "husky": "^9.1.7",
-    "prettier": "^3.8.0",
+    "prettier": "^3.8.1",
     "turbo": "latest",
-    "typescript": "^5.0.0"
+    "typescript": "^5.9.3"
   },
   "packageManager": "pnpm@10.26.2",
   "workspaces": [
@@ -30,6 +30,11 @@
       "better-sqlite3",
       "esbuild",
       "@parcel/watcher"
-    ]
+    ],
+    "peerDependencyRules": {
+      "allowedVersions": {
+        "@tailwindcss/vite>vite": "8"
+      }
+    }
   }
 }

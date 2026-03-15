@@ -51,8 +51,7 @@ const TrainingSessionContent = ({
 }: TrainingSessionContentProps) => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
-  const [selectedChapterIndex, setSelectedChapterIndex] = useState(0);
-  const [selectedQuestionIndex, setSelectedQuestionIndex] = useState(0);
+
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -125,22 +124,18 @@ const TrainingSessionContent = ({
         });
       }
 
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSortedChapters(sorted);
       sortedLectureIdRef.current = lectureId;
     }
   }, [lectureId, chapters, annotatedChapterIdsQuery.data, mode]);
 
-  useEffect(() => {
-    if (sortedChapters.length > 0) {
-      if (chapterId) {
-        const index = sortedChapters.findIndex((c) => c.id === chapterId);
-        if (index !== -1) {
-          setSelectedChapterIndex(index);
-        }
-      } else {
-        setSelectedChapterIndex(0);
-      }
+  const selectedChapterIndex = useMemo(() => {
+    if (sortedChapters.length > 0 && chapterId) {
+      const index = sortedChapters.findIndex((c) => c.id === chapterId);
+      if (index !== -1) return index;
     }
+    return 0;
   }, [chapterId, sortedChapters]);
 
   const currentChapter = sortedChapters[selectedChapterIndex];
@@ -153,21 +148,14 @@ const TrainingSessionContent = ({
     [currentChapterQuestionsQuery.data],
   );
 
-  useEffect(() => {
-    if (currentChapterQuestions.length > 0) {
-      if (questionId) {
-        const index = currentChapterQuestions.findIndex(
-          (q) => q.id === questionId,
-        );
-        if (index !== -1) {
-          setSelectedQuestionIndex(index);
-        } else {
-          setSelectedQuestionIndex(0);
-        }
-      } else {
-        setSelectedQuestionIndex(0);
-      }
+  const selectedQuestionIndex = useMemo(() => {
+    if (currentChapterQuestions.length > 0 && questionId) {
+      const index = currentChapterQuestions.findIndex(
+        (q) => q.id === questionId,
+      );
+      if (index !== -1) return index;
     }
+    return 0;
   }, [questionId, currentChapterQuestions]);
 
   const filteredChapters = useMemo(() => {
