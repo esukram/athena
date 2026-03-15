@@ -27,6 +27,7 @@ export const GlobalSearch = () => {
 
   // Reset selected index when results change
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setSelectedIndex(-1);
   }, [debouncedQuery]);
 
