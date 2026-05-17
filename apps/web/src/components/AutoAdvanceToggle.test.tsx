@@ -11,27 +11,34 @@ vi.mock('react-i18next', () => ({
 }));
 
 describe('AutoAdvanceToggle', () => {
-  it('renders the label', () => {
+  it('renders an accessibly labeled toggle', () => {
     render(<AutoAdvanceToggle checked={false} onChange={() => {}} />);
-    expect(screen.getByText('speech.autoAdvanceShort')).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'speech.autoAdvance' }),
+    ).toBeInTheDocument();
   });
 
-  it('reflects the checked prop', () => {
-    render(<AutoAdvanceToggle checked={true} onChange={() => {}} />);
-    expect(screen.getByRole('checkbox')).toBeChecked();
+  it('reflects the checked prop via aria-pressed', () => {
+    const { rerender } = render(
+      <AutoAdvanceToggle checked={true} onChange={() => {}} />,
+    );
+    expect(screen.getByRole('button')).toHaveAttribute('aria-pressed', 'true');
+
+    rerender(<AutoAdvanceToggle checked={false} onChange={() => {}} />);
+    expect(screen.getByRole('button')).toHaveAttribute('aria-pressed', 'false');
   });
 
   it('fires onChange with the toggled value when clicked', () => {
     const onChange = vi.fn();
     render(<AutoAdvanceToggle checked={false} onChange={onChange} />);
-    fireEvent.click(screen.getByRole('checkbox'));
+    fireEvent.click(screen.getByRole('button'));
     expect(onChange).toHaveBeenCalledWith(true);
   });
 
   it('fires onChange with false when unticked', () => {
     const onChange = vi.fn();
     render(<AutoAdvanceToggle checked={true} onChange={onChange} />);
-    fireEvent.click(screen.getByRole('checkbox'));
+    fireEvent.click(screen.getByRole('button'));
     expect(onChange).toHaveBeenCalledWith(false);
   });
 });

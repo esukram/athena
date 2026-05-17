@@ -2,6 +2,7 @@ import { AlertCircle, Loader2, Pause, Play } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import type { VoicePlaybackStatus } from '../hooks/useChapterVoicePlayback';
+import { IconButton } from './buttons/IconButton';
 
 interface VoicePlaybackButtonProps {
   status: VoicePlaybackStatus;
@@ -11,9 +12,12 @@ interface VoicePlaybackButtonProps {
 }
 
 /**
- * Labeled Play/Pause control that drives the hands-free chapter walkthrough in
- * Learn mode. Rendering is gated by the parent — it is only mounted when the
- * speech service is configured.
+ * Play/Pause control that drives the hands-free chapter walkthrough in Learn
+ * mode. Renders as a circular icon button consistent with the other header
+ * controls; the descriptive label is exposed via `aria-label`/`title`. The
+ * error state additionally renders the label as visible text, since a failure
+ * should be noticeable without hovering. Rendering is gated by the parent — it
+ * is only mounted when the speech service is configured.
  */
 export const VoicePlaybackButton = ({
   status,
@@ -37,41 +41,36 @@ export const VoicePlaybackButton = ({
           ? t('speech.autoPlayLoading')
           : t('speech.autoPlayPause');
 
-  const icon = isError ? (
-    <AlertCircle size={18} />
-  ) : isLoading ? (
-    <Loader2 size={18} className="animate-spin" />
-  ) : showPause ? (
-    <Pause size={18} />
-  ) : (
-    <Play size={18} />
-  );
+  if (isError) {
+    return (
+      <div className="flex items-center gap-2">
+        <IconButton
+          icon={AlertCircle}
+          onClick={onToggle}
+          aria-label={label}
+          title={label}
+          variant="danger"
+          className="!bg-red-50"
+          iconClassName="!text-red-600"
+        />
+        <span className="text-sm font-medium text-red-700">{label}</span>
+      </div>
+    );
+  }
+
+  const icon = isLoading ? Loader2 : showPause ? Pause : Play;
 
   return (
-    <button
-      type="button"
+    <IconButton
+      icon={icon}
       onClick={onToggle}
-      className={`group relative flex items-center px-3 py-1.5 text-sm font-medium rounded-full transition-all
-        ${
-          isError
-            ? 'bg-red-50 text-red-700 hover:bg-red-100'
-            : showPause
-              ? 'bg-primary-100 text-primary-700'
-              : 'bg-surface text-on-surface-variant hover:bg-primary-50'
-        }`}
       aria-label={label}
       title={label}
-    >
-      {icon}
-      <span
-        className={`overflow-hidden whitespace-nowrap transition-all ${
-          isError
-            ? 'ml-2 max-w-[20rem] opacity-100'
-            : 'max-w-0 opacity-0 group-hover:ml-2 group-hover:max-w-[12rem] group-hover:opacity-100 group-focus-visible:ml-2 group-focus-visible:max-w-[12rem] group-focus-visible:opacity-100'
-        }`}
-      >
-        {label}
-      </span>
-    </button>
+      aria-pressed={showPause}
+      className={showPause ? '!bg-primary-100' : ''}
+      iconClassName={
+        isLoading ? 'animate-spin' : showPause ? '!text-primary-700' : ''
+      }
+    />
   );
 };
