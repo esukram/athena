@@ -9,10 +9,12 @@ export function verbalizeSymbols(text: string): string {
   return (
     text
       // Arrows — ASCII (`->`, `-->`) and common Unicode forms — read as "to".
-      .replace(/-+>|[→⇒⟶➔➙➜]/g, ' to ')
+      // The dash run is bounded so the trailing `>` cannot trigger quadratic
+      // backtracking on long dash sequences (ReDoS).
+      .replace(/-{1,6}>|[→⇒⟶➔➙➜]/g, ' to ')
       // Reverse arrows read as "from". Requiring a dash leaves the comparison
       // operators `<=` / `>=` untouched.
-      .replace(/<-+|[←⇐⟵]/g, ' from ')
+      .replace(/<-{1,6}|[←⇐⟵]/g, ' from ')
       // A slash usually pairs two terms ("TCP/IP", "and/or"); a comma gives the
       // brief pause a spoken "slash" never would.
       .replace(/\s*\/\s*/g, ', ')
