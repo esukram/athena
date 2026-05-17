@@ -129,6 +129,7 @@
     "autoPlayResume": "Resume auto-play",
     "autoPlayLoading": "Preparing audio...",
     "autoPlayNowPlaying": "Auto-play: question {{current}} of {{total}}",
-    "autoPlayError": "Auto-play failed — tap to retry"
+    "autoPlayError": "Auto-play failed — tap to retry",
+    "autoAdvance": "Auto-advance to next chapter"
   }
 }

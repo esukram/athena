@@ -129,6 +129,7 @@
     "autoPlayResume": "Vorlesen fortsetzen",
     "autoPlayLoading": "Audio wird vorbereitet...",
     "autoPlayNowPlaying": "Automatisches Vorlesen: Frage {{current}} von {{total}}",
-    "autoPlayError": "Vorlesen fehlgeschlagen – zum Wiederholen tippen"
+    "autoPlayError": "Vorlesen fehlgeschlagen – zum Wiederholen tippen",
+    "autoAdvance": "Automatisch zum nächsten Kapitel"
   }
 }

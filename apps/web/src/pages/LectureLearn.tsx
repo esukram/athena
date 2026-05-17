@@ -2,12 +2,13 @@ import { useTranslation } from 'react-i18next';
 import ReactMarkdown from 'react-markdown';
 import { useNavigate, useParams } from 'react-router-dom';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import type { Chapter, Question } from '@athena/api';
 
 import { Accordion } from '../components/Accordion';
 import { AppHeader } from '../components/AppHeader';
+import { AutoAdvanceToggle } from '../components/AutoAdvanceToggle';
 import { ChapterMenu } from '../components/ChapterMenu';
 import { ChapterSidebar } from '../components/ChapterSidebar';
 import { ErrorState } from '../components/ErrorState';
@@ -25,6 +26,13 @@ export const LectureLearn = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  // Hands-free preference: continue voice playback into the next chapter.
+  const [autoAdvance, setAutoAdvance] = useState(
+    () => localStorage.getItem('learnAutoAdvance') === 'true',
+  );
+  // Set when an auto-advance navigation happens so the next chapter resumes
+  // playback once its questions have loaded.
+  const [pendingAutoStart, setPendingAutoStart] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const chapterButtonsRef = useRef<Map<number, HTMLButtonElement>>(new Map());
   const questionRefs = useRef<Map<number, HTMLDivElement>>(new Map());
@@ -42,6 +50,22 @@ export const LectureLearn = () => {
   const chapters = useMemo(
     () => chaptersQuery.data || [],
     [chaptersQuery.data],
+  );
+
+  const handleAutoAdvanceChange = (checked: boolean) => {
+    setAutoAdvance(checked);
+    localStorage.setItem('learnAutoAdvance', String(checked));
+  };
+
+  // Navigate to a chapter on explicit user intent. Clears any pending
+  // auto-start so a manual jump never triggers a surprise resume.
+  const goToChapter = useCallback(
+    (index: number) => {
+      if (index < 0 || index >= chapters.length) return;
+      setPendingAutoStart(false);
+      navigate(`/learn/${id}/${chapters[index].id}`);
+    },
+    [chapters, id, navigate],
   );
 
   // Fetch all first questions for this lecture in a single call
@@ -108,21 +132,15 @@ export const LectureLearn = () => {
       if (document.activeElement === searchInputRef.current) return;
 
       if (event.key === 'ArrowRight') {
-        const nextIndex = selectedChapterIndex + 1;
-        if (nextIndex < chapters.length) {
-          navigate(`/learn/${id}/${chapters[nextIndex].id}`);
-        }
+        goToChapter(selectedChapterIndex + 1);
       } else if (event.key === 'ArrowLeft') {
-        const prevIndex = selectedChapterIndex - 1;
-        if (prevIndex >= 0) {
-          navigate(`/learn/${id}/${chapters[prevIndex].id}`);
-        }
+        goToChapter(selectedChapterIndex - 1);
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [chapters, selectedChapterIndex, id, navigate]);
+  }, [selectedChapterIndex, goToChapter]);
 
   // Fetch all questions for the current chapter
   const currentChapter = chapters[selectedChapterIndex];
@@ -154,6 +172,47 @@ export const LectureLearn = () => {
       .get(voiceIndex)
       ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }, [voiceIndex]);
+
+  // Auto-advance: when a chapter's playback finishes and the preference is on,
+  // move to the next chapter and flag it to resume playback automatically.
+  const voiceStatus = voice.status;
+  useEffect(() => {
+    if (voiceStatus !== 'finished' || !autoAdvance) return;
+    const nextIndex = selectedChapterIndex + 1;
+    if (nextIndex >= chapters.length) return;
+    setPendingAutoStart(true);
+    navigate(`/learn/${id}/${chapters[nextIndex].id}`);
+  }, [voiceStatus, autoAdvance, selectedChapterIndex, chapters, id, navigate]);
+
+  // Auto-advance follow-up: once the freshly-navigated chapter has loaded its
+  // questions, resume playback. Chapters with no questions are skipped.
+  const voiceToggle = voice.toggle;
+  const questionsLoading = currentChapterQuestionsQuery.isLoading;
+  useEffect(() => {
+    if (!pendingAutoStart || voiceStatus !== 'idle' || questionsLoading) return;
+    if (currentChapterQuestions.length > 0) {
+      setPendingAutoStart(false);
+      voiceToggle();
+      return;
+    }
+    // Empty chapter — keep advancing until one has content or we run out.
+    const nextIndex = selectedChapterIndex + 1;
+    if (nextIndex < chapters.length) {
+      navigate(`/learn/${id}/${chapters[nextIndex].id}`);
+    } else {
+      setPendingAutoStart(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    pendingAutoStart,
+    voiceStatus,
+    questionsLoading,
+    currentChapterQuestions,
+    selectedChapterIndex,
+    chapters,
+    id,
+    navigate,
+  ]);
 
   if (lectureQuery.isLoading || chaptersQuery.isLoading) {
     return <LoadingState />;
@@ -206,7 +265,7 @@ export const LectureLearn = () => {
               filteredChapters={filteredChapters}
               selectedIndex={selectedChapterIndex}
               onSelect={(chapter: Chapter) =>
-                navigate(`/learn/${id}/${chapter.id}`)
+                goToChapter(chapters.findIndex((c) => c.id === chapter.id))
               }
               isSearchOpen={isSearchOpen}
               onSearchToggle={() => {
@@ -236,15 +295,21 @@ export const LectureLearn = () => {
                     <h2 className="text-2xl font-bold text-on-background">
                       {currentFirstQuestion?.question || t('common.untitled')}
                     </h2>
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       {speechConfigured &&
                         currentChapterQuestions.length > 0 && (
-                          <VoicePlaybackButton
-                            status={voice.status}
-                            isActive={voice.isActive}
-                            isPaused={voice.isPaused}
-                            onToggle={voice.toggle}
-                          />
+                          <>
+                            <VoicePlaybackButton
+                              status={voice.status}
+                              isActive={voice.isActive}
+                              isPaused={voice.isPaused}
+                              onToggle={voice.toggle}
+                            />
+                            <AutoAdvanceToggle
+                              checked={autoAdvance}
+                              onChange={handleAutoAdvanceChange}
+                            />
+                          </>
                         )}
                       {currentChapter.association && (
                         <span className="px-3 py-1 text-sm font-medium bg-primary-100 text-primary-700 rounded-full">
@@ -312,16 +377,8 @@ export const LectureLearn = () => {
                   )}
 
                   <LectureNavigation
-                    onPrev={() =>
-                      navigate(
-                        `/learn/${id}/${chapters[selectedChapterIndex - 1].id}`,
-                      )
-                    }
-                    onNext={() =>
-                      navigate(
-                        `/learn/${id}/${chapters[selectedChapterIndex + 1].id}`,
-                      )
-                    }
+                    onPrev={() => goToChapter(selectedChapterIndex - 1)}
+                    onNext={() => goToChapter(selectedChapterIndex + 1)}
                     disablePrev={selectedChapterIndex === 0}
                     disableNext={selectedChapterIndex === chapters.length - 1}
                   />
