@@ -11,6 +11,7 @@
     "test:e2e": "turbo test:e2e",
     "test:e2e:report": "pnpm --filter web exec playwright show-report",
     "clean": "turbo clean",
+    "docker:build": "docker build -t athena:local .",
     "prepare": "command -v git >/dev/null 2>&1 && husky || true"
   },
   "devDependencies": {
