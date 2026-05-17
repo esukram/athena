@@ -14,9 +14,10 @@ interface VoicePlaybackButtonProps {
 /**
  * Play/Pause control that drives the hands-free chapter walkthrough in Learn
  * mode. Renders as a circular icon button consistent with the other header
- * controls; the descriptive label is exposed via `aria-label`/`title`.
- * Rendering is gated by the parent — it is only mounted when the speech
- * service is configured.
+ * controls; the descriptive label is exposed via `aria-label`/`title`. The
+ * error state additionally renders the label as visible text, since a failure
+ * should be noticeable without hovering. Rendering is gated by the parent — it
+ * is only mounted when the speech service is configured.
  */
 export const VoicePlaybackButton = ({
   status,
@@ -40,13 +41,24 @@ export const VoicePlaybackButton = ({
           ? t('speech.autoPlayLoading')
           : t('speech.autoPlayPause');
 
-  const icon = isError
-    ? AlertCircle
-    : isLoading
-      ? Loader2
-      : showPause
-        ? Pause
-        : Play;
+  if (isError) {
+    return (
+      <div className="flex items-center gap-2">
+        <IconButton
+          icon={AlertCircle}
+          onClick={onToggle}
+          aria-label={label}
+          title={label}
+          variant="danger"
+          className="!bg-red-50"
+          iconClassName="!text-red-600"
+        />
+        <span className="text-sm font-medium text-red-700">{label}</span>
+      </div>
+    );
+  }
+
+  const icon = isLoading ? Loader2 : showPause ? Pause : Play;
 
   return (
     <IconButton
@@ -54,16 +66,10 @@ export const VoicePlaybackButton = ({
       onClick={onToggle}
       aria-label={label}
       title={label}
-      variant={isError ? 'danger' : 'primary'}
-      className={isError ? '!bg-red-50' : showPause ? '!bg-primary-100' : ''}
+      aria-pressed={showPause}
+      className={showPause ? '!bg-primary-100' : ''}
       iconClassName={
-        isLoading
-          ? 'animate-spin'
-          : isError
-            ? 'text-red-600'
-            : showPause
-              ? 'text-primary-700'
-              : ''
+        isLoading ? 'animate-spin' : showPause ? '!text-primary-700' : ''
       }
     />
   );

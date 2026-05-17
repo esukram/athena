@@ -30,7 +30,7 @@ export const AutoAdvanceToggle = ({
       title={label}
       aria-pressed={checked}
       className={checked ? '!bg-primary-100' : ''}
-      iconClassName={checked ? 'text-primary-700' : ''}
+      iconClassName={checked ? '!text-primary-700' : ''}
     />
   );
 };
