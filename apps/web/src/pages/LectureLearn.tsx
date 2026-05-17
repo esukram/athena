@@ -186,13 +186,22 @@ export const LectureLearn = () => {
   // Auto-advance: when a chapter's playback finishes and the preference is on,
   // move to the next chapter and flag it to resume playback automatically.
   //
-  // The `pendingAutoStart` guard is essential: navigation updates
-  // `selectedChapterIndex` one render before the voice hook resets `status`
-  // away from `'finished'`. Without the guard this effect would re-fire with a
-  // stale `'finished'` status and navigate a second time, skipping a chapter.
+  // Two guards keep this from over-firing:
+  //  - Edge detection (`prevVoiceStatusRef`): only the *transition* into
+  //    `'finished'` advances. Re-running this effect because another
+  //    dependency changed — e.g. the user flipping the auto-advance toggle
+  //    while a chapter is already finished — must not trigger a navigation.
+  //  - `pendingAutoStart`: navigation updates `selectedChapterIndex` one
+  //    render before the voice hook resets `status` away from `'finished'`,
+  //    so without it this effect could re-fire on a stale `'finished'` and
+  //    navigate a second time, skipping a chapter.
   const voiceStatus = voice.status;
+  const prevVoiceStatusRef = useRef(voiceStatus);
   useEffect(() => {
-    if (voiceStatus !== 'finished' || !autoAdvance || pendingAutoStart) return;
+    const prevVoiceStatus = prevVoiceStatusRef.current;
+    prevVoiceStatusRef.current = voiceStatus;
+    if (voiceStatus !== 'finished' || prevVoiceStatus === 'finished') return;
+    if (!autoAdvance || pendingAutoStart) return;
     const nextIndex = selectedChapterIndex + 1;
     if (nextIndex >= chapters.length) return;
     setPendingAutoStart(true);
@@ -210,11 +219,20 @@ export const LectureLearn = () => {
   // Auto-advance follow-up: once the freshly-navigated chapter has loaded its
   // questions, resume playback. Chapters with no questions are skipped.
   const voiceToggle = voice.toggle;
+  const voiceIsActive = voice.isActive;
   const questionsLoading = currentChapterQuestionsQuery.isLoading;
   useEffect(() => {
     if (!pendingAutoStart) return;
     // The preference was switched off mid-flight — abandon the pending resume.
     if (!autoAdvance) {
+      setPendingAutoStart(false);
+      return;
+    }
+    // Playback became active (or errored) through another path — typically a
+    // manual Play click in the brief window before this effect resumes. Drop
+    // the pending flag so it cannot get stuck `true` and silently disable
+    // auto-advance for the rest of the session.
+    if (voiceIsActive || voiceStatus === 'error') {
       setPendingAutoStart(false);
       return;
     }
@@ -231,11 +249,17 @@ export const LectureLearn = () => {
     } else {
       setPendingAutoStart(false);
     }
+    // `voiceToggle` is deliberately excluded from the deps below: the voice
+    // hook returns a fresh `toggle` identity on every render, so depending on
+    // it would re-run this effect constantly. Its behavior is stable and it is
+    // invoked exactly once per resume (right after `pendingAutoStart` is
+    // cleared), so referencing a slightly stale closure is harmless here.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     pendingAutoStart,
     autoAdvance,
     voiceStatus,
+    voiceIsActive,
     questionsLoading,
     currentChapterQuestions,
     selectedChapterIndex,

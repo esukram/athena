@@ -785,6 +785,90 @@ test.describe('Lecture Learn', () => {
     expect([...synthesizedChapters].sort()).toEqual(['c1', 'c2', 'c3']);
   });
 
+  test('enabling auto-advance after a chapter finished does not jump', async ({
+    page,
+  }) => {
+    const lectureId = 'lecture-1';
+    const lecture = {
+      id: lectureId,
+      title: 'Toggle Lecture',
+      description: 'D',
+    };
+    const chapters = [
+      { id: 'c1', lectureId, order: 0, association: '' },
+      { id: 'c2', lectureId, order: 1, association: '' },
+    ];
+    const firstQuestions = {
+      c1: { question: 'Chapter 1 Intro' },
+      c2: { question: 'Chapter 2 Middle' },
+    };
+    const c1Questions = [
+      {
+        id: 'q1',
+        chapterId: 'c1',
+        question: 'Chapter 1 Intro',
+        answer: 'Answer 1',
+        order: 0,
+      },
+    ];
+    const c2Questions = [
+      {
+        id: 'q3',
+        chapterId: 'c2',
+        question: 'Chapter 2 Middle',
+        answer: 'Answer 2',
+        order: 0,
+      },
+    ];
+
+    await page.route('**/api/trpc/lectures.getLecture?*', async (route) => {
+      await route.fulfill({ json: { result: { data: lecture } } });
+    });
+    await page.route('**/api/trpc/chapters.getChapters*', async (route) => {
+      await route.fulfill({ json: { result: { data: chapters } } });
+    });
+    await page.route(
+      '**/api/trpc/questions.getFirstQuestionsByLecture*',
+      async (route) => {
+        await route.fulfill({ json: { result: { data: firstQuestions } } });
+      },
+    );
+    await page.route('**/api/trpc/questions.getQuestions?*', async (route) => {
+      const url = route.request().url();
+      await route.fulfill({
+        json: {
+          result: { data: url.includes('c2') ? c2Questions : c1Questions },
+        },
+      });
+    });
+    await page.route('**/api/trpc/speech.isConfigured*', async (route) => {
+      await route.fulfill({ json: { result: { data: true } } });
+    });
+    // Synthesis resolves immediately so chapter 1 playback finishes quickly.
+    await page.route('**/api/trpc/speech.synthesize*', async (route) => {
+      await route.fulfill({
+        json: { result: { data: { audioData: '', duration: 0 } } },
+      });
+    });
+
+    await page.goto(`/#/learn/${lectureId}/c1`);
+
+    // Auto-advance left at its default (off); play chapter 1 to completion.
+    await page.getByRole('button', { name: 'Auto-play chapter' }).click();
+    await expect(
+      page.getByRole('button', { name: 'Auto-play chapter' }),
+    ).toBeVisible({ timeout: 15000 });
+    await expect(page).toHaveURL(new RegExp(`/learn/${lectureId}/c1`));
+
+    // Enabling the preference now must not retroactively trigger a jump —
+    // only a fresh chapter completion may advance.
+    await page
+      .getByRole('checkbox', { name: 'Auto-advance to next chapter' })
+      .check();
+    await page.waitForTimeout(500);
+    await expect(page).toHaveURL(new RegExp(`/learn/${lectureId}/c1`));
+  });
+
   test('search functionality', async ({ page }) => {
     const lectureId = 'lecture-1';
     const lecture = {
