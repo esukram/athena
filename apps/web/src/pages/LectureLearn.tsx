@@ -27,9 +27,15 @@ export const LectureLearn = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   // Hands-free preference: continue voice playback into the next chapter.
-  const [autoAdvance, setAutoAdvance] = useState(
-    () => localStorage.getItem('learnAutoAdvance') === 'true',
-  );
+  // Storage access is guarded — private mode / disabled storage must not crash
+  // the page; the preference simply falls back to session-only in that case.
+  const [autoAdvance, setAutoAdvance] = useState(() => {
+    try {
+      return localStorage.getItem('learnAutoAdvance') === 'true';
+    } catch {
+      return false;
+    }
+  });
   // Set when an auto-advance navigation happens so the next chapter resumes
   // playback once its questions have loaded.
   const [pendingAutoStart, setPendingAutoStart] = useState(false);
@@ -54,7 +60,11 @@ export const LectureLearn = () => {
 
   const handleAutoAdvanceChange = (checked: boolean) => {
     setAutoAdvance(checked);
-    localStorage.setItem('learnAutoAdvance', String(checked));
+    try {
+      localStorage.setItem('learnAutoAdvance', String(checked));
+    } catch {
+      // Storage unavailable — the preference stays in memory for this session.
+    }
   };
 
   // Navigate to a chapter on explicit user intent. Clears any pending
@@ -175,21 +185,40 @@ export const LectureLearn = () => {
 
   // Auto-advance: when a chapter's playback finishes and the preference is on,
   // move to the next chapter and flag it to resume playback automatically.
+  //
+  // The `pendingAutoStart` guard is essential: navigation updates
+  // `selectedChapterIndex` one render before the voice hook resets `status`
+  // away from `'finished'`. Without the guard this effect would re-fire with a
+  // stale `'finished'` status and navigate a second time, skipping a chapter.
   const voiceStatus = voice.status;
   useEffect(() => {
-    if (voiceStatus !== 'finished' || !autoAdvance) return;
+    if (voiceStatus !== 'finished' || !autoAdvance || pendingAutoStart) return;
     const nextIndex = selectedChapterIndex + 1;
     if (nextIndex >= chapters.length) return;
     setPendingAutoStart(true);
     navigate(`/learn/${id}/${chapters[nextIndex].id}`);
-  }, [voiceStatus, autoAdvance, selectedChapterIndex, chapters, id, navigate]);
+  }, [
+    voiceStatus,
+    autoAdvance,
+    pendingAutoStart,
+    selectedChapterIndex,
+    chapters,
+    id,
+    navigate,
+  ]);
 
   // Auto-advance follow-up: once the freshly-navigated chapter has loaded its
   // questions, resume playback. Chapters with no questions are skipped.
   const voiceToggle = voice.toggle;
   const questionsLoading = currentChapterQuestionsQuery.isLoading;
   useEffect(() => {
-    if (!pendingAutoStart || voiceStatus !== 'idle' || questionsLoading) return;
+    if (!pendingAutoStart) return;
+    // The preference was switched off mid-flight — abandon the pending resume.
+    if (!autoAdvance) {
+      setPendingAutoStart(false);
+      return;
+    }
+    if (voiceStatus !== 'idle' || questionsLoading) return;
     if (currentChapterQuestions.length > 0) {
       setPendingAutoStart(false);
       voiceToggle();
@@ -205,6 +234,7 @@ export const LectureLearn = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     pendingAutoStart,
+    autoAdvance,
     voiceStatus,
     questionsLoading,
     currentChapterQuestions,

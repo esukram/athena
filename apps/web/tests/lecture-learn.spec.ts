@@ -380,7 +380,11 @@ test.describe('Lecture Learn', () => {
 
   test('auto-advance preference persists across reloads', async ({ page }) => {
     const lectureId = 'lecture-1';
-    const lecture = { id: lectureId, title: 'Persist Lecture', description: 'D' };
+    const lecture = {
+      id: lectureId,
+      title: 'Persist Lecture',
+      description: 'D',
+    };
     const chapters = [{ id: 'c1', lectureId, order: 0, association: '' }];
     const firstQuestions = { c1: { question: 'Chapter 1 Intro' } };
     const c1Questions = [
@@ -436,7 +440,11 @@ test.describe('Lecture Learn', () => {
     page,
   }) => {
     const lectureId = 'lecture-1';
-    const lecture = { id: lectureId, title: 'Manual Lecture', description: 'D' };
+    const lecture = {
+      id: lectureId,
+      title: 'Manual Lecture',
+      description: 'D',
+    };
     const chapters = [
       { id: 'c1', lectureId, order: 0, association: '' },
       { id: 'c2', lectureId, order: 1, association: '' },
@@ -670,6 +678,111 @@ test.describe('Lecture Learn', () => {
     ).toBeVisible({ timeout: 15000 });
     await page.waitForTimeout(500);
     await expect(page).toHaveURL(new RegExp(`/learn/${lectureId}/c1`));
+  });
+
+  test('auto-advance plays every chapter across three non-empty chapters', async ({
+    page,
+  }) => {
+    const lectureId = 'lecture-1';
+    const lecture = { id: lectureId, title: 'Chain Lecture', description: 'D' };
+    const chapters = [
+      { id: 'c1', lectureId, order: 0, association: '' },
+      { id: 'c2', lectureId, order: 1, association: '' },
+      { id: 'c3', lectureId, order: 2, association: '' },
+    ];
+    const firstQuestions = {
+      c1: { question: 'Chapter 1 Intro' },
+      c2: { question: 'Chapter 2 Middle' },
+      c3: { question: 'Chapter 3 End' },
+    };
+    const c1Questions = [
+      {
+        id: 'q1',
+        chapterId: 'c1',
+        question: 'Chapter 1 Intro',
+        answer: 'Answer 1',
+        order: 0,
+      },
+    ];
+    const c2Questions = [
+      {
+        id: 'q2',
+        chapterId: 'c2',
+        question: 'Chapter 2 Middle',
+        answer: 'Answer 2',
+        order: 0,
+      },
+    ];
+    const c3Questions = [
+      {
+        id: 'q3',
+        chapterId: 'c3',
+        question: 'Chapter 3 End',
+        answer: 'Answer 3',
+        order: 0,
+      },
+    ];
+
+    await page.route('**/api/trpc/lectures.getLecture?*', async (route) => {
+      await route.fulfill({ json: { result: { data: lecture } } });
+    });
+    await page.route('**/api/trpc/chapters.getChapters*', async (route) => {
+      await route.fulfill({ json: { result: { data: chapters } } });
+    });
+    await page.route(
+      '**/api/trpc/questions.getFirstQuestionsByLecture*',
+      async (route) => {
+        await route.fulfill({ json: { result: { data: firstQuestions } } });
+      },
+    );
+    await page.route('**/api/trpc/questions.getQuestions?*', async (route) => {
+      const url = route.request().url();
+      let data = c1Questions;
+      if (url.includes('c2')) data = c2Questions;
+      else if (url.includes('c3')) data = c3Questions;
+      await route.fulfill({ json: { result: { data } } });
+    });
+    await page.route('**/api/trpc/speech.isConfigured*', async (route) => {
+      await route.fulfill({ json: { result: { data: true } } });
+    });
+    // Record every synthesised chapter so we can prove no chapter was skipped.
+    // Chapters 1 and 2 resolve immediately; chapter 3 hangs so playback stays
+    // visibly active once the chain reaches the last chapter.
+    const synthesizedChapters = new Set<string>();
+    await page.route('**/api/trpc/speech.synthesize*', async (route) => {
+      const body = route.request().postData() || '';
+      if (body.includes('Chapter 1') || body.includes('Answer 1')) {
+        synthesizedChapters.add('c1');
+      }
+      if (body.includes('Chapter 2') || body.includes('Answer 2')) {
+        synthesizedChapters.add('c2');
+      }
+      if (body.includes('Chapter 3') || body.includes('Answer 3')) {
+        synthesizedChapters.add('c3');
+        await new Promise((resolve) => setTimeout(resolve, 10000));
+      }
+      await route.fulfill({
+        json: { result: { data: { audioData: '', duration: 0 } } },
+      });
+    });
+
+    await page.goto(`/#/learn/${lectureId}`);
+
+    await page
+      .getByRole('checkbox', { name: 'Auto-advance to next chapter' })
+      .check();
+    await page.getByRole('button', { name: 'Auto-play chapter' }).click();
+
+    // The chain advances c1 -> c2 -> c3, playing each chapter in turn.
+    await expect(page).toHaveURL(new RegExp(`/learn/${lectureId}/c3`), {
+      timeout: 15000,
+    });
+    await expect(
+      page.getByRole('button', { name: 'Auto-play chapter' }),
+    ).toHaveCount(0);
+
+    // The middle chapter must not be skipped — all three were synthesised.
+    expect([...synthesizedChapters].sort()).toEqual(['c1', 'c2', 'c3']);
   });
 
   test('search functionality', async ({ page }) => {
