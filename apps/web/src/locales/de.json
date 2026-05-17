@@ -123,6 +123,10 @@
     "playQuestion": "Frage vorlesen",
     "stopPlayback": "Stopp",
     "loading": "Audio wird vorbereitet...",
-    "error": "Sprache nicht verfügbar"
+    "error": "Sprache nicht verfügbar",
+    "autoPlay": "Kapitel automatisch vorlesen",
+    "autoPlayPause": "Vorlesen pausieren",
+    "autoPlayResume": "Vorlesen fortsetzen",
+    "autoPlayLoading": "Audio wird vorbereitet..."
   }
 }

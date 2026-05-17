@@ -1,0 +1,62 @@
+import { Loader2, Pause, Play } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+
+import type { VoicePlaybackStatus } from '../hooks/useChapterVoicePlayback';
+
+interface VoicePlaybackButtonProps {
+  status: VoicePlaybackStatus;
+  isActive: boolean;
+  isPaused: boolean;
+  onToggle: () => void;
+}
+
+/**
+ * Labeled Play/Pause control that drives the hands-free chapter walkthrough in
+ * Learn mode. Rendering is gated by the parent — it is only mounted when the
+ * speech service is configured.
+ */
+export const VoicePlaybackButton = ({
+  status,
+  isActive,
+  isPaused,
+  onToggle,
+}: VoicePlaybackButtonProps) => {
+  const { t } = useTranslation();
+
+  const isLoading = isActive && !isPaused && status === 'loading';
+  const showPause = isActive && !isPaused;
+
+  const label = !isActive
+    ? t('speech.autoPlay')
+    : isPaused
+      ? t('speech.autoPlayResume')
+      : isLoading
+        ? t('speech.autoPlayLoading')
+        : t('speech.autoPlayPause');
+
+  const icon = isLoading ? (
+    <Loader2 size={18} className="animate-spin" />
+  ) : showPause ? (
+    <Pause size={18} />
+  ) : (
+    <Play size={18} />
+  );
+
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      className={`flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-full transition-all hover:scale-105
+        ${
+          showPause
+            ? 'bg-primary-100 text-primary-700'
+            : 'bg-surface text-on-surface-variant hover:bg-primary-50'
+        }`}
+      aria-label={label}
+      title={label}
+    >
+      {icon}
+      <span className="whitespace-nowrap">{label}</span>
+    </button>
+  );
+};

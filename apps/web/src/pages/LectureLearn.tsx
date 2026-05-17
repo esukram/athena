@@ -13,18 +13,21 @@ import { ChapterSidebar } from '../components/ChapterSidebar';
 import { ErrorState } from '../components/ErrorState';
 import { LectureNavigation } from '../components/LectureNavigation';
 import { LoadingState } from '../components/LoadingState';
+import { VoicePlaybackButton } from '../components/VoicePlaybackButton';
 import { BackButton } from '../components/buttons/BackButton';
+import { useChapterVoicePlayback } from '../hooks/useChapterVoicePlayback';
 import { highlightText } from '../utils/highlightText';
 import { trpc } from '../utils/trpc';
 
 export const LectureLearn = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { id, chapterId } = useParams<{ id: string; chapterId?: string }>();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const chapterButtonsRef = useRef<Map<number, HTMLButtonElement>>(new Map());
+  const questionRefs = useRef<Map<number, HTMLDivElement>>(new Map());
 
   const lectureQuery = trpc.lectures.getLecture.useQuery(
     { id: id! },
@@ -127,7 +130,28 @@ export const LectureLearn = () => {
     { chapterId: currentChapter?.id || '' },
     { enabled: !!currentChapter?.id },
   );
-  const currentChapterQuestions = currentChapterQuestionsQuery.data || [];
+  const currentChapterQuestions = useMemo(
+    () => currentChapterQuestionsQuery.data || [],
+    [currentChapterQuestionsQuery.data],
+  );
+
+  // Hands-free auto-play of the current chapter.
+  const speechConfigured = trpc.speech.isConfigured.useQuery().data ?? false;
+  const voice = useChapterVoicePlayback({
+    questions: currentChapterQuestions,
+    language: i18n.language.startsWith('de') ? 'de' : 'en',
+    enabled: speechConfigured,
+    chapterId: currentChapter?.id,
+  });
+
+  // Keep the question being spoken in view.
+  const voiceIndex = voice.currentQuestionIndex;
+  useEffect(() => {
+    if (voiceIndex === null) return;
+    questionRefs.current
+      .get(voiceIndex)
+      ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, [voiceIndex]);
 
   if (lectureQuery.isLoading || chaptersQuery.isLoading) {
     return <LoadingState />;
@@ -211,6 +235,15 @@ export const LectureLearn = () => {
                       {currentFirstQuestion?.question || t('common.untitled')}
                     </h2>
                     <div className="flex items-center gap-2">
+                      {speechConfigured &&
+                        currentChapterQuestions.length > 0 && (
+                          <VoicePlaybackButton
+                            status={voice.status}
+                            isActive={voice.isActive}
+                            isPaused={voice.isPaused}
+                            onToggle={voice.toggle}
+                          />
+                        )}
                       {currentChapter.association && (
                         <span className="px-3 py-1 text-sm font-medium bg-primary-100 text-primary-700 rounded-full">
                           {currentChapter.association}
@@ -225,9 +258,17 @@ export const LectureLearn = () => {
                       {currentChapterQuestions.map((question, index) => (
                         <div
                           key={question.id}
-                          className={
+                          ref={(el) => {
+                            if (el) questionRefs.current.set(index, el);
+                            else questionRefs.current.delete(index);
+                          }}
+                          className={`${
                             index > 0 ? 'pt-8 border-t border-gray-200' : ''
-                          }
+                          } ${
+                            voice.currentQuestionIndex === index
+                              ? 'rounded-lg ring-2 ring-primary-300 bg-primary-50/40'
+                              : ''
+                          }`.trim()}
                         >
                           {index > 0 && (
                             <h2 className="text-2xl font-bold text-on-background mb-4">

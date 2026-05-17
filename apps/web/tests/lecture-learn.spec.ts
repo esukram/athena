@@ -127,6 +127,93 @@ test.describe('Lecture Learn', () => {
     ).toBeVisible();
   });
 
+  test('voice auto-play button starts playback and resets on chapter change', async ({
+    page,
+  }) => {
+    const lectureId = 'lecture-1';
+    const lecture = {
+      id: lectureId,
+      title: 'Voice Lecture',
+      description: 'Desc',
+    };
+    const chapters = [
+      { id: 'c1', lectureId, order: 0, association: '' },
+      { id: 'c2', lectureId, order: 1, association: '' },
+    ];
+    const firstQuestions = {
+      c1: { question: 'Chapter 1 Intro' },
+      c2: { question: 'Chapter 2 Middle' },
+    };
+    const c1Questions = [
+      {
+        id: 'q1',
+        chapterId: 'c1',
+        question: 'Chapter 1 Intro',
+        answer: 'Answer 1',
+        order: 0,
+      },
+    ];
+    const c2Questions = [
+      {
+        id: 'q3',
+        chapterId: 'c2',
+        question: 'Chapter 2 Middle',
+        answer: 'Answer 2',
+        order: 0,
+      },
+    ];
+
+    await page.route('**/api/trpc/lectures.getLecture?*', async (route) => {
+      await route.fulfill({ json: { result: { data: lecture } } });
+    });
+    await page.route('**/api/trpc/chapters.getChapters*', async (route) => {
+      await route.fulfill({ json: { result: { data: chapters } } });
+    });
+    await page.route(
+      '**/api/trpc/questions.getFirstQuestionsByLecture*',
+      async (route) => {
+        await route.fulfill({ json: { result: { data: firstQuestions } } });
+      },
+    );
+    await page.route('**/api/trpc/questions.getQuestions?*', async (route) => {
+      const url = route.request().url();
+      await route.fulfill({
+        json: {
+          result: { data: url.includes('c2') ? c2Questions : c1Questions },
+        },
+      });
+    });
+
+    // Speech service reports as configured so the voice button renders.
+    await page.route('**/api/trpc/speech.isConfigured*', async (route) => {
+      await route.fulfill({ json: { result: { data: true } } });
+    });
+    // Keep synthesis pending so playback stays in its loading/active state.
+    await page.route('**/api/trpc/speech.synthesize*', async (route) => {
+      await new Promise((resolve) => setTimeout(resolve, 5000));
+      await route.fulfill({
+        json: { result: { data: { audioData: '', duration: 0 } } },
+      });
+    });
+
+    await page.goto(`/#/learn/${lectureId}`);
+
+    const playButton = page.getByRole('button', { name: 'Auto-play chapter' });
+    await expect(playButton).toBeVisible();
+
+    await playButton.click();
+
+    // Once started, the control no longer offers "Auto-play chapter".
+    await expect(playButton).toHaveCount(0);
+
+    // Changing chapter aborts playback; the control resets to its play state.
+    await page.getByRole('button', { name: 'Next' }).click();
+    await expect(page).toHaveURL(new RegExp(`/learn/${lectureId}/c2`));
+    await expect(
+      page.getByRole('button', { name: 'Auto-play chapter' }),
+    ).toBeVisible();
+  });
+
   test('search functionality', async ({ page }) => {
     const lectureId = 'lecture-1';
     const lecture = {

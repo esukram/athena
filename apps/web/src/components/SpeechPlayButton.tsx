@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 
 import { useCallback, useRef, useState } from 'react';
 
+import { audioUrlFromBase64 } from '../utils/audioFromBase64';
 import { trpc } from '../utils/trpc';
 
 interface SpeechPlayButtonProps {
@@ -42,11 +43,7 @@ export const SpeechPlayButton = ({
       const result = await synthesizeMutation.mutateAsync({ text, language });
 
       // Create audio from base64 data
-      const audioBlob = new Blob(
-        [Uint8Array.from(atob(result.audioData), (c) => c.charCodeAt(0))],
-        { type: 'audio/mpeg' },
-      );
-      const audioUrl = URL.createObjectURL(audioBlob);
+      const audioUrl = audioUrlFromBase64(result.audioData);
 
       const audio = new Audio(audioUrl);
       audioRef.current = audio;

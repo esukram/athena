@@ -123,6 +123,10 @@
     "playQuestion": "Read question aloud",
     "stopPlayback": "Stop",
     "loading": "Preparing audio...",
-    "error": "Speech unavailable"
+    "error": "Speech unavailable",
+    "autoPlay": "Auto-play chapter",
+    "autoPlayPause": "Pause auto-play",
+    "autoPlayResume": "Resume auto-play",
+    "autoPlayLoading": "Preparing audio..."
   }
 }
