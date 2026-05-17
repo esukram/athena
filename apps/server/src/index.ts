@@ -56,6 +56,11 @@ function createLectureRepository(): LectureRepository {
 
 function createChapterRepository(): ChapterRepository {
   return {
+    getById: (id: string): Chapter | undefined => {
+      return db.prepare('SELECT * FROM chapters WHERE id = ?').get(id) as
+        | Chapter
+        | undefined;
+    },
     getByLectureId: (lectureId: string): Chapter[] => {
       return db
         .prepare('SELECT * FROM chapters WHERE lectureId = ? ORDER BY "order"')

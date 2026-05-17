@@ -134,7 +134,7 @@ export function ChapterSidebar<T extends ChapterItem>({
               >
                 <span className="text-sm wrap-break-words flex items-center gap-2">
                   <span className="flex-1">
-                    {chapter.order + 1}. {getDisplayText(chapter)}
+                    {originalIndex + 1}. {getDisplayText(chapter)}
                   </span>
                 </span>
               </button>

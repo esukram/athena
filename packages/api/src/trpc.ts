@@ -13,6 +13,7 @@ export interface LectureRepository {
 }
 
 export interface ChapterRepository {
+  getById: (id: string) => Chapter | undefined;
   getByLectureId: (lectureId: string) => Chapter[];
   getDistinctAssociations: () => string[];
   search: (query: string) => (Chapter & { firstQuestion?: Question })[];

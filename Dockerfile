@@ -9,7 +9,7 @@ WORKDIR /app
 COPY . .
 RUN CI=true pnpm install --frozen-lockfile
 RUN pnpm build
-RUN pnpm deploy --filter-prod=server --prod /prod/server --legacy
+RUN pnpm deploy --filter-prod=server --prod /prod/server
 
 FROM base AS runner
 RUN groupadd --system --gid 1001 nodejs && \

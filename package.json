@@ -11,7 +11,7 @@
     "test:e2e": "turbo test:e2e",
     "test:e2e:report": "pnpm --filter web exec playwright show-report",
     "clean": "turbo clean",
-    "prepare": "husky"
+    "prepare": "command -v git >/dev/null 2>&1 && husky || true"
   },
   "devDependencies": {
     "@trivago/prettier-plugin-sort-imports": "^6.0.2",
@@ -30,6 +30,11 @@
       "better-sqlite3",
       "esbuild",
       "@parcel/watcher"
-    ]
+    ],
+    "peerDependencyRules": {
+      "allowedVersions": {
+        "@tailwindcss/vite>vite": "8"
+      }
+    }
   }
 }

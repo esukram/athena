@@ -2,8 +2,10 @@ node_modules
 dist
 .turbo
 .DS_Store
-.env*
 test-results
+.playwright-cli
 playwright-report
+.claude/worktrees/*
 
+.env*
 athena.db
