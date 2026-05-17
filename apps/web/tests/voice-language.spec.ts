@@ -1,4 +1,4 @@
-import { expect, test, type Page } from '@playwright/test';
+import { type Page, expect, test } from '@playwright/test';
 
 /**
  * Covers that the language picker is the single source of truth for the
@@ -25,8 +25,9 @@ async function mockLearnApi(page: Page): Promise<void> {
   await page.route('**/api/trpc/chapters.getChapters*', (route) =>
     route.fulfill({ json: { result: { data: chapters } } }),
   );
-  await page.route('**/api/trpc/questions.getFirstQuestionsByLecture*', (route) =>
-    route.fulfill({ json: { result: { data: firstQuestions } } }),
+  await page.route(
+    '**/api/trpc/questions.getFirstQuestionsByLecture*',
+    (route) => route.fulfill({ json: { result: { data: firstQuestions } } }),
   );
   await page.route('**/api/trpc/questions.getQuestions?*', (route) =>
     route.fulfill({ json: { result: { data: c1Questions } } }),
@@ -93,7 +94,9 @@ test.describe('Voice language', () => {
   test.describe('regional browser locale en-GB', () => {
     test.use({ locale: 'en-GB' });
 
-    test('resolves to English in the picker and the voice', async ({ page }) => {
+    test('resolves to English in the picker and the voice', async ({
+      page,
+    }) => {
       await mockLearnApi(page);
       const languages = await trackSynthesisLanguages(page);
 
@@ -101,10 +104,9 @@ test.describe('Voice language', () => {
 
       const picker = page.getByRole('button', { name: 'Select language' });
       await picker.click();
-      await expect(page.getByRole('option', { name: 'English' })).toHaveAttribute(
-        'aria-selected',
-        'true',
-      );
+      await expect(
+        page.getByRole('option', { name: 'English' }),
+      ).toHaveAttribute('aria-selected', 'true');
       await picker.click(); // close the menu
 
       await page.getByRole('button', { name: autoPlayButton }).click();
@@ -124,10 +126,9 @@ test.describe('Voice language', () => {
 
       const picker = page.getByRole('button', { name: 'Select language' });
       await picker.click();
-      await expect(page.getByRole('option', { name: 'Deutsch' })).toHaveAttribute(
-        'aria-selected',
-        'true',
-      );
+      await expect(
+        page.getByRole('option', { name: 'Deutsch' }),
+      ).toHaveAttribute('aria-selected', 'true');
       await picker.click(); // close the menu
 
       await page.getByRole('button', { name: autoPlayButton }).click();

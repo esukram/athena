@@ -463,8 +463,7 @@ const TrainingSessionContent = ({
                                       text={question.question}
                                       language={
                                         (
-                                          i18n.resolvedLanguage ??
-                                          i18n.language
+                                          i18n.resolvedLanguage ?? i18n.language
                                         ).startsWith('de')
                                           ? 'de'
                                           : 'en'
