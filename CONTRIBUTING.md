@@ -68,6 +68,17 @@ Testing is essential for maintaining a stable application.
 - While E2E tests are our primary focus for user journeys, unit tests for complex logic are highly encouraged.
 - Location: Co-locate test files with their source files (e.g., `Component.test.tsx` next to `Component.tsx`).
 
+### Docker Image Build
+
+The production Docker image is built and validated automatically on every pull
+request by the CI `docker-build` job. If you change the `Dockerfile`, base
+image, or a native dependency (e.g. `better-sqlite3`), verify the image builds
+locally before pushing:
+
+```bash
+pnpm docker:build
+```
+
 ## 🔢 Versioning Policy
 
 Athena follows [Semantic Versioning 2.0.0](https://semver.org/). Version numbers are structured as `MAJOR.MINOR.PATCH`:
