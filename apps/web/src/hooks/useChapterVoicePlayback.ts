@@ -82,6 +82,9 @@ export function useChapterVoicePlayback({
   statusRef.current = status;
 
   const epochRef = useRef(0);
+  // Set synchronously when a run starts so a second click in the same tick
+  // (before `status` has re-rendered) cannot launch a duplicate runner.
+  const runningRef = useRef(false);
   const pausedRef = useRef(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const audioResolveRef = useRef<(() => void) | null>(null);
@@ -109,6 +112,7 @@ export function useChapterVoicePlayback({
     waitRef.current = null;
     resumeWaitersRef.current = [];
     releaseAudio();
+    runningRef.current = false;
     pausedRef.current = false;
     setIsPaused(false);
     setStatus('idle');
@@ -222,17 +226,14 @@ export function useChapterVoicePlayback({
         }
       }
       if (aborted()) return;
+      runningRef.current = false;
       setStatus('finished');
       setCurrentQuestionIndex(null);
       setCurrentPart(null);
     } catch {
-      if (!aborted()) {
-        epochRef.current += 1;
-        releaseAudio();
-        setStatus('idle');
-        setCurrentQuestionIndex(null);
-        setCurrentPart(null);
-      }
+      // Treat a synthesis/playback failure like an abort of this run: it bumps
+      // the epoch and tears down any straggling audio/timers/gates.
+      if (!aborted()) abort();
     }
   };
 
@@ -241,7 +242,11 @@ export function useChapterVoicePlayback({
     const current = statusRef.current;
 
     if (current === 'idle' || current === 'finished') {
+      // Guard against a duplicate runner from a second click before the
+      // `status` state has re-rendered to a non-idle value.
+      if (runningRef.current) return;
       if (questionsRef.current.length === 0) return;
+      runningRef.current = true;
       pausedRef.current = false;
       setIsPaused(false);
       const startEpoch = ++epochRef.current;

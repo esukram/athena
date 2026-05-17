@@ -16,9 +16,39 @@ const LOCALE_MAP: Record<'de' | 'en', string> = {
 const SPEECH_REGION = 'germanywestcentral';
 
 /**
- * Wraps an SSML body fragment in a `<speak>`/`<voice>` envelope. The server
- * owns the envelope so the voice and language are authoritative and cannot be
- * spoofed by the client-supplied body.
+ * Tags `markdownToSsml` is allowed to emit. Anything else in a client-supplied
+ * body is treated as an attempt to break out of the server-owned envelope.
+ */
+const ALLOWED_SSML_TAGS = new Set(['emphasis', 'break', 'prosody']);
+
+/**
+ * Verifies a client-supplied SSML body before it is wrapped. The body is
+ * untrusted: a caller could otherwise close the server's `<voice>`/`<speak>`
+ * envelope early and re-open it with a different voice/locale, or pull in
+ * external resources via `<audio>`, `<lexicon>`, `<mstts:*>` etc. Only the
+ * small set of presentational tags `markdownToSsml` produces is permitted;
+ * anything else (or stray markup) is rejected outright.
+ */
+function assertSafeSsmlBody(body: string): void {
+  const tagPattern = /<\/?([a-zA-Z][\w:-]*)\b[^>]*>/g;
+  let match: RegExpExecArray | null;
+  while ((match = tagPattern.exec(body)) !== null) {
+    if (!ALLOWED_SSML_TAGS.has(match[1].toLowerCase())) {
+      throw new Error(`Disallowed SSML tag: <${match[1]}>`);
+    }
+  }
+  // `markdownToSsml` XML-escapes all text, so every literal `<` must open a
+  // well-formed tag. A `<` that is not a tag start (comment, CDATA, stray
+  // markup) means the body did not come from the trusted converter.
+  if (/<(?![/!]?[a-zA-Z])/.test(body) || body.includes('<!')) {
+    throw new Error('Malformed SSML body');
+  }
+}
+
+/**
+ * Wraps a *validated* SSML body fragment in a `<speak>`/`<voice>` envelope.
+ * The server owns the envelope and the body is checked by `assertSafeSsmlBody`,
+ * so the voice and language are authoritative and cannot be spoofed.
  */
 function wrapSsml(body: string, language: 'de' | 'en'): string {
   const locale = LOCALE_MAP[language];
@@ -104,6 +134,13 @@ export function createSpeechService(): SpeechService | undefined {
         };
 
         if (format === 'ssml') {
+          try {
+            assertSafeSsmlBody(text);
+          } catch (error) {
+            synthesizer.close();
+            reject(error instanceof Error ? error : new Error(String(error)));
+            return;
+          }
           synthesizer.speakSsmlAsync(
             wrapSsml(text, language),
             onResult,

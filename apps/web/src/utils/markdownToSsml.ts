@@ -42,6 +42,31 @@ const emphasize = (inner: string, level: 'strong' | 'moderate'): string => {
 const renderChildren = (node: MdNode): string =>
   (node.children ?? []).map(renderNode).join('');
 
+/**
+ * Walks the mdast tree to decide whether it contains any leaf that produces
+ * spoken words. Working off the tree (rather than stripping tags from the
+ * rendered SSML) keeps the emptiness check exact and avoids regex-based
+ * markup parsing.
+ */
+function hasSpokenText(node: MdNode): boolean {
+  switch (node.type) {
+    case 'text':
+      return /\S/.test((node.value ?? '').replace(BARE_URL, ''));
+
+    case 'inlineCode':
+    case 'code':
+      return /\S/.test(node.value ?? '');
+
+    case 'image':
+    case 'html':
+      // Never spoken — see `renderNode`.
+      return false;
+
+    default:
+      return (node.children ?? []).some(hasSpokenText);
+  }
+}
+
 function renderNode(node: MdNode): string {
   switch (node.type) {
     case 'root':
@@ -103,13 +128,14 @@ export function markdownToSsml(markdown: string): string {
   if (!markdown || !markdown.trim()) return '';
 
   const tree = fromMarkdown(markdown) as unknown as MdNode;
+
+  // A body with only break/markup and no spoken text is not worth synthesizing.
+  if (!hasSpokenText(tree)) return '';
+
   const body = renderNode(tree)
     // Collapse any run of adjacent break tags into the first one.
     .replace(/(<break time="[^"]*"\/>)(?:<break time="[^"]*"\/>)+/g, '$1')
     .trim();
-
-  // A body with only break/markup and no spoken text is not worth synthesizing.
-  if (!body || !/[^\s<>]/.test(body.replace(/<[^>]*>/g, ''))) return '';
 
   return body;
 }

@@ -253,6 +253,15 @@ export const LectureLearn = () => {
                     </div>
                   </div>
 
+                  {/* Announces the auto-play position to screen readers. */}
+                  <div className="sr-only" aria-live="polite">
+                    {voice.currentQuestionIndex !== null &&
+                      t('speech.autoPlayNowPlaying', {
+                        current: voice.currentQuestionIndex + 1,
+                        total: currentChapterQuestions.length,
+                      })}
+                  </div>
+
                   {currentChapterQuestions.length > 0 ? (
                     <div className="space-y-8">
                       {currentChapterQuestions.map((question, index) => (
@@ -262,6 +271,11 @@ export const LectureLearn = () => {
                             if (el) questionRefs.current.set(index, el);
                             else questionRefs.current.delete(index);
                           }}
+                          aria-current={
+                            voice.currentQuestionIndex === index
+                              ? 'true'
+                              : undefined
+                          }
                           className={`${
                             index > 0 ? 'pt-8 border-t border-gray-200' : ''
                           } ${

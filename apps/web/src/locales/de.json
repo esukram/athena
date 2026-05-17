@@ -127,6 +127,7 @@
     "autoPlay": "Kapitel automatisch vorlesen",
     "autoPlayPause": "Vorlesen pausieren",
     "autoPlayResume": "Vorlesen fortsetzen",
-    "autoPlayLoading": "Audio wird vorbereitet..."
+    "autoPlayLoading": "Audio wird vorbereitet...",
+    "autoPlayNowPlaying": "Automatisches Vorlesen: Frage {{current}} von {{total}}"
   }
 }

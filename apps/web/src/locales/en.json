@@ -127,6 +127,7 @@
     "autoPlay": "Auto-play chapter",
     "autoPlayPause": "Pause auto-play",
     "autoPlayResume": "Resume auto-play",
-    "autoPlayLoading": "Preparing audio..."
+    "autoPlayLoading": "Preparing audio...",
+    "autoPlayNowPlaying": "Auto-play: question {{current}} of {{total}}"
   }
 }

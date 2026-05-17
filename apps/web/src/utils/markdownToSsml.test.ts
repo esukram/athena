@@ -78,4 +78,18 @@ describe('markdownToSsml', () => {
     expect(markdownToSsml('---')).toBe('');
     expect(markdownToSsml('![alt](https://example.com/img.png)')).toBe('');
   });
+
+  it('only ever emits the tags the server SSML guard allows', () => {
+    // Mirrors `ALLOWED_SSML_TAGS` in the server's speech service: the body the
+    // converter produces must always pass `assertSafeSsmlBody`.
+    const allowed = new Set(['emphasis', 'break', 'prosody']);
+    const ssml = markdownToSsml(
+      '# Heading\n\nA **bold** and *italic* paragraph with `code`.\n\n' +
+        '- item one\n- item two\n\n> a quote\n\n```\nblock();\n```\n\n' +
+        'See [docs](https://example.com) and https://bare.example.com\n\n---',
+    );
+    for (const [, name] of ssml.matchAll(/<\/?([a-zA-Z][\w:-]*)\b/g)) {
+      expect(allowed).toContain(name.toLowerCase());
+    }
+  });
 });
