@@ -5,6 +5,11 @@ RUN npm install -g corepack@latest --force
 RUN corepack enable
 
 FROM base AS builder
+# Build tools for native modules (e.g. better-sqlite3) that lack prebuilt
+# binaries for the current Node version and fall back to node-gyp.
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends python3 make g++ && \
+    rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY . .
 RUN CI=true pnpm install --frozen-lockfile
