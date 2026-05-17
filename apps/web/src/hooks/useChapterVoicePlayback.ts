@@ -26,7 +26,8 @@ export type VoicePlaybackStatus =
   | 'pausing-short'
   | 'speaking-answer'
   | 'pausing-long'
-  | 'finished';
+  | 'finished'
+  | 'error';
 
 export type VoicePlaybackPart = 'question' | 'answer';
 
@@ -101,8 +102,9 @@ export function useChapterVoicePlayback({
     audioResolveRef.current = null;
   };
 
-  // Bumps the epoch and tears down any active audio/timer/gates.
-  const abort = () => {
+  // Bumps the epoch and tears down any active audio/timer/gates, settling the
+  // control on `finalStatus` — `idle` for a clean abort, `error` for a failure.
+  const teardown = (finalStatus: 'idle' | 'error') => {
     epochRef.current += 1;
     if (audioRef.current) audioRef.current.pause();
     if (waitRef.current?.timer) clearTimeout(waitRef.current.timer);
@@ -115,7 +117,7 @@ export function useChapterVoicePlayback({
     runningRef.current = false;
     pausedRef.current = false;
     setIsPaused(false);
-    setStatus('idle');
+    setStatus(finalStatus);
     setCurrentQuestionIndex(null);
     setCurrentPart(null);
     // Unblock anything the runner is awaiting so its loop can exit.
@@ -123,6 +125,9 @@ export function useChapterVoicePlayback({
     pendingAudioResolve?.();
     pendingGates.forEach((r) => r());
   };
+
+  // Cleanly stops playback and resets the control to its idle state.
+  const abort = () => teardown('idle');
 
   // Resolves once playback is not paused (immediately if already running).
   const awaitResume = (): Promise<void> => {
@@ -230,10 +235,14 @@ export function useChapterVoicePlayback({
       setStatus('finished');
       setCurrentQuestionIndex(null);
       setCurrentPart(null);
-    } catch {
-      // Treat a synthesis/playback failure like an abort of this run: it bumps
-      // the epoch and tears down any straggling audio/timers/gates.
-      if (!aborted()) abort();
+    } catch (error) {
+      // A synthesis/playback failure ends this run. Surface it on the control
+      // (status `error`) instead of silently resetting, and log it so the
+      // failure is diagnosable in the field.
+      if (!aborted()) {
+        console.error('Voice playback failed:', error);
+        teardown('error');
+      }
     }
   };
 
@@ -241,7 +250,7 @@ export function useChapterVoicePlayback({
     if (!enabled) return;
     const current = statusRef.current;
 
-    if (current === 'idle' || current === 'finished') {
+    if (current === 'idle' || current === 'finished' || current === 'error') {
       // Guard against a duplicate runner from a second click before the
       // `status` state has re-rendered to a non-idle value.
       if (runningRef.current) return;
@@ -290,7 +299,8 @@ export function useChapterVoicePlayback({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chapterId]);
 
-  const isActive = status !== 'idle' && status !== 'finished';
+  const isActive =
+    status !== 'idle' && status !== 'finished' && status !== 'error';
 
   return {
     status,

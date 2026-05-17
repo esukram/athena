@@ -51,6 +51,20 @@ describe('VoicePlaybackButton', () => {
     );
   });
 
+  it('shows the error label when playback has failed', () => {
+    render(
+      <VoicePlaybackButton
+        status="error"
+        isActive={false}
+        isPaused={false}
+        onToggle={() => {}}
+      />,
+    );
+    expect(screen.getByRole('button')).toHaveTextContent(
+      'speech.autoPlayError',
+    );
+  });
+
   it('calls onToggle when clicked', () => {
     const onToggle = vi.fn();
     render(

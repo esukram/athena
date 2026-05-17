@@ -1,4 +1,4 @@
-import { Loader2, Pause, Play } from 'lucide-react';
+import { AlertCircle, Loader2, Pause, Play } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import type { VoicePlaybackStatus } from '../hooks/useChapterVoicePlayback';
@@ -23,18 +23,23 @@ export const VoicePlaybackButton = ({
 }: VoicePlaybackButtonProps) => {
   const { t } = useTranslation();
 
+  const isError = status === 'error';
   const isLoading = isActive && !isPaused && status === 'loading';
   const showPause = isActive && !isPaused;
 
-  const label = !isActive
-    ? t('speech.autoPlay')
-    : isPaused
-      ? t('speech.autoPlayResume')
-      : isLoading
-        ? t('speech.autoPlayLoading')
-        : t('speech.autoPlayPause');
+  const label = isError
+    ? t('speech.autoPlayError')
+    : !isActive
+      ? t('speech.autoPlay')
+      : isPaused
+        ? t('speech.autoPlayResume')
+        : isLoading
+          ? t('speech.autoPlayLoading')
+          : t('speech.autoPlayPause');
 
-  const icon = isLoading ? (
+  const icon = isError ? (
+    <AlertCircle size={18} />
+  ) : isLoading ? (
     <Loader2 size={18} className="animate-spin" />
   ) : showPause ? (
     <Pause size={18} />
@@ -48,9 +53,11 @@ export const VoicePlaybackButton = ({
       onClick={onToggle}
       className={`flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-full transition-all hover:scale-105
         ${
-          showPause
-            ? 'bg-primary-100 text-primary-700'
-            : 'bg-surface text-on-surface-variant hover:bg-primary-50'
+          isError
+            ? 'bg-red-50 text-red-700 hover:bg-red-100'
+            : showPause
+              ? 'bg-primary-100 text-primary-700'
+              : 'bg-surface text-on-surface-variant hover:bg-primary-50'
         }`}
       aria-label={label}
       title={label}

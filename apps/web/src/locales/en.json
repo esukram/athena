@@ -128,6 +128,7 @@
     "autoPlayPause": "Pause auto-play",
     "autoPlayResume": "Resume auto-play",
     "autoPlayLoading": "Preparing audio...",
-    "autoPlayNowPlaying": "Auto-play: question {{current}} of {{total}}"
+    "autoPlayNowPlaying": "Auto-play: question {{current}} of {{total}}",
+    "autoPlayError": "Auto-play failed — tap to retry"
   }
 }

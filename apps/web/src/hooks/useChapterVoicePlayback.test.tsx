@@ -197,6 +197,37 @@ describe('useChapterVoicePlayback', () => {
     expect(vi.getTimerCount()).toBe(0);
   });
 
+  it('settles on the error status when synthesis fails', async () => {
+    const consoleError = vi
+      .spyOn(console, 'error')
+      .mockImplementation(() => {});
+    mutateAsync.mockRejectedValueOnce(new Error('synthesis down'));
+
+    const { result } = renderHook(() =>
+      useChapterVoicePlayback({
+        questions: makeQuestions(2),
+        language: 'en',
+        enabled: true,
+        chapterId: 'c1',
+      }),
+    );
+
+    act(() => result.current.toggle());
+    await flush();
+
+    expect(result.current.status).toBe('error');
+    expect(result.current.isActive).toBe(false);
+    expect(result.current.currentQuestionIndex).toBe(null);
+    expect(consoleError).toHaveBeenCalled();
+
+    // The control offers a retry: toggling from `error` starts a fresh run.
+    act(() => result.current.toggle());
+    await flush();
+    expect(result.current.status).toBe('speaking-question');
+
+    consoleError.mockRestore();
+  });
+
   it('does nothing when disabled', async () => {
     const { result } = renderHook(() =>
       useChapterVoicePlayback({

@@ -255,13 +255,15 @@ export const LectureLearn = () => {
                     </div>
                   </div>
 
-                  {/* Announces the auto-play position to screen readers. */}
+                  {/* Announces auto-play position and failures to screen readers. */}
                   <div className="sr-only" aria-live="polite">
-                    {voice.currentQuestionIndex !== null &&
-                      t('speech.autoPlayNowPlaying', {
-                        current: voice.currentQuestionIndex + 1,
-                        total: currentChapterQuestions.length,
-                      })}
+                    {voice.status === 'error'
+                      ? t('speech.autoPlayError')
+                      : voice.currentQuestionIndex !== null &&
+                        t('speech.autoPlayNowPlaying', {
+                          current: voice.currentQuestionIndex + 1,
+                          total: currentChapterQuestions.length,
+                        })}
                   </div>
 
                   {currentChapterQuestions.length > 0 ? (

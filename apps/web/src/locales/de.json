@@ -128,6 +128,7 @@
     "autoPlayPause": "Vorlesen pausieren",
     "autoPlayResume": "Vorlesen fortsetzen",
     "autoPlayLoading": "Audio wird vorbereitet...",
-    "autoPlayNowPlaying": "Automatisches Vorlesen: Frage {{current}} von {{total}}"
+    "autoPlayNowPlaying": "Automatisches Vorlesen: Frage {{current}} von {{total}}",
+    "autoPlayError": "Vorlesen fehlgeschlagen – zum Wiederholen tippen"
   }
 }

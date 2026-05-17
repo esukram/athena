@@ -30,6 +30,11 @@ const ALLOWED_SSML_TAGS = new Set(['emphasis', 'break', 'prosody']);
  * anything else (or stray markup) is rejected outright.
  */
 function assertSafeSsmlBody(body: string): void {
+  // `[^>]*` consumes a tag's attributes. `markdownToSsml` never emits an
+  // attribute value containing a literal `>` (it XML-escapes all text and
+  // only produces fixed numeric/percentage attributes), so this stays exact
+  // for the trusted converter; a body that smuggles a `>` inside an attribute
+  // is not converter output and is rejected by the malformed-`<` check below.
   const tagPattern = /<\/?([a-zA-Z][\w:-]*)\b[^>]*>/g;
   let match: RegExpExecArray | null;
   while ((match = tagPattern.exec(body)) !== null) {
