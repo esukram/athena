@@ -1,3 +1,4 @@
+import { ChevronsRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 interface AutoAdvanceToggleProps {
@@ -6,29 +7,41 @@ interface AutoAdvanceToggleProps {
 }
 
 /**
- * Checkbox that controls whether voice playback in Learn mode continues into the
- * next chapter automatically once the current chapter finishes. The preference
- * is persisted by the parent — this component is purely presentational.
+ * Compact icon toggle controlling whether voice playback in Learn mode continues
+ * into the next chapter automatically once the current chapter finishes. Renders
+ * icon-only by default and expands to reveal its label on hover or keyboard
+ * focus. The preference is persisted by the parent — this component is purely
+ * presentational.
  */
 export const AutoAdvanceToggle = ({
   checked,
   onChange,
 }: AutoAdvanceToggleProps) => {
   const { t } = useTranslation();
-  const label = t('speech.autoAdvance');
+  const fullLabel = t('speech.autoAdvance');
+  const shortLabel = t('speech.autoAdvanceShort');
 
   return (
     <label
-      className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-full bg-surface text-on-surface-variant cursor-pointer transition-colors hover:bg-primary-50"
-      title={label}
+      className={`group relative flex items-center px-3 py-1.5 text-sm font-medium rounded-full cursor-pointer transition-all
+        ${
+          checked
+            ? 'bg-primary-100 text-primary-700'
+            : 'bg-surface text-on-surface-variant hover:bg-primary-50'
+        }`}
+      title={fullLabel}
     >
       <input
         type="checkbox"
         checked={checked}
         onChange={(event) => onChange(event.target.checked)}
-        className="h-4 w-4 accent-primary-600 cursor-pointer"
+        aria-label={fullLabel}
+        className="peer absolute inset-0 h-full w-full cursor-pointer opacity-0"
       />
-      <span className="whitespace-nowrap">{label}</span>
+      <ChevronsRight size={18} aria-hidden="true" />
+      <span className="max-w-0 overflow-hidden whitespace-nowrap opacity-0 transition-all group-hover:ml-2 group-hover:max-w-[12rem] group-hover:opacity-100 peer-focus-visible:ml-2 peer-focus-visible:max-w-[12rem] peer-focus-visible:opacity-100">
+        {shortLabel}
+      </span>
     </label>
   );
 };

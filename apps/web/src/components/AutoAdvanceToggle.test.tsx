@@ -13,7 +13,7 @@ vi.mock('react-i18next', () => ({
 describe('AutoAdvanceToggle', () => {
   it('renders the label', () => {
     render(<AutoAdvanceToggle checked={false} onChange={() => {}} />);
-    expect(screen.getByText('speech.autoAdvance')).toBeInTheDocument();
+    expect(screen.getByText('speech.autoAdvanceShort')).toBeInTheDocument();
   });
 
   it('reflects the checked prop', () => {
