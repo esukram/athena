@@ -8,13 +8,18 @@ export const speechRouter = router({
       z.object({
         text: z.string().min(1),
         language: z.enum(['de', 'en']),
+        format: z.enum(['text', 'ssml']).default('text'),
       }),
     )
     .mutation(async ({ ctx, input }) => {
       if (!ctx.speechService) {
         throw new Error('Speech service not configured');
       }
-      return ctx.speechService.synthesize(input.text, input.language);
+      return ctx.speechService.synthesize(
+        input.text,
+        input.language,
+        input.format,
+      );
     }),
 
   isConfigured: publicProcedure.query(({ ctx }) => {

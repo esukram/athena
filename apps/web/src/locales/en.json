@@ -123,6 +123,12 @@
     "playQuestion": "Read question aloud",
     "stopPlayback": "Stop",
     "loading": "Preparing audio...",
-    "error": "Speech unavailable"
+    "error": "Speech unavailable",
+    "autoPlay": "Auto-play chapter",
+    "autoPlayPause": "Pause auto-play",
+    "autoPlayResume": "Resume auto-play",
+    "autoPlayLoading": "Preparing audio...",
+    "autoPlayNowPlaying": "Auto-play: question {{current}} of {{total}}",
+    "autoPlayError": "Auto-play failed — tap to retry"
   }
 }

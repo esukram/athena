@@ -462,7 +462,9 @@ const TrainingSessionContent = ({
                                     <SpeechPlayButton
                                       text={question.question}
                                       language={
-                                        i18n.language.startsWith('de')
+                                        (
+                                          i18n.resolvedLanguage ?? i18n.language
+                                        ).startsWith('de')
                                           ? 'de'
                                           : 'en'
                                       }

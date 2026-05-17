@@ -25,7 +25,13 @@ export interface SpeechResult {
   duration: number; // Duration in milliseconds
 }
 
+export type SpeechFormat = 'text' | 'ssml';
+
 export interface SpeechService {
-  synthesize(text: string, language: 'de' | 'en'): Promise<SpeechResult>;
+  synthesize(
+    text: string,
+    language: 'de' | 'en',
+    format?: SpeechFormat,
+  ): Promise<SpeechResult>;
   isConfigured(): boolean;
 }

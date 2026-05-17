@@ -12,4 +12,5 @@ export type {
   Question,
   SpeechService,
   SpeechResult,
+  SpeechFormat,
 } from './types.js';
