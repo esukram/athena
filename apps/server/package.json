@@ -16,7 +16,7 @@
     "better-sqlite3": "^12.8.0",
     "cors": "^2.8.6",
     "dotenv": "^17.3.1",
-    "fastify": "^5.8.2",
+    "fastify": "^5.8.3",
     "microsoft-cognitiveservices-speech-sdk": "^1.48.0"
   },
   "devDependencies": {
