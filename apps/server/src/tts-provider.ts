@@ -1,7 +1,6 @@
 import type { SpeechService } from '@athena/api';
 
 import { createGoogleSpeechService } from './google-speech.js';
-import { createMistralSpeechService } from './mistral-speech.js';
 import { createSpeechService } from './speech.js';
 
 /**
@@ -15,9 +14,6 @@ export function createConfiguredSpeechService(): SpeechService | undefined {
     case 'google':
       console.log('TTS provider: google');
       return createGoogleSpeechService();
-    case 'mistral':
-      console.log('TTS provider: mistral');
-      return createMistralSpeechService();
     case 'azure':
       console.log('TTS provider: azure');
       return createSpeechService();
