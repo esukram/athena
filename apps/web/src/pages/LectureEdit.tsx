@@ -49,7 +49,7 @@ export const EditLecture = () => {
 
   // Auto-save state
   const [showSavedToast, setShowSavedToast] = useState(false);
-  const [savedChapterId, setSavedChapterId] = useState<string | null>(null);
+  const savedChapterIdRef = useRef<string | null>(null);
   const autoSaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isAutoSavingRef = useRef(false);
 
@@ -242,17 +242,17 @@ export const EditLecture = () => {
 
     try {
       // Determine the chapter ID (use savedChapterId if we already created this chapter)
-      let chapterId = savedChapterId || editingChapter.id;
+      let chapterId = savedChapterIdRef.current || editingChapter.id;
 
       // If creating a new chapter and haven't saved it yet, create it first
-      if (isCreatingNewChapter && !savedChapterId) {
+      if (isCreatingNewChapter && !savedChapterIdRef.current) {
         const newChapter = await createChapter.mutateAsync({
           lectureId: editingChapter.lectureId,
           order: editingChapter.order,
           association: editingAssociation,
         });
         chapterId = newChapter.id;
-        setSavedChapterId(chapterId);
+        savedChapterIdRef.current = chapterId;
       }
 
       // Collect all mutation promises
@@ -338,7 +338,6 @@ export const EditLecture = () => {
     editingQuestions,
     editingAssociation,
     isCreatingNewChapter,
-    savedChapterId,
     initialQuestions,
     createChapter,
     createQuestion,
@@ -353,7 +352,7 @@ export const EditLecture = () => {
         clearTimeout(autoSaveTimeoutRef.current);
         autoSaveTimeoutRef.current = null;
       }
-      setSavedChapterId(null);
+      savedChapterIdRef.current = null;
     }
   }, [editingChapter]);
 
@@ -418,24 +417,23 @@ export const EditLecture = () => {
 
     setIsSavingChapter(true);
 
-    let chapterId = editingChapter.id;
+    let chapterId = savedChapterIdRef.current || editingChapter.id;
 
-    // If creating a new chapter, save it to the database first
-    if (isCreatingNewChapter) {
+    // If creating a new chapter and hasn't been auto-saved, save it to the database first
+    if (isCreatingNewChapter && !savedChapterIdRef.current) {
       const newChapter = await createChapter.mutateAsync({
         lectureId: editingChapter.lectureId,
         order: editingChapter.order,
         association: editingAssociation,
       });
       chapterId = newChapter.id;
-    } else {
-      // Update chapter association if changed (only for existing chapters)
-      if (editingAssociation !== editingChapter.association) {
-        updateChapter.mutate({
-          id: chapterId,
-          association: editingAssociation,
-        });
-      }
+      savedChapterIdRef.current = chapterId;
+    } else if (editingAssociation !== editingChapter.association) {
+      // Update chapter association if changed (for existing chapters or newly auto-saved chapters)
+      updateChapter.mutate({
+        id: chapterId,
+        association: editingAssociation,
+      });
     }
 
     // Collect all mutation promises
