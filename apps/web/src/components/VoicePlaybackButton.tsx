@@ -51,7 +51,7 @@ export const VoicePlaybackButton = ({
     <button
       type="button"
       onClick={onToggle}
-      className={`flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-full transition-all hover:scale-105
+      className={`group relative flex items-center px-3 py-1.5 text-sm font-medium rounded-full transition-all
         ${
           isError
             ? 'bg-red-50 text-red-700 hover:bg-red-100'
@@ -63,7 +63,15 @@ export const VoicePlaybackButton = ({
       title={label}
     >
       {icon}
-      <span className="whitespace-nowrap">{label}</span>
+      <span
+        className={`overflow-hidden whitespace-nowrap transition-all ${
+          isError
+            ? 'ml-2 max-w-[20rem] opacity-100'
+            : 'max-w-0 opacity-0 group-hover:ml-2 group-hover:max-w-[12rem] group-hover:opacity-100 group-focus-visible:ml-2 group-focus-visible:max-w-[12rem] group-focus-visible:opacity-100'
+        }`}
+      >
+        {label}
+      </span>
     </button>
   );
 };
