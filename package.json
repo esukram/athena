@@ -31,6 +31,9 @@
       "esbuild",
       "@parcel/watcher"
     ],
+    "overrides": {
+      "eslint-plugin-react-hooks": "7.0.1"
+    },
     "peerDependencyRules": {
       "allowedVersions": {
         "@tailwindcss/vite>vite": "8"
