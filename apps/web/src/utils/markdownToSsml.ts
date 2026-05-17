@@ -1,3 +1,4 @@
+import { verbalizeSymbols } from '@athena/api/speakable-text';
 import { fromMarkdown } from 'mdast-util-from-markdown';
 
 /**
@@ -29,9 +30,13 @@ const escapeXml = (s: string): string =>
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&apos;');
 
-/** Renders a text leaf: drop bare URLs, then XML-escape what remains. */
+/**
+ * Renders a text leaf: drop bare URLs, verbalize symbols the synthesizer
+ * would otherwise spell out (done before escaping, so an arrow's `>` is
+ * rewritten before it turns into `&gt;`), then XML-escape what remains.
+ */
 const renderText = (value: string): string =>
-  escapeXml(value.replace(BARE_URL, '').replace(/\s+/g, ' '));
+  escapeXml(verbalizeSymbols(value.replace(BARE_URL, '')));
 
 /** Wraps inner content in an emphasis tag, omitting it when empty. */
 const emphasize = (inner: string, level: 'strong' | 'moderate'): string => {

@@ -5,10 +5,19 @@ const WORDS_PER_SECOND = 2.5;
  * Strips SSML markup down to plain text. `markdownToSsml` only emits
  * `<emphasis>`, `<break>` and `<prosody>` tags; adapters whose provider does
  * not support those tags call this to fall back to clean, readable text.
+ *
+ * XML entities are decoded back to their characters so the provider speaks
+ * them naturally rather than reading the literal `&gt;` / `&amp;`. `&amp;`
+ * is decoded last so an encoded entity like `&amp;gt;` is not double-decoded.
  */
 export function stripSsml(body: string): string {
   return body
     .replace(/<[^>]*>/g, ' ')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&apos;/g, "'")
+    .replace(/&amp;/g, '&')
     .replace(/\s+/g, ' ')
     .trim();
 }

@@ -4,6 +4,16 @@
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./speakable-text": {
+      "types": "./dist/speakable-text.d.ts",
+      "import": "./dist/speakable-text.js"
+    }
+  },
   "scripts": {
     "build": "tsc",
     "type-check": "tsc --noEmit",
