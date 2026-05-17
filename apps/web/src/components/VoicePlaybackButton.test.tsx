@@ -20,7 +20,9 @@ describe('VoicePlaybackButton', () => {
         onToggle={() => {}}
       />,
     );
-    expect(screen.getByRole('button')).toHaveTextContent('speech.autoPlay');
+    expect(
+      screen.getByRole('button', { name: 'speech.autoPlay' }),
+    ).toBeInTheDocument();
   });
 
   it('shows the pause label while actively speaking', () => {
@@ -32,9 +34,9 @@ describe('VoicePlaybackButton', () => {
         onToggle={() => {}}
       />,
     );
-    expect(screen.getByRole('button')).toHaveTextContent(
-      'speech.autoPlayPause',
-    );
+    expect(
+      screen.getByRole('button', { name: 'speech.autoPlayPause' }),
+    ).toBeInTheDocument();
   });
 
   it('shows the resume label while paused', () => {
@@ -46,9 +48,9 @@ describe('VoicePlaybackButton', () => {
         onToggle={() => {}}
       />,
     );
-    expect(screen.getByRole('button')).toHaveTextContent(
-      'speech.autoPlayResume',
-    );
+    expect(
+      screen.getByRole('button', { name: 'speech.autoPlayResume' }),
+    ).toBeInTheDocument();
   });
 
   it('shows the error label when playback has failed', () => {
@@ -60,9 +62,9 @@ describe('VoicePlaybackButton', () => {
         onToggle={() => {}}
       />,
     );
-    expect(screen.getByRole('button')).toHaveTextContent(
-      'speech.autoPlayError',
-    );
+    expect(
+      screen.getByRole('button', { name: 'speech.autoPlayError' }),
+    ).toBeInTheDocument();
   });
 
   it('calls onToggle when clicked', () => {

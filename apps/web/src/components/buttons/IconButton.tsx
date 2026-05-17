@@ -20,6 +20,8 @@ export interface IconButtonProps extends Omit<
   variant?: IconButtonVariant;
   /** Size variant */
   size?: 'sm' | 'md';
+  /** Additional CSS classes for the icon itself (e.g. spin animation, color) */
+  iconClassName?: string;
 }
 
 // Icon button specific styling
@@ -51,6 +53,7 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
       variant = 'primary',
       size = 'md',
       className = '',
+      iconClassName = '',
       ...props
     },
     ref,
@@ -74,7 +77,9 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
         className={iconButtonClasses}
         {...props}
       >
-        <Icon className={`${iconSizeClasses[size]} text-gray-600`} />
+        <Icon
+          className={`${iconSizeClasses[size]} text-gray-600 ${iconClassName}`.trim()}
+        />
       </Button>
     );
   },
