@@ -13,6 +13,10 @@ i18n
       de: { translation: de },
       en: { translation: en },
     },
+    // Clamp regional codes (e.g. `de-AT`, `en-GB`) to a supported language so
+    // `i18n.resolvedLanguage` is always exactly `de` or `en`.
+    supportedLngs: ['de', 'en'],
+    nonExplicitSupportedLngs: true,
     fallbackLng: 'de',
     interpolation: {
       escapeValue: false, // React already handles XSS protection

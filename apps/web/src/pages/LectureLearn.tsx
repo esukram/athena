@@ -139,7 +139,9 @@ export const LectureLearn = () => {
   const speechConfigured = trpc.speech.isConfigured.useQuery().data ?? false;
   const voice = useChapterVoicePlayback({
     questions: currentChapterQuestions,
-    language: i18n.language.startsWith('de') ? 'de' : 'en',
+    language: (i18n.resolvedLanguage ?? i18n.language).startsWith('de')
+      ? 'de'
+      : 'en',
     enabled: speechConfigured,
     chapterId: currentChapter?.id,
   });

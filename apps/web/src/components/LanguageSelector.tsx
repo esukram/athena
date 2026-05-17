@@ -24,7 +24,8 @@ export const LanguageSelector = () => {
   const menuRef = useRef<HTMLDivElement>(null);
 
   const currentLanguage =
-    languages.find((lang) => lang.code === i18n.language) || languages[0];
+    languages.find((lang) => lang.code === i18n.resolvedLanguage) ||
+    languages[0];
 
   const handleLanguageChange = (langCode: Language) => {
     i18n.changeLanguage(langCode);
@@ -67,12 +68,12 @@ export const LanguageSelector = () => {
               key={lang.code}
               onClick={() => handleLanguageChange(lang.code)}
               className={`w-full px-4 py-2 text-left text-sm flex items-center gap-3 hover:bg-gray-100 transition-colors ${
-                lang.code === i18n.language
+                lang.code === i18n.resolvedLanguage
                   ? 'bg-primary-50 text-primary-700 font-medium'
                   : 'text-gray-700'
               }`}
               role="option"
-              aria-selected={lang.code === i18n.language}
+              aria-selected={lang.code === i18n.resolvedLanguage}
             >
               <img
                 src={lang.flag}
