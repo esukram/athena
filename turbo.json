@@ -1,6 +1,17 @@
 {
   "$schema": "https://turbo.build/schema.json",
-  "globalEnv": ["DB_PATH", "CI", "SPEECH_KEY", "SPEECH_KEY_FILE", "SPEECH_REGION"],
+  "globalEnv": [
+    "DB_PATH",
+    "CI",
+    "SPEECH_KEY",
+    "SPEECH_KEY_FILE",
+    "SPEECH_REGION",
+    "TTS_PROVIDER",
+    "MISTRAL_API_KEY",
+    "MISTRAL_TTS_VOICE",
+    "GOOGLE_APPLICATION_CREDENTIALS",
+    "GOOGLE_TTS_VOICE"
+  ],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
