@@ -50,8 +50,16 @@ export const EditLecture = () => {
   // Auto-save state
   const [showSavedToast, setShowSavedToast] = useState(false);
   const savedChapterIdRef = useRef<string | null>(null);
+  // Association used when the chapter row was persisted, so a manual save
+  // can tell whether the association actually changed afterwards.
+  const savedAssociationRef = useRef<string | null>(null);
   const autoSaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isAutoSavingRef = useRef(false);
+  // In-flight auto-save promise, resolving to the IDs of questions it created
+  // (keyed by question order). A manual save awaits this to avoid duplicates.
+  const autoSavePromiseRef = useRef<Promise<Map<number, string> | undefined> | null>(
+    null,
+  );
 
   // Fetch questions for the editing chapter (only for existing chapters)
   const chapterQuestionsQuery = trpc.questions.getQuestions.useQuery(
@@ -241,7 +249,7 @@ export const EditLecture = () => {
     isAutoSavingRef.current = true;
 
     try {
-      // Determine the chapter ID (use savedChapterId if we already created this chapter)
+      // Determine the chapter ID (reuse the ref if we already created this chapter)
       let chapterId = savedChapterIdRef.current || editingChapter.id;
 
       // If creating a new chapter and haven't saved it yet, create it first
@@ -253,7 +261,12 @@ export const EditLecture = () => {
         });
         chapterId = newChapter.id;
         savedChapterIdRef.current = chapterId;
+        savedAssociationRef.current = editingAssociation;
       }
+
+      // IDs of questions created here, keyed by question order, so a manual
+      // save running afterwards can skip recreating them.
+      const createdQuestionIds = new Map<number, string>();
 
       // Collect all mutation promises
       const mutationPromises: Promise<unknown>[] = [];
@@ -292,6 +305,7 @@ export const EditLecture = () => {
                 order: eq.order,
               })
               .then((newQuestion) => {
+                createdQuestionIds.set(eq.order, newQuestion.id);
                 // Update the local question with its new ID
                 setEditingQuestions((prev) =>
                   prev.map((q) =>
@@ -330,6 +344,8 @@ export const EditLecture = () => {
         // Show toast
         setShowSavedToast(true);
       }
+
+      return createdQuestionIds;
     } finally {
       isAutoSavingRef.current = false;
     }
@@ -353,6 +369,8 @@ export const EditLecture = () => {
         autoSaveTimeoutRef.current = null;
       }
       savedChapterIdRef.current = null;
+      savedAssociationRef.current = null;
+      autoSavePromiseRef.current = null;
     }
   }, [editingChapter]);
 
@@ -417,9 +435,35 @@ export const EditLecture = () => {
 
     setIsSavingChapter(true);
 
+    // Cancel an auto-save that is scheduled but has not started yet.
+    if (autoSaveTimeoutRef.current) {
+      clearTimeout(autoSaveTimeoutRef.current);
+      autoSaveTimeoutRef.current = null;
+    }
+
+    // Wait for any in-flight auto-save to finish so we don't recreate the
+    // chapter or its questions. It reports the IDs of the questions it
+    // created (keyed by order); merge them in so we update those rather
+    // than create duplicates.
+    let questionsToSave = editingQuestions;
+    if (autoSavePromiseRef.current) {
+      try {
+        const createdIds = await autoSavePromiseRef.current;
+        if (createdIds && createdIds.size > 0) {
+          questionsToSave = editingQuestions.map((q) =>
+            !q.id && createdIds.has(q.order)
+              ? { ...q, id: createdIds.get(q.order)! }
+              : q,
+          );
+        }
+      } catch {
+        // Auto-save failed; the manual save below recreates what's missing.
+      }
+    }
+
     let chapterId = savedChapterIdRef.current || editingChapter.id;
 
-    // If creating a new chapter and hasn't been auto-saved, save it to the database first
+    // If creating a new chapter and it hasn't been auto-saved, save it first
     if (isCreatingNewChapter && !savedChapterIdRef.current) {
       const newChapter = await createChapter.mutateAsync({
         lectureId: editingChapter.lectureId,
@@ -428,19 +472,30 @@ export const EditLecture = () => {
       });
       chapterId = newChapter.id;
       savedChapterIdRef.current = chapterId;
-    } else if (editingAssociation !== editingChapter.association) {
-      // Update chapter association if changed (for existing chapters or newly auto-saved chapters)
-      updateChapter.mutate({
-        id: chapterId,
-        association: editingAssociation,
-      });
+      savedAssociationRef.current = editingAssociation;
     }
 
     // Collect all mutation promises
     const mutationPromises: Promise<unknown>[] = [];
 
+    // Update the chapter's association if it changed since the row was
+    // persisted. A brand-new chapter is created with the current association,
+    // so this only fires for an association edited after an earlier auto-save,
+    // or for an existing chapter.
+    const persistedAssociation = isCreatingNewChapter
+      ? (savedAssociationRef.current ?? editingAssociation)
+      : editingChapter.association;
+    if (editingAssociation !== persistedAssociation) {
+      mutationPromises.push(
+        updateChapter.mutateAsync({
+          id: chapterId,
+          association: editingAssociation,
+        }),
+      );
+    }
+
     // Save all questions
-    for (const eq of editingQuestions) {
+    for (const eq of questionsToSave) {
       if (!eq.question.trim()) continue; // Skip empty questions
 
       if (eq.id) {
@@ -503,9 +558,12 @@ export const EditLecture = () => {
       },
     ]);
 
-    // Trigger auto-save after adding question (with small delay to let state update)
-    setTimeout(() => {
-      autoSaveQuestions();
+    // Trigger auto-save after adding question (with small delay to let state
+    // update). Track the timeout and resulting promise so a manual save can
+    // cancel a pending run or await an in-flight one.
+    autoSaveTimeoutRef.current = setTimeout(() => {
+      autoSaveTimeoutRef.current = null;
+      autoSavePromiseRef.current = autoSaveQuestions();
     }, 100);
   };
 

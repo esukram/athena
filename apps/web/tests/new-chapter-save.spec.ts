@@ -146,9 +146,8 @@ test.describe('New Chapter Save Bug', () => {
     // 3. Click Add Question - this triggers auto-save for the new chapter
     await page.getByRole('button', { name: 'Add Question' }).click();
 
-    // Wait for auto-save to complete
-    await page.waitForTimeout(500);
-    await expect(page.getByRole('status')).toBeVisible(); // Saved toast
+    // Wait for auto-save to complete (Saved toast appears)
+    await expect(page.getByRole('status')).toBeVisible();
 
     // Fill the second question
     await page
@@ -171,10 +170,9 @@ test.describe('New Chapter Save Bug', () => {
     // 5. Verify chapter was only created ONCE
     expect(createChapterCallCount).toBe(1);
 
-    // We should have created exactly 2 questions
-    // Wait for network requests to settle
-    await page.waitForTimeout(500);
-    // 1 during auto-save, 1 during manual save
-    expect(createQuestionCallCount).toBe(2);
+    // We should have created exactly 2 questions:
+    // 1 during auto-save, 1 during manual save. Poll until network settles.
+    await expect.poll(() => createQuestionCallCount).toBe(2);
+    expect(createChapterCallCount).toBe(1);
   });
 });
