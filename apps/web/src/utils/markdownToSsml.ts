@@ -1,5 +1,6 @@
-import { verbalizeSymbols } from '@athena/api/speakable-text';
 import { fromMarkdown } from 'mdast-util-from-markdown';
+
+import { verbalizeSymbols } from '@athena/api/speakable-text';
 
 /**
  * Converts a Markdown answer into an SSML *body* fragment suitable for Azure
