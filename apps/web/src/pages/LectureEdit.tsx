@@ -57,9 +57,9 @@ export const EditLecture = () => {
   const isAutoSavingRef = useRef(false);
   // In-flight auto-save promise, resolving to the IDs of questions it created
   // (keyed by question order). A manual save awaits this to avoid duplicates.
-  const autoSavePromiseRef = useRef<Promise<Map<number, string> | undefined> | null>(
-    null,
-  );
+  const autoSavePromiseRef = useRef<Promise<
+    Map<number, string> | undefined
+  > | null>(null);
 
   // Fetch questions for the editing chapter (only for existing chapters)
   const chapterQuestionsQuery = trpc.questions.getQuestions.useQuery(
