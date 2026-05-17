@@ -98,7 +98,7 @@ describe('useChapterVoicePlayback', () => {
     expect(result.current.status).toBe('pausing-short');
 
     await act(async () => {
-      await vi.advanceTimersByTimeAsync(700);
+      await vi.advanceTimersByTimeAsync(400);
     });
     expect(result.current.currentPart).toBe('answer');
     expect(result.current.status).toBe('speaking-answer');
@@ -107,7 +107,7 @@ describe('useChapterVoicePlayback', () => {
     expect(result.current.status).toBe('pausing-long');
 
     await act(async () => {
-      await vi.advanceTimersByTimeAsync(1500);
+      await vi.advanceTimersByTimeAsync(1000);
     });
     expect(result.current.currentQuestionIndex).toBe(1);
     expect(result.current.currentPart).toBe('question');
@@ -127,7 +127,7 @@ describe('useChapterVoicePlayback', () => {
     await flush();
     await act(async () => lastAudio().end()); // question
     await act(async () => {
-      await vi.advanceTimersByTimeAsync(700);
+      await vi.advanceTimersByTimeAsync(400);
     });
     await act(async () => lastAudio().end()); // answer
 

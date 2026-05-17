@@ -30,8 +30,8 @@ export type VoicePlaybackStatus =
 
 export type VoicePlaybackPart = 'question' | 'answer';
 
-const SHORT_PAUSE_MS = 700;
-const LONG_PAUSE_MS = 1500;
+const SHORT_PAUSE_MS = 400;
+const LONG_PAUSE_MS = 1000;
 
 interface UseChapterVoicePlaybackArgs {
   questions: Question[];
