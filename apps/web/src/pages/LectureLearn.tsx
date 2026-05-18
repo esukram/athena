@@ -27,13 +27,15 @@ export const LectureLearn = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   // Hands-free preference: continue voice playback into the next chapter.
+  // Defaults to on; an explicit stored value overrides the default.
   // Storage access is guarded — private mode / disabled storage must not crash
   // the page; the preference simply falls back to session-only in that case.
   const [autoAdvance, setAutoAdvance] = useState(() => {
     try {
-      return localStorage.getItem('learnAutoAdvance') === 'true';
+      const stored = localStorage.getItem('learnAutoAdvance');
+      return stored === null ? true : stored === 'true';
     } catch {
-      return false;
+      return true;
     }
   });
   // Set when an auto-advance navigation happens so the next chapter resumes
@@ -350,6 +352,11 @@ export const LectureLearn = () => {
                       {currentFirstQuestion?.question || t('common.untitled')}
                     </h2>
                     <div className="flex flex-wrap items-center gap-2">
+                      {currentChapter.association && (
+                        <span className="px-3 py-1 text-sm font-medium bg-primary-100 text-primary-700 rounded-full">
+                          {currentChapter.association}
+                        </span>
+                      )}
                       {speechConfigured &&
                         currentChapterQuestions.length > 0 && (
                           <>
@@ -365,11 +372,6 @@ export const LectureLearn = () => {
                             />
                           </>
                         )}
-                      {currentChapter.association && (
-                        <span className="px-3 py-1 text-sm font-medium bg-primary-100 text-primary-700 rounded-full">
-                          {currentChapter.association}
-                        </span>
-                      )}
                       <ChapterMenu chapter={currentChapter} lectureId={id!} />
                     </div>
                   </div>
