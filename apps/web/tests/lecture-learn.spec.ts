@@ -432,6 +432,68 @@ test.describe('Lecture Learn', () => {
     ).toHaveAttribute('aria-pressed', 'false');
   });
 
+  test('auto-advance defaults to on, and a stored preference overrides it', async ({
+    page,
+  }) => {
+    const lectureId = 'lecture-1';
+    const lecture = {
+      id: lectureId,
+      title: 'Default Lecture',
+      description: 'D',
+    };
+    const chapters = [{ id: 'c1', lectureId, order: 0, association: '' }];
+    const firstQuestions = { c1: { question: 'Chapter 1 Intro' } };
+    const c1Questions = [
+      {
+        id: 'q1',
+        chapterId: 'c1',
+        question: 'Chapter 1 Intro',
+        answer: 'Answer 1',
+        order: 0,
+      },
+    ];
+
+    await page.route('**/api/trpc/lectures.getLecture?*', async (route) => {
+      await route.fulfill({ json: { result: { data: lecture } } });
+    });
+    await page.route('**/api/trpc/chapters.getChapters*', async (route) => {
+      await route.fulfill({ json: { result: { data: chapters } } });
+    });
+    await page.route(
+      '**/api/trpc/questions.getFirstQuestionsByLecture*',
+      async (route) => {
+        await route.fulfill({ json: { result: { data: firstQuestions } } });
+      },
+    );
+    await page.route('**/api/trpc/questions.getQuestions?*', async (route) => {
+      await route.fulfill({ json: { result: { data: c1Questions } } });
+    });
+    await page.route('**/api/trpc/speech.isConfigured*', async (route) => {
+      await route.fulfill({ json: { result: { data: true } } });
+    });
+
+    const toggle = page.getByRole('button', {
+      name: 'Auto-advance to next chapter',
+    });
+
+    // With no stored preference the toggle defaults to on.
+    await page.goto(`/#/learn/${lectureId}`);
+    await expect(toggle).toHaveAttribute('aria-pressed', 'true');
+
+    // An explicit 'false' preference must override the on-by-default —
+    // existing users who turned auto-advance off keep it off.
+    await page.evaluate(() =>
+      localStorage.setItem('learnAutoAdvance', 'false'),
+    );
+    await page.reload();
+    await expect(toggle).toHaveAttribute('aria-pressed', 'false');
+
+    // An explicit 'true' preference also wins, matching the default.
+    await page.evaluate(() => localStorage.setItem('learnAutoAdvance', 'true'));
+    await page.reload();
+    await expect(toggle).toHaveAttribute('aria-pressed', 'true');
+  });
+
   test('manual chapter change does not auto-resume when auto-advance is on', async ({
     page,
   }) => {
