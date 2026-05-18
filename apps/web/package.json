@@ -16,7 +16,7 @@
   "dependencies": {
     "@athena/api": "workspace:*",
     "@tailwindcss/typography": "^0.5.19",
-    "@tanstack/react-query": "^5.90.21",
+    "@tanstack/react-query": "^5.100.10",
     "@trpc/client": "^11.17.0",
     "@trpc/react-query": "^11.17.0",
     "i18next": "^25.8.18",
