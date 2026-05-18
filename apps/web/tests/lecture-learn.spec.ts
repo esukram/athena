@@ -283,10 +283,7 @@ test.describe('Lecture Learn', () => {
 
     await page.goto(`/#/learn/${lectureId}`);
 
-    // Enable auto-advance, then start playback on chapter 1.
-    await page
-      .getByRole('button', { name: 'Auto-advance to next chapter' })
-      .click();
+    // Auto-advance is on by default; just start playback on chapter 1.
     await page.getByRole('button', { name: 'Auto-play chapter' }).click();
 
     // Chapter 1 finishes -> app advances to chapter 2 and resumes playback.
@@ -364,9 +361,7 @@ test.describe('Lecture Learn', () => {
 
     await page.goto(`/#/learn/${lectureId}`);
 
-    await page
-      .getByRole('button', { name: 'Auto-advance to next chapter' })
-      .click();
+    // Auto-advance is on by default; just start playback.
     await page.getByRole('button', { name: 'Auto-play chapter' }).click();
 
     // Chapter 1 finishes -> empty chapter 2 is skipped -> chapter 3 plays.
@@ -421,19 +416,20 @@ test.describe('Lecture Learn', () => {
     const toggle = page.getByRole('button', {
       name: 'Auto-advance to next chapter',
     });
-    await expect(toggle).toHaveAttribute('aria-pressed', 'false');
+    // Auto-advance is on by default; toggling it off must persist.
+    await expect(toggle).toHaveAttribute('aria-pressed', 'true');
     await toggle.click();
 
     // The preference is written to localStorage.
     expect(
       await page.evaluate(() => localStorage.getItem('learnAutoAdvance')),
-    ).toBe('true');
+    ).toBe('false');
 
     // After a reload the toggle restores its state from localStorage.
     await page.reload();
     await expect(
       page.getByRole('button', { name: 'Auto-advance to next chapter' }),
-    ).toHaveAttribute('aria-pressed', 'true');
+    ).toHaveAttribute('aria-pressed', 'false');
   });
 
   test('manual chapter change does not auto-resume when auto-advance is on', async ({
@@ -506,9 +502,7 @@ test.describe('Lecture Learn', () => {
 
     await page.goto(`/#/learn/${lectureId}`);
 
-    await page
-      .getByRole('button', { name: 'Auto-advance to next chapter' })
-      .click();
+    // Auto-advance is on by default; just start playback.
     await page.getByRole('button', { name: 'Auto-play chapter' }).click();
     await expect(
       page.getByRole('button', { name: 'Auto-play chapter' }),
@@ -592,9 +586,7 @@ test.describe('Lecture Learn', () => {
     // Start directly on the last chapter.
     await page.goto(`/#/learn/${lectureId}/c2`);
 
-    await page
-      .getByRole('button', { name: 'Auto-advance to next chapter' })
-      .click();
+    // Auto-advance is on by default; just start playback.
     await page.getByRole('button', { name: 'Auto-play chapter' }).click();
 
     // Playback finishes; with no next chapter the control returns to idle
@@ -669,7 +661,10 @@ test.describe('Lecture Learn', () => {
 
     await page.goto(`/#/learn/${lectureId}/c1`);
 
-    // Auto-advance is left at its default (off); just start playback.
+    // Turn auto-advance off (it is on by default), then start playback.
+    await page
+      .getByRole('button', { name: 'Auto-advance to next chapter' })
+      .click();
     await page.getByRole('button', { name: 'Auto-play chapter' }).click();
 
     // Playback finishes; without auto-advance the app stays on chapter 1.
@@ -768,9 +763,7 @@ test.describe('Lecture Learn', () => {
 
     await page.goto(`/#/learn/${lectureId}`);
 
-    await page
-      .getByRole('button', { name: 'Auto-advance to next chapter' })
-      .click();
+    // Auto-advance is on by default; just start playback.
     await page.getByRole('button', { name: 'Auto-play chapter' }).click();
 
     // The chain advances c1 -> c2 -> c3, playing each chapter in turn.
@@ -853,14 +846,18 @@ test.describe('Lecture Learn', () => {
 
     await page.goto(`/#/learn/${lectureId}/c1`);
 
-    // Auto-advance left at its default (off); play chapter 1 to completion.
+    // Turn auto-advance off (it is on by default), then play chapter 1
+    // to completion.
+    await page
+      .getByRole('button', { name: 'Auto-advance to next chapter' })
+      .click();
     await page.getByRole('button', { name: 'Auto-play chapter' }).click();
     await expect(
       page.getByRole('button', { name: 'Auto-play chapter' }),
     ).toBeVisible({ timeout: 15000 });
     await expect(page).toHaveURL(new RegExp(`/learn/${lectureId}/c1`));
 
-    // Enabling the preference now must not retroactively trigger a jump —
+    // Re-enabling the preference now must not retroactively trigger a jump —
     // only a fresh chapter completion may advance.
     await page
       .getByRole('button', { name: 'Auto-advance to next chapter' })
