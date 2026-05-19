@@ -21,7 +21,7 @@ import {
 
 import { db } from './db.js';
 import { runMigrations } from './migration.js';
-import { createSpeechService } from './speech.js';
+import { createConfiguredSpeechService } from './tts-provider.js';
 
 function createLectureRepository(): LectureRepository {
   return {
@@ -292,7 +292,7 @@ async function main() {
   const lectureRepository = createLectureRepository();
   const chapterRepository = createChapterRepository();
   const questionRepository = createQuestionRepository();
-  const speechService = createSpeechService();
+  const speechService = createConfiguredSpeechService();
 
   await server.register(fastifyTRPCPlugin, {
     prefix: '/api/trpc',

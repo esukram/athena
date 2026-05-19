@@ -79,6 +79,25 @@ describe('markdownToSsml', () => {
     expect(markdownToSsml('![alt](https://example.com/img.png)')).toBe('');
   });
 
+  it('verbalizes ASCII and Unicode arrows as spoken words', () => {
+    expect(markdownToSsml('input -> output')).toContain('input to output');
+    expect(markdownToSsml('cause --> effect')).toContain('cause to effect');
+    expect(markdownToSsml('source → target')).toContain('source to target');
+    expect(markdownToSsml('output <- input')).toContain('output from input');
+  });
+
+  it('verbalizes slashes as a brief pause rather than "slash"', () => {
+    expect(markdownToSsml('cats / dogs')).toContain('cats, dogs');
+    expect(markdownToSsml('TCP/IP stack')).toContain('TCP, IP stack');
+  });
+
+  it('rewrites arrow characters before they would be XML-escaped', () => {
+    // The arrow `>` must become a word, not leak through as `&gt;`.
+    const ssml = markdownToSsml('a -> b');
+    expect(ssml).toContain('a to b');
+    expect(ssml).not.toContain('&gt;');
+  });
+
   it('only ever emits the tags the server SSML guard allows', () => {
     // Mirrors `ALLOWED_SSML_TAGS` in the server's speech service: the body the
     // converter produces must always pass `assertSafeSsmlBody`.

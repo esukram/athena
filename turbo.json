@@ -1,6 +1,15 @@
 {
   "$schema": "https://turbo.build/schema.json",
-  "globalEnv": ["DB_PATH", "CI", "SPEECH_KEY", "SPEECH_KEY_FILE", "SPEECH_REGION"],
+  "globalEnv": [
+    "DB_PATH",
+    "CI",
+    "SPEECH_KEY",
+    "SPEECH_KEY_FILE",
+    "SPEECH_REGION",
+    "TTS_PROVIDER",
+    "GOOGLE_APPLICATION_CREDENTIALS",
+    "GOOGLE_TTS_VOICE"
+  ],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
@@ -21,9 +30,11 @@
       "cache": false
     },
     "test": {
+      "dependsOn": ["^build"],
       "cache": false
     },
     "test:e2e": {
+      "dependsOn": ["^build"],
       "cache": false
     }
   }
