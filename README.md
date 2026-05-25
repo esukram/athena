@@ -27,8 +27,12 @@ Athena uses a strict three-tier hierarchy to keep learning materials organized:
   - Front/Back card design for questions and answers.
   - Support for rich text, code snippets, and images.
 - **Voice Interaction & Evaluation:** The app reads questions aloud, allows users to respond via voice, and provides AI-driven evaluation on correctness and feedback.
-- **Training Mode:** Specific modes for reviewing cards (e.g., Shuffle, Spaced Repetition).
+  - Pluggable TTS backend selected via the `TTS_PROVIDER` env var — currently Azure Cognitive Services (SSML-driven) and Google Cloud TTS (Chirp3-HD with `[pause]` markup), with multi-voice support across English and German.
+- **Training Mode:** Shuffle/randomized review with auto-advance, and progress-aware ordering that surfaces unreviewed questions first.
 - **Progress Tracking:** Visual indicators of mastery for each topic.
+- **Localization:** Full UI in English and German, with browser-language auto-detection.
+- **Global Search:** Search chapters across all courses from anywhere in the app.
+- **Chapter Organization:** Tag chapters with associations (categories) and move chapters between courses.
 
 ## **🛠️ Tech Stack**
 
@@ -51,8 +55,11 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for more information on the architecture 
 
 ### **Installation**
 
-1. Clone the repository:  
-   git clone [https://github.com/esukram/athena.git](https://github.com/esukram/athena.git)
+1. Clone the repository:
+
+   ```
+   git clone https://github.com/esukram/athena.git
+   ```
 
 2. Navigate to the project directory:  
    cd athena

@@ -6,15 +6,17 @@ This document outlines the architectural design, directory structure, and techni
 
 | Component           | Technology | Version | Description                                          |
 | :------------------ | :--------- | :------ | :--------------------------------------------------- |
-| **Language**        | TypeScript | v5.x    | Unified language for typical Full Stack type-safety. |
-| **Package Manager** | pnpm       | v9.0.x  | Fast, disk-efficient package manager.                |
-| **Monorepo**        | Turborepo  | latest  | High-performance build system.                       |
-| **Frontend**        | React      | v18.2.x | UI library using functional components and hooks.    |
-| **Build Tooling**   | Vite       | v5.x    | Fast frontend build tool.                            |
-| **Backend**         | Fastify    | v4.26.x | Low overhead web framework for Node.js.              |
-| **Communication**   | tRPC       | v10.x   | End-to-end typesafe APIs.                            |
-| **Database**        | SQLite     | Latest  | (Planned) Lightweight relational database.           |
-| **Formatting**      | Prettier   | v3.x    | Opinionated code formatter.                          |
+| **Language**        | TypeScript | v5.9.x   | Unified language for typical Full Stack type-safety.            |
+| **Package Manager** | pnpm       | v10.26.x | Fast, disk-efficient package manager.                           |
+| **Monorepo**        | Turborepo  | latest   | High-performance build system.                                  |
+| **Frontend**        | React      | v19.2.x  | UI library using functional components and hooks.               |
+| **Build Tooling**   | Vite       | v8.x     | Fast frontend build tool.                                       |
+| **Backend**         | Fastify    | v5.8.x   | Low overhead web framework for Node.js.                         |
+| **Communication**   | tRPC       | v11.x    | End-to-end typesafe APIs.                                       |
+| **Database**        | SQLite     | v12.8.x  | Lightweight relational database, via `better-sqlite3`.          |
+| **Speech**          | Pluggable  | —        | TTS provider selected via `TTS_PROVIDER` env var: Azure Cognitive Services SDK (SSML) or Google Cloud TTS REST (Chirp3-HD). |
+| **i18n**            | i18next    | v26.x    | UI translation framework (English + German with auto-detection).|
+| **Formatting**      | Prettier   | v3.x     | Opinionated code formatter.                                     |
 
 ## **2. Repository Structure**
 
@@ -27,6 +29,7 @@ The repository is organized into `apps` (deployable applications) and `packages`
 │   └── server/       # Backend server (Fastify + tRPC)
 ├── packages/
 │   ├── api/          # Shared tRPC router and procedure definitions
+│   ├── eslint-config/ # Shared ESLint config
 │   └── typescript-config/ # Shared TSConfig bases
 ├── package.json      # Root manifest (Workspaces + Turbo config)
 ├── pnpm-workspace.yaml # Monorepo workspace definition
@@ -41,6 +44,7 @@ The repository is organized into `apps` (deployable applications) and `packages`
 ### **2.2 Packages**
 
 - **api**: Contains the `appRouter` definition, Zod schemas, and context creators. This is imported by `server` (to implement) and `web` (to consume types), ensuring perfect type synchronization.
+- **eslint-config**: Shared ESLint flat-config presets consumed by every workspace.
 - **typescript-config**: Centralized `tsconfig.json` files to ensure consistent compiler options across the monorepo.
 
 ## **3. UI Design Guidelines**
@@ -69,7 +73,8 @@ Testing is a critical part of the architecture and should follow this split:
 
 - **Tool**: [Playwright](https://playwright.dev/).
 - **Scope**: Critical user journeys (Login, Data submission, etc.).
-- **Location**: A dedicated `e2e` folder or within `apps/web`.
+- **Location**: `apps/web/tests/`.
+- **Run**: `pnpm test:e2e` (root) or `pnpm --filter web test:e2e`.
 
 ## **5. Development Workflow**
 
