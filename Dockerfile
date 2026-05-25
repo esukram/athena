@@ -21,13 +21,11 @@ COPY packages/api/package.json ./packages/api/
 COPY packages/eslint-config/package.json ./packages/eslint-config/
 COPY packages/typescript-config/package.json ./packages/typescript-config/
 
-RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store \
-    CI=true pnpm install --frozen-lockfile
+RUN CI=true pnpm install --frozen-lockfile
 
 COPY . .
 RUN pnpm build
-RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store \
-    pnpm deploy --filter-prod=server --prod --legacy /prod/server
+RUN pnpm deploy --filter-prod=server --prod --legacy /prod/server
 
 FROM base AS runner
 RUN groupadd --system --gid 1001 nodejs && \
