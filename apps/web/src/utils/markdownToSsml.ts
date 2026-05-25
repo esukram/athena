@@ -18,6 +18,7 @@ interface MdNode {
   type: string;
   value?: string;
   url?: string;
+  depth?: number;
   children?: MdNode[];
 }
 
@@ -78,8 +79,12 @@ function renderNode(node: MdNode): string {
     case 'root':
       return renderChildren(node);
 
-    case 'heading':
-      return `${emphasize(renderChildren(node), 'strong')}<break time="600ms"/>`;
+    case 'heading': {
+      // H1/H2 get a longer pause so the server's ssml→markup converter maps
+      // them to `[pause long]`; H3+ stays at the paragraph tier.
+      const breakMs = (node.depth ?? 0) <= 2 ? '900ms' : '600ms';
+      return `${emphasize(renderChildren(node), 'strong')}<break time="${breakMs}"/>`;
+    }
 
     case 'paragraph':
       return `${renderChildren(node)}<break time="600ms"/>`;
@@ -113,8 +118,11 @@ function renderNode(node: MdNode): string {
       // A list item's paragraph child already emits a trailing break.
       return renderChildren(node);
 
-    case 'blockquote':
-      return renderChildren(node);
+    case 'blockquote': {
+      const inner = renderChildren(node);
+      if (!inner.trim()) return '';
+      return `<break time="600ms"/>${inner}<break time="600ms"/>`;
+    }
 
     case 'thematicBreak':
       return '<break time="800ms"/>';

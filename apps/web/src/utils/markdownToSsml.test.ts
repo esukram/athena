@@ -16,6 +16,28 @@ describe('markdownToSsml', () => {
   it('maps headings to strong emphasis', () => {
     const ssml = markdownToSsml('# Big Title');
     expect(ssml).toContain('<emphasis level="strong">Big Title</emphasis>');
+    expect(ssml).toContain('<break time="900ms"/>');
+  });
+
+  it('emits a long break for H2 headings', () => {
+    const ssml = markdownToSsml('## Sub');
+    expect(ssml).toContain('<emphasis level="strong">Sub</emphasis>');
+    expect(ssml).toContain('<break time="900ms"/>');
+  });
+
+  it('keeps the paragraph-tier break for H3 and below', () => {
+    const ssml = markdownToSsml('### Sub-sub');
+    expect(ssml).toContain('<emphasis level="strong">Sub-sub</emphasis>');
+    expect(ssml).toContain('<break time="600ms"/>');
+    expect(ssml).not.toContain('<break time="900ms"/>');
+  });
+
+  it('wraps blockquotes with surrounding breaks', () => {
+    const ssml = markdownToSsml('> a quote');
+    // Leading + trailing break around the quoted content.
+    expect(ssml).toMatch(
+      /<break time="600ms"\/>\s*a quote\s*<break time="600ms"\/>/,
+    );
   });
 
   it('maps bold text to strong emphasis', () => {

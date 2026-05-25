@@ -3,7 +3,11 @@ import * as fs from 'node:fs';
 
 import type { SpeechFormat, SpeechResult, SpeechService } from '@athena/api';
 
-import { chunkText, estimateDuration, stripSsml } from './tts-utils.js';
+import {
+  chunkText,
+  estimateDuration,
+  ssmlToChirp3Markup,
+} from './tts-utils.js';
 
 const GOOGLE_TTS_ENDPOINT =
   'https://texttospeech.googleapis.com/v1/text:synthesize';
@@ -145,9 +149,10 @@ export function createGoogleSpeechService(): SpeechService | undefined {
       language: 'de' | 'en',
       format: SpeechFormat = 'text',
     ): Promise<SpeechResult> {
-      // Chirp 3 HD only supports phoneme/say-as/sub/p/s SSML tags, not the
-      // emphasis/break/prosody tags `markdownToSsml` emits, so fall back to text.
-      const input = format === 'ssml' ? stripSsml(text) : text;
+      // Chirp 3 HD doesn't accept SSML `<break>`/`<emphasis>`/`<prosody>`, but
+      // it does accept inline `[pause …]` markers via `input.markup`. Convert
+      // the SSML body so structural pauses survive; plain text passes through.
+      const input = format === 'ssml' ? ssmlToChirp3Markup(text) : text;
       const voice = voiceOverride || DEFAULT_VOICE[language];
       const chunks = chunkText(input, MAX_INPUT_BYTES);
       console.log(
@@ -164,6 +169,12 @@ export function createGoogleSpeechService(): SpeechService | undefined {
       const accessToken = await getAccessToken();
 
       async function synthesizeChunk(chunk: string): Promise<Buffer> {
+        // `input.markup` is required to honor `[pause …]` markers; match a
+        // complete token so user content containing the literal `[pause` (e.g.
+        // a code block discussing markup) stays on the plain-text path.
+        const inputField = /\[pause(?: short| long)?\]/.test(chunk)
+          ? { markup: chunk }
+          : { text: chunk };
         const response = await fetch(GOOGLE_TTS_ENDPOINT, {
           method: 'POST',
           headers: {
@@ -171,7 +182,7 @@ export function createGoogleSpeechService(): SpeechService | undefined {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            input: { text: chunk },
+            input: inputField,
             voice: { languageCode: LANGUAGE_CODE[language], name: voice },
             audioConfig: { audioEncoding: 'MP3' },
           }),
