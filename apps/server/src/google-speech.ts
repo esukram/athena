@@ -3,7 +3,11 @@ import * as fs from 'node:fs';
 
 import type { SpeechFormat, SpeechResult, SpeechService } from '@athena/api';
 
-import { chunkText, estimateDuration, ssmlToChirp3Markup } from './tts-utils.js';
+import {
+  chunkText,
+  estimateDuration,
+  ssmlToChirp3Markup,
+} from './tts-utils.js';
 
 const GOOGLE_TTS_ENDPOINT =
   'https://texttospeech.googleapis.com/v1/text:synthesize';

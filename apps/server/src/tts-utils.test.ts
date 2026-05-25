@@ -40,19 +40,23 @@ describe('ssmlToChirp3Markup', () => {
   });
 
   it('strips <emphasis> but keeps the inner text', () => {
-    const out = ssmlToChirp3Markup('Hello <emphasis level="strong">World</emphasis>');
+    const out = ssmlToChirp3Markup(
+      'Hello <emphasis level="strong">World</emphasis>',
+    );
     expect(out).toBe('Hello World');
   });
 
   it('strips <prosody> but keeps the inner text', () => {
-    const out = ssmlToChirp3Markup('Run <prosody rate="-20%">npm install</prosody> now');
+    const out = ssmlToChirp3Markup(
+      'Run <prosody rate="-20%">npm install</prosody> now',
+    );
     expect(out).toBe('Run npm install now');
   });
 
   it('decodes XML entities', () => {
-    expect(ssmlToChirp3Markup('a &amp; b &lt; c &gt; d &quot;e&quot; &apos;f&apos;')).toBe(
-      'a & b < c > d "e" \'f\'',
-    );
+    expect(
+      ssmlToChirp3Markup('a &amp; b &lt; c &gt; d &quot;e&quot; &apos;f&apos;'),
+    ).toBe('a & b < c > d "e" \'f\'');
   });
 
   it('decodes &amp; last so &amp;gt; becomes &gt; (not >)', () => {
@@ -86,7 +90,11 @@ describe('chunkText with Chirp3 markup', () => {
   it('never splits a [pause …] token across chunks', () => {
     // Build a body well over the byte budget so chunking actually happens.
     const sentence = 'This is a moderately long sentence used to fill bytes. ';
-    const body = (sentence.repeat(20) + '[pause long] ' + sentence.repeat(20)).trim();
+    const body = (
+      sentence.repeat(20) +
+      '[pause long] ' +
+      sentence.repeat(20)
+    ).trim();
     const chunks = chunkText(body, 200);
     expect(chunks.length).toBeGreaterThan(1);
     for (const chunk of chunks) {
