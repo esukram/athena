@@ -14,7 +14,7 @@ RUN apt-get update && \
 WORKDIR /app
 
 # Copy only manifests first so the install layer caches across source changes.
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc* ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY apps/web/package.json ./apps/web/
 COPY apps/server/package.json ./apps/server/
 COPY packages/api/package.json ./packages/api/
