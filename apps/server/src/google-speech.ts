@@ -4,9 +4,9 @@ import * as fs from 'node:fs';
 import type { SpeechFormat, SpeechResult, SpeechService } from '@athena/api';
 
 import {
+  PAUSE_MARKER,
   chunkText,
   estimateDuration,
-  PAUSE_MARKER,
   ssmlToChirp3Markup,
 } from './tts-utils.js';
 
