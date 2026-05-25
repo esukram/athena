@@ -169,9 +169,10 @@ export function createGoogleSpeechService(): SpeechService | undefined {
       const accessToken = await getAccessToken();
 
       async function synthesizeChunk(chunk: string): Promise<Buffer> {
-        // `input.markup` is required to honor `[pause …]` markers; for chunks
-        // without any marker, stay on `text` to avoid the markup code path.
-        const inputField = chunk.includes('[pause')
+        // `input.markup` is required to honor `[pause …]` markers; match a
+        // complete token so user content containing the literal `[pause` (e.g.
+        // a code block discussing markup) stays on the plain-text path.
+        const inputField = /\[pause(?: short| long)?\]/.test(chunk)
           ? { markup: chunk }
           : { text: chunk };
         const response = await fetch(GOOGLE_TTS_ENDPOINT, {

@@ -2,27 +2,6 @@
 const WORDS_PER_SECOND = 2.5;
 
 /**
- * Strips SSML markup down to plain text. `markdownToSsml` only emits
- * `<emphasis>`, `<break>` and `<prosody>` tags; adapters whose provider does
- * not support those tags call this to fall back to clean, readable text.
- *
- * XML entities are decoded back to their characters so the provider speaks
- * them naturally rather than reading the literal `&gt;` / `&amp;`. `&amp;`
- * is decoded last so an encoded entity like `&amp;gt;` is not double-decoded.
- */
-export function stripSsml(body: string): string {
-  return body
-    .replace(/<[^>]*>/g, ' ')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&quot;/g, '"')
-    .replace(/&apos;/g, "'")
-    .replace(/&amp;/g, '&')
-    .replace(/\s+/g, ' ')
-    .trim();
-}
-
-/**
  * Converts an SSML body to a Chirp 3 HD markup body. `<break time="…ms"/>`
  * tags become inline `[pause …]` markers — the only structural pause control
  * Chirp 3 HD accepts; every other tag (`<emphasis>`, `<prosody>`, …) is
@@ -82,12 +61,13 @@ export function chunkText(text: string, maxBytes: number): string[] {
       current = sentence;
       continue;
     }
-    // Sentence alone exceeds the limit: pack it word by word.
-    for (const word of sentence.split(/(\s+)/)) {
-      if (current && Buffer.byteLength(current + word, 'utf8') > maxBytes) {
+    // Sentence alone exceeds the limit: pack it word by word. Keep
+    // `[pause …]` markers atomic so the Chirp 3 markup token survives.
+    for (const piece of sentence.split(/(\[pause(?: short| long)?\]|\s+)/)) {
+      if (current && Buffer.byteLength(current + piece, 'utf8') > maxBytes) {
         flush();
       }
-      current += word;
+      current += piece;
     }
   }
   flush();

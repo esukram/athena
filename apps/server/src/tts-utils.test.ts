@@ -87,8 +87,7 @@ describe('ssmlToChirp3Markup', () => {
 });
 
 describe('chunkText with Chirp3 markup', () => {
-  it('never splits a [pause …] token across chunks', () => {
-    // Build a body well over the byte budget so chunking actually happens.
+  it('never splits a [pause …] token across chunks at sentence boundaries', () => {
     const sentence = 'This is a moderately long sentence used to fill bytes. ';
     const body = (
       sentence.repeat(20) +
@@ -97,12 +96,34 @@ describe('chunkText with Chirp3 markup', () => {
     ).trim();
     const chunks = chunkText(body, 200);
     expect(chunks.length).toBeGreaterThan(1);
-    for (const chunk of chunks) {
-      // Any `[` in a chunk must be followed by a complete `[pause …]` token.
-      const tokens = chunk.match(/\[[^\]]*\]?/g) ?? [];
-      for (const token of tokens) {
-        expect(token).toMatch(/^\[pause( short| long)?\]$/);
-      }
-    }
+    assertPauseTokensIntact(chunks);
+  });
+
+  it('keeps [pause …] atomic inside an over-long unpunctuated sentence', () => {
+    // No `.!?` anywhere, so chunkText falls through to the word-splitting
+    // branch — the only path where a marker could be torn in half.
+    const clause = 'word '.repeat(80);
+    const body = (clause + '[pause long] ' + clause).trim();
+    const chunks = chunkText(body, 200);
+    expect(chunks.length).toBeGreaterThan(1);
+    assertPauseTokensIntact(chunks);
+    // And the marker must appear, intact, in exactly one chunk.
+    const withMarker = chunks.filter((c) => c.includes('[pause long]'));
+    expect(withMarker).toHaveLength(1);
   });
 });
+
+function assertPauseTokensIntact(chunks: string[]): void {
+  for (const chunk of chunks) {
+    // Any `[` or `]` in a chunk must belong to a complete `[pause …]` token.
+    const fragments = chunk.match(/\[[^\]]*\]?|\][^[]*/g) ?? [];
+    for (const fragment of fragments) {
+      if (fragment.startsWith('[')) {
+        expect(fragment).toMatch(/^\[pause( short| long)?\]$/);
+      } else {
+        // A bare `]` with no preceding `[` means a token was torn.
+        expect(fragment).not.toMatch(/^\]/);
+      }
+    }
+  }
+}
