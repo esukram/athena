@@ -22,6 +22,33 @@ export function stripSsml(body: string): string {
     .trim();
 }
 
+/**
+ * Converts an SSML body to a Chirp 3 HD markup body. `<break time="…ms"/>`
+ * tags become inline `[pause …]` markers — the only structural pause control
+ * Chirp 3 HD accepts; every other tag (`<emphasis>`, `<prosody>`, …) is
+ * stripped so its inner text is still spoken. Plain input passes through.
+ *
+ * Tier mapping is duration-based so the single source of truth stays in
+ * `markdownToSsml`: ≥800ms → long, 400–799ms → default, <400ms → short.
+ */
+export function ssmlToChirp3Markup(body: string): string {
+  return body
+    .replace(/<break\s+time="(\d+)ms"\s*\/>/g, (_match, ms: string) => {
+      const duration = Number(ms);
+      if (duration >= 800) return ' [pause long] ';
+      if (duration >= 400) return ' [pause] ';
+      return ' [pause short] ';
+    })
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&apos;/g, "'")
+    .replace(/&amp;/g, '&')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 /** Rough duration estimate in ms; `SpeechResult.duration` is unused client-side. */
 export function estimateDuration(text: string): number {
   const words = text.split(/\s+/).filter(Boolean).length;

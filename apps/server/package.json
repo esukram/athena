@@ -6,7 +6,8 @@
     "dev": "tsx watch src/index.ts",
     "build": "tsc",
     "lint": "eslint .",
-    "format": "prettier --write \"src/**/*.ts\" \"*.{js,ts,json}\""
+    "format": "prettier --write \"src/**/*.ts\" \"*.{js,ts,json}\"",
+    "test": "vitest run"
   },
   "dependencies": {
     "@athena/api": "workspace:*",
@@ -26,6 +27,7 @@
     "@types/node": "^25.9.1",
     "eslint": "^9.39.4",
     "tsx": "^4.21.0",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.0"
   }
 }
