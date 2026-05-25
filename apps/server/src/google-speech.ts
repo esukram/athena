@@ -6,6 +6,7 @@ import type { SpeechFormat, SpeechResult, SpeechService } from '@athena/api';
 import {
   chunkText,
   estimateDuration,
+  PAUSE_MARKER,
   ssmlToChirp3Markup,
 } from './tts-utils.js';
 
@@ -213,9 +214,7 @@ export function createGoogleSpeechService(): SpeechService | undefined {
       return {
         audioData: Buffer.concat(parts).toString('base64'),
         // Strip `[pause …]` markers so they don't inflate the spoken-word count.
-        duration: estimateDuration(
-          input.replace(/\[pause(?: short| long)?\]/g, ''),
-        ),
+        duration: estimateDuration(input.replace(PAUSE_MARKER, '')),
       };
     },
   };

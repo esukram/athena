@@ -1,6 +1,9 @@
 /** Average speaking rate (~150 wpm) used only to estimate clip duration. */
 const WORDS_PER_SECOND = 2.5;
 
+/** Matches a Chirp 3 HD pause marker token (`[pause]`, `[pause short]`, `[pause long]`). */
+export const PAUSE_MARKER = /\[pause(?: short| long)?\]/g;
+
 /**
  * Converts an SSML body to a Chirp 3 HD markup body. `<break time="…">` tags
  * become inline `[pause …]` markers — the structural pause control we use

@@ -74,6 +74,13 @@ function hasSpokenText(node: MdNode): boolean {
   }
 }
 
+/**
+ * Renders an mdast node to SSML. Note: only `<break>` tags survive the
+ * server-side `ssmlToChirp3Markup` pass — any other tag added here (e.g.
+ * `<say-as>` for dates/numbers) will be stripped to its inner text before
+ * Chirp 3 HD sees it. Coordinate with `apps/server/src/tts-utils.ts` if you
+ * introduce a new tag that needs to reach the synthesizer.
+ */
 function renderNode(node: MdNode): string {
   switch (node.type) {
     case 'root':
