@@ -74,6 +74,13 @@ function hasSpokenText(node: MdNode): boolean {
   }
 }
 
+/**
+ * Renders an mdast node to SSML. Note: only `<break>` tags survive the
+ * server-side `ssmlToChirp3Markup` pass — any other tag added here (e.g.
+ * `<say-as>` for dates/numbers) will be stripped to its inner text before
+ * Chirp 3 HD sees it. Coordinate with `apps/server/src/tts-utils.ts` if you
+ * introduce a new tag that needs to reach the synthesizer.
+ */
 function renderNode(node: MdNode): string {
   switch (node.type) {
     case 'root':
@@ -118,11 +125,11 @@ function renderNode(node: MdNode): string {
       // A list item's paragraph child already emits a trailing break.
       return renderChildren(node);
 
-    case 'blockquote': {
-      const inner = renderChildren(node);
-      if (!inner.trim()) return '';
-      return `<break time="600ms"/>${inner}<break time="600ms"/>`;
-    }
+    case 'blockquote':
+      // The inner paragraph already emits a trailing break; wrapping with
+      // extra breaks here both produces leading silence when the quote is the
+      // first block, and is absorbed by the adjacent-break collapse below.
+      return renderChildren(node);
 
     case 'thematicBreak':
       return '<break time="800ms"/>';

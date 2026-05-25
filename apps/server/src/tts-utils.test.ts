@@ -67,6 +67,15 @@ describe('ssmlToChirp3Markup', () => {
     expect(ssmlToChirp3Markup('  just plain text  ')).toBe('just plain text');
   });
 
+  it('accepts single-quoted break attributes', () => {
+    expect(ssmlToChirp3Markup("a<break time='600ms'/>b")).toBe('a [pause] b');
+  });
+
+  it('accepts breaks expressed in seconds', () => {
+    expect(ssmlToChirp3Markup('a<break time="1s"/>b')).toBe('a [pause long] b');
+    expect(ssmlToChirp3Markup('a<break time="0.5s"/>b')).toBe('a [pause] b');
+  });
+
   it('preserves composite ordering of words and pause markers', () => {
     const out = ssmlToChirp3Markup(
       'Hello<break time="600ms"/><emphasis level="strong">World</emphasis><break time="900ms"/>',

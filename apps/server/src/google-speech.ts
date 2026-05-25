@@ -4,6 +4,7 @@ import * as fs from 'node:fs';
 import type { SpeechFormat, SpeechResult, SpeechService } from '@athena/api';
 
 import {
+  PAUSE_MARKER,
   chunkText,
   estimateDuration,
   ssmlToChirp3Markup,
@@ -168,13 +169,15 @@ export function createGoogleSpeechService(): SpeechService | undefined {
 
       const accessToken = await getAccessToken();
 
+      // Route by `format`, not by per-chunk content: `ssmlToChirp3Markup` is
+      // the only producer of `[pause …]` markers we trust, so SSML input goes
+      // through `input.markup`. Plain-text input must never be reinterpreted
+      // as markup — a user prompt containing the literal `[pause]` would
+      // otherwise be silenced instead of spoken.
+      const useMarkup = format === 'ssml';
+
       async function synthesizeChunk(chunk: string): Promise<Buffer> {
-        // `input.markup` is required to honor `[pause …]` markers; match a
-        // complete token so user content containing the literal `[pause` (e.g.
-        // a code block discussing markup) stays on the plain-text path.
-        const inputField = /\[pause(?: short| long)?\]/.test(chunk)
-          ? { markup: chunk }
-          : { text: chunk };
+        const inputField = useMarkup ? { markup: chunk } : { text: chunk };
         const response = await fetch(GOOGLE_TTS_ENDPOINT, {
           method: 'POST',
           headers: {
@@ -210,7 +213,8 @@ export function createGoogleSpeechService(): SpeechService | undefined {
 
       return {
         audioData: Buffer.concat(parts).toString('base64'),
-        duration: estimateDuration(input),
+        // Strip `[pause …]` markers so they don't inflate the spoken-word count.
+        duration: estimateDuration(input.replace(PAUSE_MARKER, '')),
       };
     },
   };

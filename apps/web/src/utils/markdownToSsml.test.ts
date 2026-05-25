@@ -32,12 +32,13 @@ describe('markdownToSsml', () => {
     expect(ssml).not.toContain('<break time="900ms"/>');
   });
 
-  it('wraps blockquotes with surrounding breaks', () => {
+  it('renders a leading blockquote without artificial silence', () => {
     const ssml = markdownToSsml('> a quote');
-    // Leading + trailing break around the quoted content.
-    expect(ssml).toMatch(
-      /<break time="600ms"\/>\s*a quote\s*<break time="600ms"\/>/,
-    );
+    // The inner paragraph emits its own trailing break; the blockquote
+    // shouldn't prepend a leading break that produces silence at the start.
+    expect(ssml).not.toMatch(/^<break/);
+    expect(ssml).toContain('a quote');
+    expect(ssml).toContain('<break time="600ms"/>');
   });
 
   it('maps bold text to strong emphasis', () => {
