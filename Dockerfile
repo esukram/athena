@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1.7
 FROM node:26-slim AS base
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
@@ -11,10 +12,22 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends python3 make g++ && \
     rm -rf /var/lib/apt/lists/*
 WORKDIR /app
+
+# Copy only manifests first so the install layer caches across source changes.
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc* ./
+COPY apps/web/package.json ./apps/web/
+COPY apps/server/package.json ./apps/server/
+COPY packages/api/package.json ./packages/api/
+COPY packages/eslint-config/package.json ./packages/eslint-config/
+COPY packages/typescript-config/package.json ./packages/typescript-config/
+
+RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store \
+    CI=true pnpm install --frozen-lockfile
+
 COPY . .
-RUN CI=true pnpm install --frozen-lockfile
 RUN pnpm build
-RUN pnpm deploy --filter-prod=server --prod --legacy /prod/server
+RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store \
+    pnpm deploy --filter-prod=server --prod --legacy /prod/server
 
 FROM base AS runner
 RUN groupadd --system --gid 1001 nodejs && \
@@ -33,9 +46,6 @@ COPY --from=builder --chown=athena:nodejs /app/apps/web/dist ./public
 
 # Setup directories
 RUN mkdir -p /data && chown -R athena:nodejs /data
-
-# Cleanup build artifacts
-RUN find /app -name ".turbo" -type d -exec rm -rf {} +
 
 USER athena
 VOLUME /data
