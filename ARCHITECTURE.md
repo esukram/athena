@@ -14,7 +14,7 @@ This document outlines the architectural design, directory structure, and techni
 | **Backend**         | Fastify    | v5.8.x   | Low overhead web framework for Node.js.                         |
 | **Communication**   | tRPC       | v11.x    | End-to-end typesafe APIs.                                       |
 | **Database**        | SQLite     | v12.8.x  | Lightweight relational database, via `better-sqlite3`.          |
-| **Speech**          | Azure TTS  | v1.48.x  | Microsoft Cognitive Services SDK for SSML-driven synthesis.     |
+| **Speech**          | Pluggable  | —        | TTS provider selected via `TTS_PROVIDER` env var: Azure Cognitive Services SDK (SSML) or Google Cloud TTS REST (Chirp3-HD). |
 | **i18n**            | i18next    | v26.x    | UI translation framework (English + German with auto-detection).|
 | **Formatting**      | Prettier   | v3.x     | Opinionated code formatter.                                     |
 

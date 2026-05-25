@@ -27,7 +27,7 @@ Athena uses a strict three-tier hierarchy to keep learning materials organized:
   - Front/Back card design for questions and answers.
   - Support for rich text, code snippets, and images.
 - **Voice Interaction & Evaluation:** The app reads questions aloud, allows users to respond via voice, and provides AI-driven evaluation on correctness and feedback.
-  - Powered by Azure Cognitive Services TTS with SSML for fine-grained pacing and prosody, and support for multiple voices across English and German.
+  - Pluggable TTS backend selected via the `TTS_PROVIDER` env var — currently Azure Cognitive Services (SSML-driven) and Google Cloud TTS (Chirp3-HD with `[pause]` markup), with multi-voice support across English and German.
 - **Training Mode:** Shuffle/randomized review with auto-advance, and progress-aware ordering that surfaces unreviewed questions first.
 - **Progress Tracking:** Visual indicators of mastery for each topic.
 - **Localization:** Full UI in English and German, with browser-language auto-detection.
