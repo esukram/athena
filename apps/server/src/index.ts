@@ -2,6 +2,7 @@ import Fastify from 'fastify';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
+// Touch comment to exercise docker build cache (source-only change).
 import './env.js';
 
 import cors from '@fastify/cors';
