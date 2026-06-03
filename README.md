@@ -70,6 +70,73 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for more information on the architecture 
 4. Start the development server:
    pnpm dev
 
+## **🔒 Deployment Recommendation**
+
+Athena ships **no application-level authentication** — every API route is public by
+design, so the server is meant to run **behind a reverse proxy that owns the
+security boundary**. The reference deployment is single-user and looks like this:
+
+```
+Internet ──HTTPS──▶ nginx ──HTTP (loopback/internal)──▶ Athena (:4000)
+                     │
+                     ├─ TLS termination (HTTPS only, HSTS, HTTP→HTTPS redirect)
+                     ├─ HTTP Basic Auth  (single user, strong password)
+                     └─ fail2ban         (bans IPs after repeated 401s)
+```
+
+**Recommended controls**
+
+- **Reverse proxy + TLS:** terminate HTTPS at nginx and redirect all plain HTTP to
+  HTTPS. Basic Auth credentials must never travel over an unencrypted connection.
+- **HTTP Basic Auth at nginx:** gate the whole site. Use a strong, unique password
+  and make sure the `auth_basic` block covers **every** path — the SPA, static
+  assets, **and** the `/api/` routes — not just the app root.
+- **fail2ban:** watch the proxy's auth log and ban IPs after repeated failed
+  Basic Auth attempts to blunt brute-force / credential-stuffing.
+- **⚠️ Do not expose the app port directly.** Athena binds `0.0.0.0:4000` inside the
+  container. Publish it **only** to the proxy — bind to loopback
+  (`-p 127.0.0.1:4000:4000`) or keep it on an internal Docker network with no host
+  port mapping. If `:4000` is reachable from the internet, the proxy (and therefore
+  all authentication) is bypassed entirely.
+
+**Example nginx server block**
+
+```nginx
+server {
+    listen 443 ssl;
+    server_name athena.example.com;
+
+    ssl_certificate     /etc/letsencrypt/live/athena.example.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/athena.example.com/privkey.pem;
+    add_header Strict-Transport-Security "max-age=31536000" always;
+
+    location / {
+        auth_basic           "Athena";
+        auth_basic_user_file /etc/nginx/.htpasswd;   # htpasswd -B -c ... athena
+
+        proxy_pass         http://127.0.0.1:4000;
+        proxy_set_header   Host              $host;
+        proxy_set_header   X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header   X-Forwarded-Proto $scheme;
+        client_max_body_size 1m;                     # caps TTS fan-out / oversized rows
+    }
+}
+
+# Redirect HTTP → HTTPS
+server {
+    listen 80;
+    server_name athena.example.com;
+    return 301 https://$host$request_uri;
+}
+```
+
+**If you use a cloud TTS provider** (Azure / Google), also set a **spend/quota cap or
+budget alert** on the provider side and mount the service-account key **read-only**.
+This bounds cost if a request ever triggers a large synthesis fan-out.
+
+> A full security review of the codebase, including the rationale behind these
+> recommendations, is available in [SECURITY_AUDIT.md](SECURITY_AUDIT.md).
+
 ## **📄 License**
 
 Distributed under the GNU Affero General Public License v3.0. See [LICENSE](LICENSE) for more information.
