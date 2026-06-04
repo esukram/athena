@@ -231,11 +231,8 @@ export const LectureLearn = () => {
     } else {
       pendingAutoStartRef.current = false;
     }
-    // `voiceToggle` is deliberately excluded from the deps: the voice hook
-    // returns a fresh `toggle` identity on every render, so including it would
-    // re-run this effect constantly. Its behavior is stable and it is invoked
-    // exactly once per resume (right after the pending flag is cleared).
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // `voiceToggle` now has a stable identity (memoized in the voice hook), so
+    // it can be a real dependency without re-running this effect every render.
   }, [
     voiceStatus,
     autoAdvance,
@@ -246,6 +243,7 @@ export const LectureLearn = () => {
     chapters,
     id,
     navigate,
+    voiceToggle,
   ]);
 
   if (lectureQuery.isLoading || chaptersQuery.isLoading) {
