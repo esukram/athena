@@ -265,4 +265,44 @@ describe('useChapterVoicePlayback', () => {
 
     expect(result.current.toggle).toBe(firstToggle);
   });
+
+  it('reads fresh questions/language after a prop update (in-effect ref mirror)', async () => {
+    const { result, rerender } = renderHook(
+      (props: { questions: Question[]; language: 'de' | 'en' }) =>
+        useChapterVoicePlayback({
+          questions: props.questions,
+          language: props.language,
+          enabled: true,
+          chapterId: 'c1',
+        }),
+      {
+        initialProps: { questions: makeQuestions(1), language: 'en' as const },
+      },
+    );
+
+    // Props change after the first render. The runner reads `questions` and
+    // `language` through refs mirrored in a (layout) effect, so it must pick up
+    // the updated values — never the render-0 snapshot (1 question / 'en').
+    act(() => rerender({ questions: makeQuestions(3), language: 'de' }));
+
+    act(() => result.current.toggle());
+    await flush();
+
+    // languageRef is fresh: synthesis is requested in 'de'.
+    expect(mutateAsync).toHaveBeenLastCalledWith(
+      expect.objectContaining({ language: 'de' }),
+    );
+
+    // questionsRef is fresh: advancing past q0 is only possible with the
+    // updated 3-question array (the initial props had a single question).
+    await act(async () => lastAudio().end()); // q0 question
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(400);
+    });
+    await act(async () => lastAudio().end()); // q0 answer
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(1000);
+    });
+    expect(result.current.currentQuestionIndex).toBe(1);
+  });
 });
