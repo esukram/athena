@@ -14,6 +14,15 @@ export const config = [
   eslintConfigPrettier,
   ...tseslint.configs.recommended,
   {
+    // Fail on `eslint-disable` directives that no longer suppress anything, so
+    // stale suppressions can't silently accumulate after a plugin/rule upgrade
+    // (exactly how the old react-hooks suppression in EditChapterModal became
+    // dead). The repo is clean of unused directives as of this change.
+    linterOptions: {
+      reportUnusedDisableDirectives: "error",
+    },
+  },
+  {
     plugins: {
       turbo: turboPlugin,
     },
