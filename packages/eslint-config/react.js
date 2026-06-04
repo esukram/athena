@@ -35,7 +35,11 @@ export const config = [
     },
     rules: {
       ...react.configs.recommended.rules,
-      ...reactHooks.configs.recommended.rules,
+      // Flat-config namespace for eslint-plugin-react-hooks v7. Equivalent rule
+      // set to the legacy `configs.recommended.rules` accessor (verified), but
+      // the canonical path for flat config — and deliberately not
+      // `recommended-latest`, which pulls in newer/experimental rules.
+      ...reactHooks.configs.flat.recommended.rules,
       "react-refresh/only-export-components": [
         "warn",
         { allowConstantExport: true },
