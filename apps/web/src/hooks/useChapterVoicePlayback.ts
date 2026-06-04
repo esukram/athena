@@ -1,4 +1,10 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from 'react';
 
 import type { Question, SpeechFormat } from '@athena/api';
 
@@ -74,14 +80,21 @@ export function useChapterVoicePlayback({
 
   const synthesize = trpc.speech.synthesize.useMutation();
 
-  // Refs keep the runner reading fresh values without re-creating itself.
+  // Refs keep the runner — and the stable `toggle` callback — reading fresh
+  // values without re-creating themselves.
   const questionsRef = useRef(questions);
   const languageRef = useRef(language);
   const statusRef = useRef(status);
+  const enabledRef = useRef(enabled);
+  const synthesizeRef = useRef(synthesize);
+  // Holds the latest `run` so the memoized `toggle` never calls a stale runner.
+  const runRef = useRef<(startEpoch: number) => void>(() => {});
   useLayoutEffect(() => {
     questionsRef.current = questions;
     languageRef.current = language;
     statusRef.current = status;
+    enabledRef.current = enabled;
+    synthesizeRef.current = synthesize;
   });
 
   const epochRef = useRef(0);
@@ -164,7 +177,7 @@ export function useChapterVoicePlayback({
     speakingStatus: VoicePlaybackStatus,
   ): Promise<void> => {
     const startEpoch = epochRef.current;
-    const result = await synthesize.mutateAsync({
+    const result = await synthesizeRef.current.mutateAsync({
       text,
       language: languageRef.current,
       format,
@@ -248,8 +261,13 @@ export function useChapterVoicePlayback({
     }
   };
 
-  const toggle = (): void => {
-    if (!enabled) return;
+  // Mirror the freshest `run` so the stable `toggle` below dispatches to it.
+  useLayoutEffect(() => {
+    runRef.current = run;
+  });
+
+  const toggle = useCallback((): void => {
+    if (!enabledRef.current) return;
     const current = statusRef.current;
 
     if (current === 'idle' || current === 'finished' || current === 'error') {
@@ -261,7 +279,7 @@ export function useChapterVoicePlayback({
       pausedRef.current = false;
       setIsPaused(false);
       const startEpoch = ++epochRef.current;
-      void run(startEpoch);
+      void runRef.current(startEpoch);
       return;
     }
 
@@ -293,7 +311,7 @@ export function useChapterVoicePlayback({
       }
       audioRef.current?.pause();
     }
-  };
+  }, []);
 
   // Abort on chapter change and on unmount (single effect covers both).
   useEffect(() => {

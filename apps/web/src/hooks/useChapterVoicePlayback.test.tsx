@@ -243,4 +243,26 @@ describe('useChapterVoicePlayback', () => {
     expect(result.current.status).toBe('idle');
     expect(mutateAsync).not.toHaveBeenCalled();
   });
+
+  it('keeps a stable `toggle` identity across re-renders', async () => {
+    const { result, rerender } = renderHook(
+      (props: { language: 'de' | 'en'; enabled: boolean }) =>
+        useChapterVoicePlayback({
+          questions: makeQuestions(2),
+          language: props.language,
+          enabled: props.enabled,
+          chapterId: 'c1',
+        }),
+      { initialProps: { language: 'en' as const, enabled: true } },
+    );
+
+    const firstToggle = result.current.toggle;
+
+    // Re-render with changed props and after a state transition.
+    act(() => rerender({ language: 'de', enabled: true }));
+    act(() => result.current.toggle());
+    await flush();
+
+    expect(result.current.toggle).toBe(firstToggle);
+  });
 });
