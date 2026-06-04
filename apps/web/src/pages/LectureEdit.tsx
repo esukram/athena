@@ -26,9 +26,8 @@ export const EditLecture = () => {
   const navigate = useNavigate();
   const utils = trpc.useUtils();
 
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [isInitialized, setIsInitialized] = useState(false);
+  const [draftTitle, setDraftTitle] = useState<string | null>(null);
+  const [draftDescription, setDraftDescription] = useState<string | null>(null);
 
   const [newChapterQuestion, setNewChapterQuestion] = useState('');
   const [editingChapter, setEditingChapter] = useState<Chapter | null>(null);
@@ -44,9 +43,6 @@ export const EditLecture = () => {
   const [movingChapter, setMovingChapter] = useState<Chapter | null>(null);
   const [isSavingChapter, setIsSavingChapter] = useState(false);
 
-  // Track if questions have been synced for current editing chapter
-  const [questionsSynced, setQuestionsSynced] = useState(false);
-
   // Auto-save state
   const [showSavedToast, setShowSavedToast] = useState(false);
   const savedChapterIdRef = useRef<string | null>(null);
@@ -61,63 +57,6 @@ export const EditLecture = () => {
     Map<number, string> | undefined
   > | null>(null);
 
-  // Fetch questions for the editing chapter (only for existing chapters)
-  const chapterQuestionsQuery = trpc.questions.getQuestions.useQuery(
-    { chapterId: editingChapter?.id || '' },
-    { enabled: !!editingChapter?.id && !isCreatingNewChapter },
-  );
-
-  // Reset sync flag when modal closes
-  useEffect(() => {
-    if (!editingChapter) {
-      setQuestionsSynced(false);
-    }
-  }, [editingChapter]);
-
-  // Sync fetched questions to editing state when modal opens (only for existing chapters)
-  // This should only run ONCE when the data first loads, not on every change
-  useEffect(() => {
-    // Skip for new chapters - they're pre-populated in handleAddChapter
-    if (isCreatingNewChapter) return;
-
-    // Skip if we've already synced for this chapter
-    if (questionsSynced) return;
-
-    if (editingChapter && chapterQuestionsQuery.data !== undefined) {
-      const questions = chapterQuestionsQuery.data;
-      if (questions.length > 0) {
-        // Load existing questions from database
-        const mappedQuestions = questions.map((q, index) => ({
-          id: q.id,
-          question: q.question,
-          answer: q.answer,
-          order: q.order,
-          isExpanded: index === 0, // First question expanded by default
-          showPreview: false,
-        }));
-        setEditingQuestions(mappedQuestions);
-        setInitialQuestions(mappedQuestions.map((q) => ({ ...q })));
-      } else {
-        // No questions in DB (existing chapter with no questions)
-        const emptyQuestion: EditingQuestion = {
-          id: null,
-          question: '',
-          answer: '',
-          order: 0,
-          isExpanded: true,
-          showPreview: false,
-        };
-        setEditingQuestions([emptyQuestion]);
-        setInitialQuestions([{ ...emptyQuestion }]);
-      }
-      setQuestionsSynced(true);
-    }
-  }, [
-    editingChapter,
-    chapterQuestionsQuery.data,
-    isCreatingNewChapter,
-    questionsSynced,
-  ]);
 
   const lectureQuery = trpc.lectures.getLecture.useQuery(
     { id: id! },
@@ -126,14 +65,8 @@ export const EditLecture = () => {
     },
   );
 
-  // Handle lecture data initialization
-  useEffect(() => {
-    if (lectureQuery.data && !isInitialized) {
-      setTitle(lectureQuery.data.title);
-      setDescription(lectureQuery.data.description);
-      setIsInitialized(true);
-    }
-  }, [lectureQuery.data, isInitialized]);
+  const title = draftTitle ?? (lectureQuery.data?.title ?? '');
+  const description = draftDescription ?? (lectureQuery.data?.description ?? '');
 
   const chaptersQuery = trpc.chapters.getChapters.useQuery(
     { lectureId: id! },
@@ -413,17 +346,56 @@ export const EditLecture = () => {
     setEditingQuestions([newQuestion]);
     setInitialAssociation('');
     setInitialQuestions([{ ...newQuestion }]);
-    setQuestionsSynced(true); // Enable auto-save for new chapters
     setNewChapterQuestion('');
   };
 
   const handleStartEdit = async (chapter: Chapter) => {
     setEditingChapter(chapter);
-    setIsCreatingNewChapter(false); // Ensure we're in edit mode, not create mode
+    setIsCreatingNewChapter(false);
     setEditingAssociation(chapter.association);
     setInitialAssociation(chapter.association);
-    setEditingQuestions([]); // Will be populated by useEffect when query loads
-    setInitialQuestions([]); // Will be populated by useEffect when query loads
+    setEditingQuestions([]);
+    setInitialQuestions([]);
+
+    try {
+      const questions = await utils.questions.getQuestions.fetch({
+        chapterId: chapter.id,
+      });
+      if (questions.length > 0) {
+        const mappedQuestions = questions.map((q, index) => ({
+          id: q.id,
+          question: q.question,
+          answer: q.answer,
+          order: q.order,
+          isExpanded: index === 0,
+          showPreview: false,
+        }));
+        setEditingQuestions(mappedQuestions);
+        setInitialQuestions(mappedQuestions.map((q) => ({ ...q })));
+      } else {
+        const emptyQuestion: EditingQuestion = {
+          id: null,
+          question: '',
+          answer: '',
+          order: 0,
+          isExpanded: true,
+          showPreview: false,
+        };
+        setEditingQuestions([emptyQuestion]);
+        setInitialQuestions([{ ...emptyQuestion }]);
+      }
+    } catch {
+      const emptyQuestion: EditingQuestion = {
+        id: null,
+        question: '',
+        answer: '',
+        order: 0,
+        isExpanded: true,
+        showPreview: false,
+      };
+      setEditingQuestions([emptyQuestion]);
+      setInitialQuestions([{ ...emptyQuestion }]);
+    }
   };
 
   const handleSaveEdit = async () => {
@@ -648,7 +620,7 @@ export const EditLecture = () => {
                   type="text"
                   id="title"
                   value={title}
-                  onChange={(e) => setTitle(e.target.value)}
+                  onChange={(e) => setDraftTitle(e.target.value)}
                   required
                   className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-colors"
                   placeholder={t('lectureAdd.titlePlaceholder')}
@@ -665,7 +637,7 @@ export const EditLecture = () => {
                 <textarea
                   id="description"
                   value={description}
-                  onChange={(e) => setDescription(e.target.value)}
+                  onChange={(e) => setDraftDescription(e.target.value)}
                   required
                   rows={4}
                   className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-colors resize-none"

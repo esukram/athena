@@ -124,7 +124,6 @@ const TrainingSessionContent = ({
         });
       }
 
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSortedChapters(sorted);
       sortedLectureIdRef.current = lectureId;
     }
