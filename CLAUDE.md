@@ -38,3 +38,60 @@ stop and ask first. Instead:
   `web#test:e2e` (Playwright/Chromium), which is **not** covered by a local
   `pnpm test`. A green local `pnpm test` does not guarantee green CI; check the
   PR's `statusCheckRollup` / check runs for the e2e result.
+
+### react / react-dom version coupling (must always match)
+
+`react` and `react-dom` **must resolve to the exact same version** in the
+lockfile. A mismatch (e.g. `react@19.2.6` + `react-dom@19.2.4`) causes React
+to throw at mount; the app never renders, and all 44 Playwright e2e tests time
+out. The `build` / vitest jobs still pass, so the failure is only visible in CI
+`web#test:e2e`.
+
+When a Dependabot PR bumps `react` (or `react-dom`):
+
+1. Check both resolved versions in the lockfile:
+   ```
+   grep -A1 "^  react@" pnpm-lock.yaml | grep "resolution:"
+   grep -A1 "^  react-dom@" pnpm-lock.yaml | grep "resolution:"
+   ```
+2. If they differ, align **both** specifiers to `^X.Y.Z` using the **higher**
+   of the two resolved patch versions, then run `pnpm install --lockfile-only`
+   to regenerate.
+3. Confirm the lockfile now shows identical versions for both with no peer
+   warnings before committing and pushing to the Dependabot branch.
+
+### pnpm.overrides consistency check
+
+The root `package.json` contains a `pnpm.overrides` block that hard-pins
+certain packages. **Dependabot does not update `pnpm.overrides`** — it only
+updates `package.json` dependency specifiers and the lockfile.
+
+When a Dependabot PR bumps a package that also appears in `pnpm.overrides`:
+
+1. Compare the bumped version in `packages/*/package.json` against the value in
+   root `pnpm.overrides`.
+2. If they differ, update the root `pnpm.overrides` entry to match the new
+   version **before** running `pnpm install`. Failing to do this results in
+   `ERR_PNPM_LOCKFILE_CONFIG_MISMATCH` on `pnpm install --frozen-lockfile`.
+3. Regenerate the lockfile with `pnpm install` (unfrozen), then verify
+   `pnpm install --frozen-lockfile` passes cleanly.
+
+Known packages that appear in both workspace `package.json` files and root
+`pnpm.overrides`: `eslint-plugin-react-hooks`.
+
+### eslint-plugin lint-tightening
+
+When bumping an eslint plugin, run `pnpm lint` **after** fixing installation.
+New major/minor versions of eslint plugins often introduce stricter rules that
+flag previously-ignored patterns in application source.
+
+If `pnpm lint` fails with errors in application source files (not just config):
+
+1. Collect the full error list: files, line numbers, rule names, messages.
+2. Present the errors and the following options to the user before committing:
+   - **(A) Suppress** — add targeted `// eslint-disable-next-line <rule>` at
+     each error site with a brief justification comment.
+   - **(B) Refactor** — fix the flagged patterns properly (preferred if the
+     code change is small and clearly correct).
+   - **(C) Skip** — close the PR and keep the old plugin version.
+3. Do **not** blindly suppress errors without user approval.
