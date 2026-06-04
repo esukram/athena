@@ -33,7 +33,7 @@
       "@parcel/watcher"
     ],
     "overrides": {
-      "eslint-plugin-react-hooks": "7.0.1"
+      "eslint-plugin-react-hooks": "7.1.1"
     },
     "peerDependencyRules": {
       "allowedVersions": {

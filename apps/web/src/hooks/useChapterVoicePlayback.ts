@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 
 import type { Question, SpeechFormat } from '@athena/api';
 
@@ -76,11 +76,13 @@ export function useChapterVoicePlayback({
 
   // Refs keep the runner reading fresh values without re-creating itself.
   const questionsRef = useRef(questions);
-  questionsRef.current = questions;
   const languageRef = useRef(language);
-  languageRef.current = language;
   const statusRef = useRef(status);
-  statusRef.current = status;
+  useLayoutEffect(() => {
+    questionsRef.current = questions;
+    languageRef.current = language;
+    statusRef.current = status;
+  });
 
   const epochRef = useRef(0);
   // Set synchronously when a run starts so a second click in the same tick

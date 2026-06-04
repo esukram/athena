@@ -143,7 +143,6 @@ export const EditChapterModal = ({
     inputRef.current?.focus();
   };
 
-  // eslint-disable-next-line react-hooks/preserve-manual-memoization
   const handleSave = useCallback(() => {
     // Save the association to localStorage for future use
     if (association.trim()) {
