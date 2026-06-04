@@ -120,6 +120,37 @@ describe('chunkText with Chirp3 markup', () => {
     const withMarker = chunks.filter((c) => c.includes('[pause long]'));
     expect(withMarker).toHaveLength(1);
   });
+
+  it('packs words of an over-long sentence into the preceding chunk', () => {
+    // A short fitting sentence followed by an over-long one: the greedy
+    // packer carries the short sentence forward and fills the chunk with the
+    // next sentence's leading words rather than sealing it at the sentence
+    // boundary. This pins that boundary-crossing behavior.
+    const chunks = chunkText('Hi. aaaa bbbb cccc', 10);
+    expect(chunks).toEqual(['Hi. aaaa ', 'bbbb cccc']);
+  });
+
+  it('keeps every divisible chunk within maxBytes', () => {
+    const body = 'Short. ' + 'word '.repeat(50);
+    const chunks = chunkText(body, 40);
+    for (const chunk of chunks) {
+      expect(Buffer.byteLength(chunk, 'utf8')).toBeLessThanOrEqual(40);
+    }
+  });
+
+  it('emits an over-limit chunk for a single piece longer than maxBytes', () => {
+    // A word longer than the limit cannot be split further, so it is emitted
+    // as its own oversized chunk — the one case that breaches maxBytes.
+    const chunks = chunkText('Hi. aaaaaaaaaaaaaaaaaaaa bye', 10);
+    expect(chunks.some((c) => Buffer.byteLength(c, 'utf8') > 10)).toBe(true);
+  });
+
+  it('allows a [pause …] marker to land at a chunk start', () => {
+    const body = 'word '.repeat(10) + '[pause long] ' + 'word '.repeat(10);
+    const chunks = chunkText(body, 12);
+    expect(chunks.some((c) => c.startsWith('[pause long]'))).toBe(true);
+    assertPauseTokensIntact(chunks);
+  });
 });
 
 function assertPauseTokensIntact(chunks: string[]): void {
