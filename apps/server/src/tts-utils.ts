@@ -48,37 +48,33 @@ export function estimateDuration(text: string): number {
  * that are themselves too long. Used to stay under provider input-size limits.
  */
 export function chunkText(text: string, maxBytes: number): string[] {
-  if (Buffer.byteLength(text, 'utf8') <= maxBytes) return [text];
+  const utf8Len = (s: string) => Buffer.byteLength(s, 'utf8');
+  if (utf8Len(text) <= maxBytes) return [text];
 
   const sentences = text.match(/[^.!?]*[.!?]+\s*|[^.!?]+$/g) ?? [text];
+
+  // Expand into atomic pieces: whole sentences that fit, or — for sentences
+  // longer than the limit — their words and `[pause …]` markers, which must
+  // stay intact so the Chirp 3 markup token survives.
+  const pieces = sentences.flatMap((sentence) =>
+    utf8Len(sentence) <= maxBytes
+      ? [sentence]
+      : sentence.split(/(\[pause(?: short| long)?\]|\s+)/).filter(Boolean),
+  );
+
+  // Greedily pack pieces, flushing the current chunk before any piece that
+  // would overflow it.
   const chunks: string[] = [];
   let current = '';
-
   const flush = () => {
     if (current.trim()) chunks.push(current);
     current = '';
   };
-
-  for (const sentence of sentences) {
-    if (Buffer.byteLength(current + sentence, 'utf8') <= maxBytes) {
-      current += sentence;
-      continue;
-    }
-    flush();
-    if (Buffer.byteLength(sentence, 'utf8') <= maxBytes) {
-      current = sentence;
-      continue;
-    }
-    // Sentence alone exceeds the limit: pack it word by word. Keep
-    // `[pause …]` markers atomic so the Chirp 3 markup token survives.
-    for (const piece of sentence.split(/(\[pause(?: short| long)?\]|\s+)/)) {
-      if (!piece) continue;
-      if (current && Buffer.byteLength(current + piece, 'utf8') > maxBytes) {
-        flush();
-      }
-      current += piece;
-    }
+  for (const piece of pieces) {
+    if (current && utf8Len(current + piece) > maxBytes) flush();
+    current += piece;
   }
   flush();
+
   return chunks;
 }
