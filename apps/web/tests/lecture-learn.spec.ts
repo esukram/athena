@@ -968,7 +968,9 @@ test.describe('Lecture Learn', () => {
     // Sidebar defaults to closed, click to open. Targeting last because Header might have one too.
     await page.getByRole('button', { name: 'Open search' }).last().click();
 
-    const searchInput = page.getByPlaceholder('Search chapters...');
+    // The header GlobalSearch also uses this placeholder, so scope to the
+    // sidebar input (rendered last) — mirrors the `.last()` button click above.
+    const searchInput = page.getByPlaceholder('Search chapters...').last();
     await expect(searchInput).toBeVisible();
 
     // Type "Beta"

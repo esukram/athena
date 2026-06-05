@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 
 import logoSoftDark from '../../assets/logo-mark-soft-dark.png';
 import logoSoftLight from '../../assets/logo-mark-soft-light.png';
-import { useTheme } from '../theme/ThemeProvider';
+import { useTheme } from '../theme/themeContext';
 import { GlobalSearch } from './GlobalSearch';
 import { LanguageSelector } from './LanguageSelector';
 import { NavMenu } from './NavMenu';

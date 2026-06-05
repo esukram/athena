@@ -1,7 +1,7 @@
 import { Moon, Sun } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import { useTheme } from '../theme/ThemeProvider';
+import { useTheme } from '../theme/themeContext';
 
 export const ThemeToggle = () => {
   const { t } = useTranslation();
