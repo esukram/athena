@@ -62,8 +62,7 @@ test.describe('Lecture Train - sidebar focus ring', () => {
     );
     await page.route(
       '**/api/trpc/questions.getQuestionCountsPerChapter*',
-      async (r) =>
-        r.fulfill({ json: { result: { data: { c1: 1, c2: 1 } } } }),
+      async (r) => r.fulfill({ json: { result: { data: { c1: 1, c2: 1 } } } }),
     );
     await page.route('**/api/trpc/questions.getQuestions?*', async (route) => {
       const url = new URL(route.request().url());
