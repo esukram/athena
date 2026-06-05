@@ -24,8 +24,10 @@ export const ShuffleToggle = ({ checked, onChange }: ShuffleToggleProps) => {
       aria-label={label}
       onClick={() => onChange(!checked)}
       className={
-        'inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-semibold whitespace-nowrap transition-colors ' +
-        (checked ? 'text-accent-soft-ink' : 'text-ink-soft hover:text-ink')
+        'inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm font-semibold whitespace-nowrap transition-all ' +
+        (checked
+          ? 'border-transparent bg-accent-soft text-accent-soft-ink'
+          : 'border-border bg-surface text-ink-soft')
       }
     >
       <span
