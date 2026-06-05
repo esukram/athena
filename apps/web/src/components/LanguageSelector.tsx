@@ -1,8 +1,7 @@
+import { Check, Globe } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { useEffect, useRef, useState } from 'react';
-
-import { Check, Globe } from 'lucide-react';
 
 type Language = 'de' | 'en';
 

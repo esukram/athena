@@ -27,7 +27,9 @@ export const AppHeader = ({ back }: AppHeaderProps = {}) => {
               className="inline-flex items-center gap-2 rounded-full border border-border bg-surface px-3.5 py-2 text-sm font-semibold text-ink-soft transition-colors hover:text-ink hover:border-accent hover:bg-surface-2 shrink-0"
             >
               <ArrowLeft size={18} />
-              <span className="hidden sm:inline whitespace-nowrap">{back.label}</span>
+              <span className="hidden sm:inline whitespace-nowrap">
+                {back.label}
+              </span>
             </Link>
           )}
           <Link
