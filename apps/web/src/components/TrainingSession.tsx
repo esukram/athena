@@ -404,13 +404,6 @@ const TrainingSessionContent = ({
           <Accordion
             title={lecture.title}
             description={lecture.description ?? undefined}
-            rightElement={
-              mode === 'randomized' ? (
-                <span className="px-3 py-1 text-sm font-medium bg-accent-soft text-accent-soft-ink rounded-full whitespace-nowrap">
-                  {t('lectureTrain.randomizedMode')}
-                </span>
-              ) : undefined
-            }
           />
         </div>
 
