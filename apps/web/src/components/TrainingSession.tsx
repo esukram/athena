@@ -213,8 +213,22 @@ const TrainingSessionContent = ({
 
   useEffect(() => {
     const button = chapterButtonsRef.current.get(selectedChapterIndex);
-    if (button) {
-      button.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    if (!button) return;
+    button.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    // Selecting a chapter leaves DOM focus on its sidebar button. Keyboard
+    // navigation moves the active chapter via the URL (handled by a global
+    // listener) without moving focus, so the previously-selected button would
+    // keep its :focus-visible outline — a stray border on the wrong chapter.
+    // When a chapter button still holds focus, move it to the active chapter so
+    // the outline tracks the highlight. Focus is only touched when a chapter
+    // button has it, never stealing it from the card or its nav controls.
+    const active = document.activeElement;
+    const focusOnChapterButton =
+      active instanceof HTMLButtonElement &&
+      active !== button &&
+      [...chapterButtonsRef.current.values()].includes(active);
+    if (focusOnChapterButton) {
+      button.focus({ preventScroll: true });
     }
   }, [selectedChapterIndex]);
 

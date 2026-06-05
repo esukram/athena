@@ -130,11 +130,24 @@ export const LectureLearn = () => {
     }
   }, [isSearchOpen]);
 
-  // Scroll selected chapter into view
+  // Scroll selected chapter into view, and keep the focus ring from lingering
+  // on a previously-selected entry. Selecting a chapter leaves DOM focus on its
+  // sidebar button; keyboard navigation moves the active chapter via the URL
+  // without moving focus, so the old button would keep its :focus-visible
+  // outline. When a chapter button still holds focus, move it to the active
+  // chapter so the outline tracks the highlight (never stealing focus from
+  // other controls).
   useEffect(() => {
     const button = chapterButtonsRef.current.get(selectedChapterIndex);
-    if (button) {
-      button.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    if (!button) return;
+    button.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    const active = document.activeElement;
+    const focusOnChapterButton =
+      active instanceof HTMLButtonElement &&
+      active !== button &&
+      [...chapterButtonsRef.current.values()].includes(active);
+    if (focusOnChapterButton) {
+      button.focus({ preventScroll: true });
     }
   }, [selectedChapterIndex]);
 
