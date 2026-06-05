@@ -218,6 +218,72 @@ describe('ExpandableButton', () => {
     expect(toggle).not.toHaveClass('hover:bg-accent-press');
   });
 
+  // Every variant shares the same group-hover highlight on both halves, using
+  // the token that matches its main-button hover (Button.tsx).
+  it.each([
+    ['primary', 'group-hover/split:bg-accent-press'],
+    ['secondary', 'group-hover/split:bg-accent-soft-hover'],
+    ['ghost', 'group-hover/split:bg-surface-2'],
+    ['danger', 'group-hover/split:bg-danger-press'],
+  ] as const)(
+    'shares the %s group-hover highlight across both halves',
+    (variant, highlight) => {
+      const actions = [{ label: 'Randomized', onClick: vi.fn() }];
+      render(
+        <ExpandableButton onClick={vi.fn()} actions={actions} variant={variant}>
+          Train
+        </ExpandableButton>,
+      );
+
+      expect(screen.getByTestId('expandable-button-main')).toHaveClass(
+        highlight,
+      );
+      expect(screen.getByTestId('expandable-button-dropdown')).toHaveClass(
+        highlight,
+      );
+    },
+  );
+
+  it('carries the elevation shadow on the split wrapper, not the inner button', () => {
+    const actions = [{ label: 'Randomized', onClick: vi.fn() }];
+    render(
+      <ExpandableButton onClick={vi.fn()} actions={actions}>
+        Train
+      </ExpandableButton>,
+    );
+
+    // Wrapper owns the resting + hover-grown shadow; the inner button suppresses
+    // its own so the two don't double up.
+    const split = screen.getByTestId('expandable-button-split');
+    expect(split).toHaveClass(
+      'shadow-elevate',
+      'group-hover/split:shadow-elevate-raised',
+    );
+    expect(screen.getByTestId('expandable-button-main')).toHaveClass(
+      'shadow-none!',
+    );
+  });
+
+  it('drops the wrapper shadow and hover highlight when disabled', () => {
+    const actions = [{ label: 'Randomized', onClick: vi.fn() }];
+    render(
+      <ExpandableButton onClick={vi.fn()} actions={actions} disabled>
+        Train
+      </ExpandableButton>,
+    );
+
+    // The wrapper has no disabled state of its own, so a disabled button must not
+    // keep a full-strength shadow or react to hover.
+    const split = screen.getByTestId('expandable-button-split');
+    expect(split).not.toHaveClass('shadow-elevate');
+    expect(screen.getByTestId('expandable-button-main')).not.toHaveClass(
+      'group-hover/split:bg-accent-press',
+    );
+    expect(screen.getByTestId('expandable-button-dropdown')).not.toHaveClass(
+      'group-hover/split:bg-accent-press',
+    );
+  });
+
   it('disables individual action when action.disabled is true', () => {
     const disabledAction = vi.fn();
     const actions = [
