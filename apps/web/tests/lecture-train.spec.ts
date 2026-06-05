@@ -94,7 +94,7 @@ test.describe('Lecture Train', () => {
 
     // The Train screen is now a flip card. The question text shows on the card
     // front, with a "Question" side label; the answer stays hidden until flip.
-    await expect(page.getByText('Q1 Chapter 1')).toBeVisible();
+    await expect(page.getByText('Q1 Chapter 1', { exact: true })).toBeVisible();
     await expect(page.getByText('Question 1 of 2')).toBeVisible();
     await expect(page.getByText('Question', { exact: true })).toBeVisible();
     await expect(page.getByText('A1')).not.toBeVisible();
@@ -205,8 +205,9 @@ test.describe('Lecture Train', () => {
     await page.goto(`/#/train/${lectureId}`);
 
     // Verify the question is displayed on the flip-card front (a div, not a
-    // heading).
-    await expect(page.getByText('Question 1')).toBeVisible();
+    // heading). Match exactly: the chapter sidebar ("1. Question 1") and the
+    // progress counter ("Question 1 of 1") also contain this substring.
+    await expect(page.getByText('Question 1', { exact: true })).toBeVisible();
 
     // Verify edit button is NOT visible in training mode
     await expect(page.getByTestId('chapter-edit-button')).not.toBeVisible();

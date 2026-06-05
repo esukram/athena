@@ -54,10 +54,10 @@ export const FlashCard = ({
                 {t('lectureTrain.sideQuestion')}
               </span>
             </div>
-            <div className="flex-1 flex items-center text-2xl md:text-3xl font-extrabold leading-tight text-ink">
+            <div className="flex-1 flex items-center justify-center text-center text-2xl md:text-3xl font-medium leading-tight text-ink">
               {question}
             </div>
-            <div className="mt-5 flex items-center gap-2 text-sm text-ink-faint">
+            <div className="mt-5 flex items-center justify-center gap-2 text-sm text-ink-faint">
               <kbd className="rounded-md border border-border bg-surface-2 px-1.5 py-0.5 text-[11px] font-semibold text-ink-soft">
                 Space
               </kbd>

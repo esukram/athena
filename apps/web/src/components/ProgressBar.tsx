@@ -5,19 +5,13 @@ export interface ProgressBarProps {
   current: number;
   /** Total number of items */
   total: number;
-  /** If true, removes rounded corners for flush positioning at top of cards */
-  flush?: boolean;
 }
 
 /**
- * A green progress bar showing current/total progress with percentage.
+ * A slim accent progress bar showing current/total progress.
  * Includes ARIA attributes for accessibility.
  */
-export const ProgressBar = ({
-  current,
-  total,
-  flush = false,
-}: ProgressBarProps) => {
+export const ProgressBar = ({ current, total }: ProgressBarProps) => {
   const { t } = useTranslation();
 
   // Clamp percentage between 0% and 100%
@@ -33,7 +27,7 @@ export const ProgressBar = ({
 
   return (
     <div
-      className="w-full"
+      className="w-full h-1.5 bg-surface-2 rounded-full overflow-hidden"
       role="progressbar"
       aria-valuenow={current}
       aria-valuemin={0}
@@ -41,20 +35,10 @@ export const ProgressBar = ({
       aria-label={label}
     >
       <div
-        className={`w-full h-2 bg-surface-2 overflow-hidden ${flush ? '' : 'rounded-full'}`}
-      >
-        <div
-          className="h-full bg-success transition-all duration-300 ease-out"
-          style={{ width: `${percent}%` }}
-          data-testid="progress-bar-fill"
-        />
-      </div>
-      <div
-        className={`text-xs text-success font-bold mt-1 ${flush ? 'px-8' : ''}`}
-        data-testid="progress-bar-percent"
-      >
-        {roundedPercent}%
-      </div>
+        className="h-full bg-accent rounded-full transition-all duration-300 ease-out"
+        style={{ width: `${percent}%` }}
+        data-testid="progress-bar-fill"
+      />
     </div>
   );
 };

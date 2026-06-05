@@ -89,6 +89,7 @@
     "questionProgress": "Frage {{current}} von {{total}}",
     "questionProgressRandomized": "Kapitel {{chapterIndex}}/{{chapterTotal}} · Frage {{current}}/{{total}}",
     "randomizedMode": "Zufällig",
+    "shuffle": "Zufällig",
     "progressLabel": "Trainingsfortschritt: {{current}} von {{total}} Fragen ({{percent}}%)",
     "flipCard": "Karte umdrehen",
     "sideQuestion": "Frage",

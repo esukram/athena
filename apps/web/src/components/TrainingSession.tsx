@@ -15,6 +15,7 @@ import { ErrorState } from './ErrorState';
 import { FlashCard } from './FlashCard';
 import { LoadingState } from './LoadingState';
 import { ProgressBar } from './ProgressBar';
+import { ShuffleToggle } from './ShuffleToggle';
 import { SpeechPlayButton } from './SpeechPlayButton';
 import { Button } from './buttons/Button';
 
@@ -435,170 +436,168 @@ const TrainingSessionContent = ({
               chapterButtonsRef={chapterButtonsRef}
             />
 
-            <div className="min-w-0 overflow-hidden bg-surface-container border border-border rounded-xl shadow-sm">
+            <div className="min-w-0">
               {currentChapter ? (
-                <>
-                  {/* Progress Bar - at top of card, below border */}
-                  {totalQuestionsQuery.data && totalQuestionsQuery.data > 0 && (
-                    <ProgressBar
-                      current={currentProgressPosition}
-                      total={totalQuestionsQuery.data}
-                      flush
-                    />
-                  )}
-
-                  <div className="p-8 pt-0">
-                    <div className="flex justify-between items-start mb-2">
-                      <h2 className="text-2xl font-bold text-on-background"></h2>
-                      {currentChapter.association && (
-                        <span className="px-3 py-1 text-sm font-medium bg-accent-soft text-accent-soft-ink rounded-full">
-                          {currentChapter.association}
-                        </span>
-                      )}
-                    </div>
-
-                    {currentChapterQuestions.length > 0 ? (
-                      (() => {
-                        const question =
-                          currentChapterQuestions[selectedQuestionIndex];
-                        if (!question) return null;
-                        return (
-                          <div>
-                            <div className="text-sm text-on-surface-variant mb-4">
-                              {mode === 'randomized'
-                                ? t('lectureTrain.questionProgressRandomized', {
-                                    current: selectedQuestionIndex + 1,
-                                    total: currentChapterQuestions.length,
-                                    chapterIndex: selectedChapterIndex + 1,
-                                    chapterTotal: sortedChapters.length,
-                                  })
-                                : t('lectureTrain.questionProgress', {
-                                    current: selectedQuestionIndex + 1,
-                                    total: currentChapterQuestions.length,
-                                  })}
-                            </div>
-
-                            <FlashCard
-                              question={question.question}
-                              answer={question.answer || null}
-                              association={currentChapter.association}
-                              flipped={flipped}
-                              onFlip={flip}
-                              flipping={flipping}
-                              annotateButton={
-                                <button
-                                  onClick={() => {
-                                    updateQuestion.mutate({
-                                      id: question.id,
-                                      isAnnotated: !question.isAnnotated,
-                                    });
-                                  }}
-                                  className={`p-1 rounded-full transition-all hover:scale-110 ${
-                                    question.isAnnotated
-                                      ? ''
-                                      : 'opacity-50 hover:opacity-100'
-                                  }`}
-                                  title={
-                                    question.isAnnotated
-                                      ? t('lectureTrain.annotated')
-                                      : t('lectureTrain.annotate')
-                                  }
-                                >
-                                  <span
-                                    className={`text-xl ${
-                                      question.isAnnotated ? '' : 'grayscale'
-                                    }`}
-                                  >
-                                    🦉
-                                  </span>
-                                </button>
-                              }
-                              voice={
-                                <SpeechPlayButton
-                                  text={question.question}
-                                  language={
-                                    (
-                                      i18n.resolvedLanguage ?? i18n.language
-                                    ).startsWith('de')
-                                      ? 'de'
-                                      : 'en'
-                                  }
-                                />
-                              }
-                            />
-
-                            {!flipped ? (
-                              <div className="flex items-center justify-between gap-3 mt-6">
-                                <button
-                                  type="button"
-                                  className="nav-round"
-                                  disabled={isFirstQuestion}
-                                  onClick={handlePrevQuestion}
-                                  aria-label={t('common.previous')}
-                                >
-                                  <ChevronLeft size={20} />
-                                </button>
-                                <Button
-                                  variant="secondary"
-                                  size="lg"
-                                  className="flex-1 max-w-[320px] inline-flex items-center justify-center gap-2"
-                                  onClick={flip}
-                                >
-                                  <RotateCw size={18} />
-                                  {t('lectureTrain.flipCard')}
-                                </Button>
-                                <button
-                                  type="button"
-                                  className="nav-round"
-                                  disabled={isLastQuestion}
-                                  onClick={handleNextQuestion}
-                                  aria-label={t('common.next')}
-                                >
-                                  <ChevronRight size={20} />
-                                </button>
-                              </div>
-                            ) : (
-                              <div className="flex gap-3 mt-6 justify-center">
-                                <button
-                                  type="button"
-                                  className="flex-1 max-w-[220px] py-3.5 rounded-lg font-semibold inline-flex items-center justify-center gap-2 bg-surface border border-border text-ink-soft hover:border-accent hover:text-ink transition-colors"
-                                  onClick={() => {
-                                    updateQuestion.mutate({
-                                      id: question.id,
-                                      isAnnotated: true,
-                                    });
-                                    handleNextQuestion();
-                                  }}
-                                >
-                                  <RotateCw size={18} />
-                                  {t('lectureTrain.reviewAgain')}
-                                </button>
-                                <button
-                                  type="button"
-                                  className="flex-1 max-w-[220px] py-3.5 rounded-lg font-semibold inline-flex items-center justify-center gap-2 bg-success text-accent-ink transition-colors"
-                                  onClick={() => {
-                                    updateQuestion.mutate({
-                                      id: question.id,
-                                      isAnnotated: false,
-                                    });
-                                    handleNextQuestion();
-                                  }}
-                                >
-                                  <Check size={18} />
-                                  {t('lectureTrain.gotIt')}
-                                </button>
-                              </div>
-                            )}
+                currentChapterQuestions.length > 0 ? (
+                  (() => {
+                    const question =
+                      currentChapterQuestions[selectedQuestionIndex];
+                    if (!question) return null;
+                    return (
+                      <div>
+                        <div className="flex items-center justify-between gap-4 mb-3">
+                          <div className="text-sm font-medium text-ink-soft">
+                            {mode === 'randomized'
+                              ? t('lectureTrain.questionProgressRandomized', {
+                                  current: selectedQuestionIndex + 1,
+                                  total: currentChapterQuestions.length,
+                                  chapterIndex: selectedChapterIndex + 1,
+                                  chapterTotal: sortedChapters.length,
+                                })
+                              : t('lectureTrain.questionProgress', {
+                                  current: selectedQuestionIndex + 1,
+                                  total: currentChapterQuestions.length,
+                                })}
                           </div>
-                        );
-                      })()
-                    ) : (
-                      <p className="text-on-surface-variant italic">
-                        {t('lectureTrain.noContentYet')}
-                      </p>
-                    )}
-                  </div>
-                </>
+                          <ShuffleToggle
+                            checked={mode === 'randomized'}
+                            onChange={(checked) =>
+                              navigate(
+                                `/${checked ? 'train-random' : 'train'}/${lectureId}`,
+                              )
+                            }
+                          />
+                        </div>
+
+                        {totalQuestionsQuery.data &&
+                          totalQuestionsQuery.data > 0 && (
+                            <ProgressBar
+                              current={currentProgressPosition}
+                              total={totalQuestionsQuery.data}
+                            />
+                          )}
+
+                        <div className="mt-5">
+                          <FlashCard
+                            question={question.question}
+                            answer={question.answer || null}
+                            association={currentChapter.association}
+                            flipped={flipped}
+                            onFlip={flip}
+                            flipping={flipping}
+                            annotateButton={
+                              <button
+                                onClick={() => {
+                                  updateQuestion.mutate({
+                                    id: question.id,
+                                    isAnnotated: !question.isAnnotated,
+                                  });
+                                }}
+                                className={`p-1 rounded-full transition-all hover:scale-110 ${
+                                  question.isAnnotated
+                                    ? ''
+                                    : 'opacity-50 hover:opacity-100'
+                                }`}
+                                title={
+                                  question.isAnnotated
+                                    ? t('lectureTrain.annotated')
+                                    : t('lectureTrain.annotate')
+                                }
+                              >
+                                <span
+                                  className={`text-xl ${
+                                    question.isAnnotated ? '' : 'grayscale'
+                                  }`}
+                                >
+                                  🦉
+                                </span>
+                              </button>
+                            }
+                            voice={
+                              <SpeechPlayButton
+                                text={question.question}
+                                language={
+                                  (
+                                    i18n.resolvedLanguage ?? i18n.language
+                                  ).startsWith('de')
+                                    ? 'de'
+                                    : 'en'
+                                }
+                              />
+                            }
+                          />
+                        </div>
+
+                        {!flipped ? (
+                          <div className="flex items-center justify-between gap-3 mt-6">
+                            <button
+                              type="button"
+                              className="nav-round"
+                              disabled={isFirstQuestion}
+                              onClick={handlePrevQuestion}
+                              aria-label={t('common.previous')}
+                            >
+                              <ChevronLeft size={20} />
+                            </button>
+                            <Button
+                              variant="secondary"
+                              size="lg"
+                              className="flex-1 max-w-[320px] inline-flex items-center justify-center gap-2"
+                              onClick={flip}
+                            >
+                              <RotateCw size={18} />
+                              {t('lectureTrain.flipCard')}
+                            </Button>
+                            <button
+                              type="button"
+                              className="nav-round"
+                              disabled={isLastQuestion}
+                              onClick={handleNextQuestion}
+                              aria-label={t('common.next')}
+                            >
+                              <ChevronRight size={20} />
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="flex gap-3 mt-6 justify-center">
+                            <button
+                              type="button"
+                              className="flex-1 max-w-[220px] py-3.5 rounded-lg font-semibold inline-flex items-center justify-center gap-2 bg-surface border border-border text-ink-soft hover:border-accent hover:text-ink transition-colors"
+                              onClick={() => {
+                                updateQuestion.mutate({
+                                  id: question.id,
+                                  isAnnotated: true,
+                                });
+                                handleNextQuestion();
+                              }}
+                            >
+                              <RotateCw size={18} />
+                              {t('lectureTrain.reviewAgain')}
+                            </button>
+                            <button
+                              type="button"
+                              className="flex-1 max-w-[220px] py-3.5 rounded-lg font-semibold inline-flex items-center justify-center gap-2 bg-success text-accent-ink transition-colors"
+                              onClick={() => {
+                                updateQuestion.mutate({
+                                  id: question.id,
+                                  isAnnotated: false,
+                                });
+                                handleNextQuestion();
+                              }}
+                            >
+                              <Check size={18} />
+                              {t('lectureTrain.gotIt')}
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()
+                ) : (
+                  <p className="text-on-surface-variant italic">
+                    {t('lectureTrain.noContentYet')}
+                  </p>
+                )
               ) : (
                 <p className="text-on-surface-variant">
                   {t('lectureTrain.selectAChapter')}
