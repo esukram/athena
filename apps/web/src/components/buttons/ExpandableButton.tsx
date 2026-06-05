@@ -117,16 +117,30 @@ export const ExpandableButton = ({
     danger: 'group-hover/split:bg-danger-press',
   };
 
+  // The primary main button carries an elevation shadow (Button.tsx). Lift it onto
+  // the whole split wrapper so it spans both halves and grows on hovering either;
+  // the inner button's own shadow is suppressed below to avoid doubling it.
+  const splitShadowClasses: Record<ButtonVariant, string> = {
+    primary:
+      'shadow-[0_8px_18px_-10px_rgb(var(--shadow-color)/0.7)] group-hover/split:shadow-[0_12px_24px_-10px_rgb(var(--shadow-color)/0.75)] transition-shadow duration-200',
+    secondary: '',
+    ghost: '',
+    danger: '',
+  };
+
   return (
     <div ref={containerRef} className={`relative flex ${className}`}>
-      {/* Button row — hovering either half highlights both (group/split) */}
-      <div className="group/split flex flex-1">
-        {/* Main button */}
+      {/* Button row — hovering either half highlights both (group/split); the
+          shadow lives here so it spans both halves and grows on either hover. */}
+      <div
+        className={`group/split flex flex-1 rounded-lg ${splitShadowClasses[variant]}`}
+      >
+        {/* Main button — own shadow suppressed; the wrapper carries it instead */}
         <Button
           variant={variant}
           disabled={disabled}
           onClick={handleMainClick}
-          className={`rounded-r-none! pr-3! flex-1 ${splitHoverClasses[variant]} ${buttonClassName}`}
+          className={`rounded-r-none! pr-3! flex-1 shadow-none! ${splitHoverClasses[variant]} ${buttonClassName}`}
           data-testid="expandable-button-main"
         >
           {children}
