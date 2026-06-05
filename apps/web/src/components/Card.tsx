@@ -32,7 +32,7 @@ export const Card = ({
   as: Component = 'div',
   onSubmit,
 }: CardProps) => {
-  const baseClasses = 'rounded-xl shadow-md';
+  const baseClasses = 'rounded-xl border border-border shadow-sm';
   const variantClass = variantClasses[variant];
   const paddingClass = paddingClasses[padding];
 

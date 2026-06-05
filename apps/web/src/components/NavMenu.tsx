@@ -29,18 +29,18 @@ export const NavMenu = () => {
         aria-haspopup="menu"
         data-testid="nav-menu-button"
       >
-        <EllipsisVertical className="w-6 h-6 text-gray-600" />
+        <EllipsisVertical className="w-6 h-6 text-ink-soft" />
       </button>
 
       {isOpen && (
         <div
-          className="absolute right-0 mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50"
+          className="absolute right-0 mt-1 w-48 bg-surface rounded-lg shadow-sm border border-border py-1 z-50"
           role="menu"
         >
           <Link
             to="/add-lecture"
             onClick={() => setIsOpen(false)}
-            className="w-full px-4 py-2 text-left text-sm flex items-center gap-3 hover:bg-gray-100 transition-colors text-gray-700"
+            className="w-full px-4 py-2 text-left text-sm flex items-center gap-3 hover:bg-bg-tint transition-colors text-ink"
             role="menuitem"
             data-testid="nav-menu-add-lecture"
           >

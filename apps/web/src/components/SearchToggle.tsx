@@ -28,7 +28,7 @@ export const SearchToggle = forwardRef<HTMLInputElement, SearchToggleProps>(
       <>
         <button
           onClick={onToggle}
-          className="p-1 rounded-lg hover:bg-gray-100 transition-colors text-on-surface-variant hover:text-on-surface"
+          className="p-1 rounded-lg hover:bg-bg-tint transition-colors text-on-surface-variant hover:text-on-surface"
           aria-label={
             isOpen
               ? t('globalSearch.closeSearch')
@@ -45,7 +45,7 @@ export const SearchToggle = forwardRef<HTMLInputElement, SearchToggleProps>(
               value={query}
               onChange={(e) => onQueryChange(e.target.value)}
               placeholder={placeholder}
-              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white text-on-surface"
+              className="w-full px-3 py-2 text-sm border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-surface text-on-surface"
             />
           </div>
         )}

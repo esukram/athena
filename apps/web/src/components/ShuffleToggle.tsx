@@ -1,24 +1,20 @@
+import { Shuffle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-interface AutoAdvanceToggleProps {
+interface ShuffleToggleProps {
   checked: boolean;
   onChange: (checked: boolean) => void;
 }
 
 /**
- * Toggle controlling whether voice playback in Learn mode continues into the
- * next chapter automatically once the current chapter finishes. Renders as a
- * pill-shaped switch consistent with the Dusk design language; the enabled
- * state is conveyed via `aria-pressed`, an accent tint, and a sliding knob. The
- * preference is persisted by the parent — this component is purely
- * presentational.
+ * Toggle switching the training session between sequential and randomized
+ * (shuffled) order. Renders as a pill-shaped switch consistent with the Dusk
+ * design language; the enabled state is conveyed via `aria-pressed`, an accent
+ * tint, and a sliding knob. The mode change itself is handled by the parent.
  */
-export const AutoAdvanceToggle = ({
-  checked,
-  onChange,
-}: AutoAdvanceToggleProps) => {
+export const ShuffleToggle = ({ checked, onChange }: ShuffleToggleProps) => {
   const { t } = useTranslation();
-  const label = t('speech.autoAdvance');
+  const label = t('lectureTrain.shuffle');
 
   return (
     <button
@@ -47,6 +43,7 @@ export const AutoAdvanceToggle = ({
           }
         />
       </span>
+      <Shuffle size={15} className="shrink-0" />
       {label}
     </button>
   );

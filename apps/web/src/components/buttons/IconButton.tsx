@@ -36,7 +36,7 @@ const iconSizeClasses = {
 };
 
 const variantClasses = {
-  primary: 'hover:bg-primary-50 hover:text-primary-600',
+  primary: 'hover:bg-surface-2 hover:text-ink',
   danger: 'hover:!bg-red-50 hover:!text-red-600',
 };
 
@@ -62,8 +62,8 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
     const iconButtonClasses = `
       ${sizeClasses[size]}
       ${variantClasses[variant]}
-      !rounded-full !bg-white/80 !shadow-md 
-      !font-normal
+      !rounded-full !bg-surface/80 !shadow-sm border border-border
+      !font-normal transition active:scale-95
       opacity-90 lg:opacity-80 lg:hover:opacity-100
       ${className}
     `.trim();
@@ -78,7 +78,7 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
         {...props}
       >
         <Icon
-          className={`${iconSizeClasses[size]} text-gray-600 ${iconClassName}`.trim()}
+          className={`${iconSizeClasses[size]} text-ink-soft ${iconClassName}`.trim()}
         />
       </Button>
     );

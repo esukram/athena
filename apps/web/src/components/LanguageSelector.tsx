@@ -1,31 +1,25 @@
+import { Check, Globe } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { useEffect, useRef, useState } from 'react';
-
-import flagDe from '../../assets/flags/de.svg';
-import flagGb from '../../assets/flags/gb.svg';
 
 type Language = 'de' | 'en';
 
 interface LanguageOption {
   code: Language;
-  flag: string;
+  tag: string;
   label: string;
 }
 
 const languages: LanguageOption[] = [
-  { code: 'de', flag: flagDe, label: 'language.german' },
-  { code: 'en', flag: flagGb, label: 'language.english' },
+  { code: 'en', tag: 'EN', label: 'language.english' },
+  { code: 'de', tag: 'DE', label: 'language.german' },
 ];
 
 export const LanguageSelector = () => {
   const { t, i18n } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
-
-  const currentLanguage =
-    languages.find((lang) => lang.code === i18n.resolvedLanguage) ||
-    languages[0];
 
   const handleLanguageChange = (langCode: Language) => {
     i18n.changeLanguage(langCode);
@@ -46,41 +40,38 @@ export const LanguageSelector = () => {
     <div className="relative" ref={menuRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center justify-center w-10 h-10 rounded-lg hover:bg-primary-50 transition-colors"
+        className={`grid h-10 w-10 place-items-center rounded-lg transition ${
+          isOpen
+            ? 'bg-accent-soft text-accent-soft-ink'
+            : 'text-ink-soft hover:bg-surface-2 hover:text-ink'
+        }`}
         aria-label="Select language"
         aria-expanded={isOpen}
         aria-haspopup="listbox"
       >
-        <img
-          src={currentLanguage.flag}
-          alt=""
-          className="w-8 h-6 object-cover rounded-sm"
-        />
+        <Globe size={21} />
       </button>
 
       {isOpen && (
         <div
-          className="absolute right-0 mt-1 w-44 bg-white rounded-lg shadow-lg border border-gray-200 z-50"
+          className="absolute right-0 z-50 mt-2 min-w-[200px] rounded-xl border border-border bg-surface p-1.5 shadow-xl"
           role="listbox"
         >
           {languages.map((lang) => (
             <button
               key={lang.code}
               onClick={() => handleLanguageChange(lang.code)}
-              className={`w-full px-4 py-2 text-left text-sm flex items-center gap-3 hover:bg-gray-100 transition-colors ${
-                lang.code === i18n.resolvedLanguage
-                  ? 'bg-primary-50 text-primary-700 font-medium'
-                  : 'text-gray-700'
-              }`}
+              className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-ink transition hover:bg-surface-2"
               role="option"
               aria-selected={lang.code === i18n.resolvedLanguage}
             >
-              <img
-                src={lang.flag}
-                alt=""
-                className="w-7 h-5 object-cover rounded-sm"
-              />
+              <span className="rounded-full bg-surface-2 px-1.5 py-0.5 text-[11px] font-semibold text-ink-soft">
+                {lang.tag}
+              </span>
               <span>{t(lang.label)}</span>
+              {lang.code === i18n.resolvedLanguage && (
+                <Check size={17} className="ml-auto text-accent" />
+              )}
             </button>
           ))}
         </div>

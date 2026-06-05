@@ -37,16 +37,16 @@ export const MoveChapterModal = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-md">
-        <div className="p-6 border-b border-gray-200 flex items-center justify-between">
+    <div className="fixed inset-0 bg-ink/40 flex items-center justify-center z-50 p-4">
+      <div className="bg-surface border border-border rounded-xl shadow-sm w-full max-w-md">
+        <div className="p-6 border-b border-border flex items-center justify-between">
           <h3 className="text-xl font-semibold text-on-surface flex items-center gap-2">
             <ArrowRightLeft size={20} className="text-primary-600" />
             {t('lectureEdit.moveChapter')}
           </h3>
           <button
             onClick={onCancel}
-            className="p-1 text-gray-400 hover:text-gray-600 rounded transition-colors"
+            className="p-1 text-ink-faint hover:text-on-surface rounded transition-colors"
             aria-label={t('common.cancel')}
           >
             <X size={20} />
@@ -72,7 +72,7 @@ export const MoveChapterModal = ({
                     className={`w-full text-left p-4 rounded-lg border transition-colors ${
                       selectedLectureId === lecture.id
                         ? 'border-primary-500 bg-primary-50'
-                        : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                        : 'border-border hover:border-border hover:bg-bg-tint'
                     }`}
                   >
                     <div className="font-medium text-on-surface">
@@ -90,17 +90,17 @@ export const MoveChapterModal = ({
           )}
         </div>
 
-        <div className="p-6 border-t border-gray-200 flex gap-3 justify-end">
+        <div className="p-6 border-t border-border flex gap-3 justify-end">
           <button
             onClick={onCancel}
-            className="min-w-28 px-4 py-2 rounded-lg border border-gray-300 text-on-surface hover:bg-gray-50 transition-colors"
+            className="min-w-28 px-4 py-2 rounded-lg bg-surface border border-border text-on-surface hover:bg-bg-tint transition-colors"
           >
             {t('common.cancel')}
           </button>
           <button
             onClick={handleMove}
             disabled={isMoving || !selectedLectureId}
-            className="min-w-28 px-4 py-2 bg-primary-600 hover:bg-primary-700 disabled:bg-primary-400 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
+            className="min-w-28 px-4 py-2 bg-primary-600 hover:bg-primary-700 disabled:bg-primary-400 text-on-primary font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
           >
             {isMoving ? (
               t('lectureEdit.moving')

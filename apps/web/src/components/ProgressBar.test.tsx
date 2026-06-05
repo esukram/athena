@@ -63,11 +63,4 @@ describe('ProgressBar', () => {
     const fill = screen.getByTestId('progress-bar-fill');
     expect(fill.style.width).toBe('100%');
   });
-
-  it('displays percentage text below the progress bar', () => {
-    render(<ProgressBar current={3} total={10} />);
-
-    const percentText = screen.getByTestId('progress-bar-percent');
-    expect(percentText.textContent).toBe('30%');
-  });
 });

@@ -59,7 +59,7 @@ export const Toast = ({
       role="status"
       aria-live="polite"
     >
-      <div className="bg-emerald-100 text-emerald-800 border border-emerald-200 px-4 py-2 rounded-lg shadow-lg text-sm font-medium">
+      <div className="bg-emerald-100 text-emerald-800 border border-emerald-200 px-4 py-2 rounded-lg shadow-sm text-sm font-medium">
         {message}
       </div>
     </div>

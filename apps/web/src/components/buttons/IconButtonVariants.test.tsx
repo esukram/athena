@@ -17,7 +17,7 @@ describe('IconButtonEdit', () => {
   it('uses primary variant styling', () => {
     render(<IconButtonEdit aria-label="Edit" />);
     const button = screen.getByRole('button');
-    expect(button.className).toContain('hover:bg-primary-50');
+    expect(button.className).toContain('hover:bg-surface-2');
   });
 
   it('forwards onClick handler', () => {
@@ -60,7 +60,7 @@ describe('IconButtonMove', () => {
   it('uses primary variant styling', () => {
     render(<IconButtonMove aria-label="Move" />);
     const button = screen.getByRole('button');
-    expect(button.className).toContain('hover:bg-primary-50');
+    expect(button.className).toContain('hover:bg-surface-2');
   });
 
   it('forwards custom title', () => {

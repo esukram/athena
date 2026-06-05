@@ -26,10 +26,26 @@ export const LectureCard = ({ lecture }: { lecture: Lecture }) => {
     }
   };
 
+  const initial = lecture.title.trim().charAt(0).toUpperCase() || '?';
+
   return (
-    <div className="group flex flex-col overflow-visible rounded-2xl bg-white shadow-lg transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 border border-gray-100">
-      <div className="relative h-52 w-full overflow-hidden bg-gradient-to-br from-primary-100 to-primary-50">
-        <div className="absolute top-3 right-3 z-10 flex gap-2">
+    <div className="group relative flex flex-col overflow-visible rounded-xl border border-border bg-surface shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-accent/40 hover:shadow-lg">
+      {/* Cover — soft accent wash with the lecture initial set large and faint */}
+      <div
+        className="relative flex h-32 items-end overflow-hidden rounded-t-xl bg-surface-2 p-5"
+        style={{
+          backgroundImage:
+            'radial-gradient(120% 140% at 85% 10%, var(--accent-soft) 0%, transparent 55%)',
+        }}
+      >
+        <span
+          aria-hidden
+          className="pointer-events-none absolute -top-7 -right-2 font-display text-[150px] leading-none font-extrabold text-accent opacity-20 select-none"
+        >
+          {initial}
+        </span>
+
+        <div className="absolute top-3 right-3 z-10 flex gap-2 opacity-0 transition-opacity duration-200 group-hover:opacity-100 focus-within:opacity-100">
           <IconButtonEdit
             onClick={(e) => {
               e.stopPropagation();
@@ -47,29 +63,22 @@ export const LectureCard = ({ lecture }: { lecture: Lecture }) => {
             data-testid="lecture-delete-button"
           />
         </div>
-
-        <div className="h-full w-full flex items-center justify-center p-6">
-          <div className="text-center">
-            <h2 className="text-2xl font-bold text-primary-700 mb-2 text-center">
-              {lecture.title}
-            </h2>
-          </div>
-        </div>
-        <div className="absolute inset-0 bg-gradient-to-t from-black/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
       </div>
 
-      <div className="flex flex-col flex-1 p-6">
-        <div className="flex-1 space-y-3">
-          <p className="text-sm text-gray-600 leading-relaxed line-clamp-4">
+      {/* Body */}
+      <div className="flex flex-1 flex-col p-5">
+        <div className="flex-1">
+          <h2 className="mb-2 text-xl text-ink">{lecture.title}</h2>
+          <p className="text-sm leading-relaxed text-ink-soft line-clamp-3">
             {lecture.description}
           </p>
         </div>
 
-        <div className="flex gap-3 mt-6 pt-4 border-t border-gray-100">
+        <div className="mt-5 flex gap-2.5 border-t border-border-soft pt-4">
           <Button
             variant="secondary"
             onClick={() => navigate(`/learn/${lecture.id}`)}
-            className="flex-1 py-2.5 active:bg-primary-200"
+            className="flex-1 py-2.5"
           >
             {t('lectureCard.learn')}
           </Button>
@@ -84,7 +93,7 @@ export const LectureCard = ({ lecture }: { lecture: Lecture }) => {
               },
             ]}
             className="flex-1"
-            buttonClassName="py-2.5 active:from-primary-800 active:to-primary-900"
+            buttonClassName="py-2.5"
           >
             {t('lectureCard.train')}
           </ExpandableButton>

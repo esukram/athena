@@ -53,7 +53,7 @@ export const AddLecture = () => {
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             required
-            className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-colors"
+            className="w-full px-4 py-3 rounded-lg border border-border focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-colors"
             placeholder={t('lectureAdd.titlePlaceholder')}
           />
         </div>
@@ -71,7 +71,7 @@ export const AddLecture = () => {
             onChange={(e) => setDescription(e.target.value)}
             required
             rows={4}
-            className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-colors resize-none"
+            className="w-full px-4 py-3 rounded-lg border border-border focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-colors resize-none"
             placeholder={t('lectureAdd.descriptionPlaceholder')}
           />
         </div>
@@ -100,7 +100,7 @@ export const AddLecture = () => {
             variant="ghost"
             size="lg"
             onClick={() => navigate('/')}
-            className="border border-gray-300 hover:bg-gray-50"
+            className="border border-border hover:bg-bg-tint"
           >
             {t('common.cancel')}
           </Button>

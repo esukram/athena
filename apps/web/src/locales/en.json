@@ -16,13 +16,17 @@
   },
   "header": {
     "addLecture": "Add Lecture",
-    "menuLabel": "Menu"
+    "menuLabel": "Menu",
+    "toggleTheme": "Toggle theme",
+    "toLight": "Switch to light mode",
+    "toDark": "Switch to dark mode"
   },
   "language": {
     "german": "Deutsch",
     "english": "English"
   },
   "overview": {
+    "eyebrow": "Your library",
     "availableLectures": "Available Lectures",
     "exploreCollection": "Explore our collection of educational content",
     "errorLoading": "Error loading lectures"
@@ -84,8 +88,14 @@
     "annotated": "Question highlighted, click to unhighlight",
     "questionProgress": "Question {{current}} of {{total}}",
     "questionProgressRandomized": "Chapter {{chapterIndex}}/{{chapterTotal}} · Question {{current}}/{{total}}",
-    "randomizedMode": "Randomized",
-    "progressLabel": "Training progress: {{current}} of {{total}} questions ({{percent}}%)"
+    "shuffle": "Shuffle",
+    "progressLabel": "Training progress: {{current}} of {{total}} questions ({{percent}}%)",
+    "flipCard": "Flip card",
+    "sideQuestion": "Question",
+    "sideAnswer": "Answer",
+    "tapToReveal": "or tap to reveal the answer",
+    "reviewAgain": "Review again",
+    "gotIt": "Got it"
   },
   "globalSearch": {
     "searchChapters": "Search chapters...",

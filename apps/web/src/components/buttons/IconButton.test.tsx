@@ -36,7 +36,7 @@ describe('IconButton', () => {
   it('applies primary variant classes by default', () => {
     render(<IconButton icon={Pencil} aria-label="Edit" />);
     const button = screen.getByRole('button');
-    expect(button.className).toContain('hover:bg-primary-50');
+    expect(button.className).toContain('hover:bg-surface-2');
   });
 
   it('applies danger variant classes when specified', () => {

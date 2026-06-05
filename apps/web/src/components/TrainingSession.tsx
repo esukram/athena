@@ -1,5 +1,5 @@
+import { Check, ChevronLeft, ChevronRight, RotateCw } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import ReactMarkdown from 'react-markdown';
 import { useNavigate } from 'react-router-dom';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -12,11 +12,12 @@ import { Accordion } from './Accordion';
 import { AppHeader } from './AppHeader';
 import { ChapterSidebar } from './ChapterSidebar';
 import { ErrorState } from './ErrorState';
-import { LectureNavigation } from './LectureNavigation';
+import { FlashCard } from './FlashCard';
 import { LoadingState } from './LoadingState';
 import { ProgressBar } from './ProgressBar';
+import { ShuffleToggle } from './ShuffleToggle';
 import { SpeechPlayButton } from './SpeechPlayButton';
-import { BackButton } from './buttons/BackButton';
+import { Button } from './buttons/Button';
 
 export type TrainingMode = 'regular' | 'randomized';
 
@@ -54,8 +55,26 @@ const TrainingSessionContent = ({
 
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [flipped, setFlipped] = useState(false);
+  const [flipping, setFlipping] = useState(false);
+  const flipTimers = useRef<number[]>([]);
+  const lastQuestionIdRef = useRef<string | undefined>(undefined);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const chapterButtonsRef = useRef<Map<number, HTMLButtonElement>>(new Map());
+
+  const clearFlipTimers = useCallback(() => {
+    flipTimers.current.forEach((id) => window.clearTimeout(id));
+    flipTimers.current = [];
+  }, []);
+
+  const flip = useCallback(() => {
+    if (flipping) return;
+    setFlipping(true);
+    flipTimers.current.push(
+      window.setTimeout(() => setFlipped((f) => !f), 190),
+      window.setTimeout(() => setFlipping(false), 410),
+    );
+  }, [flipping]);
 
   const basePath = mode === 'randomized' ? 'train-random' : 'train';
 
@@ -194,8 +213,22 @@ const TrainingSessionContent = ({
 
   useEffect(() => {
     const button = chapterButtonsRef.current.get(selectedChapterIndex);
-    if (button) {
-      button.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    if (!button) return;
+    button.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    // Selecting a chapter leaves DOM focus on its sidebar button. Keyboard
+    // navigation moves the active chapter via the URL (handled by a global
+    // listener) without moving focus, so the previously-selected button would
+    // keep its :focus-visible outline — a stray border on the wrong chapter.
+    // When a chapter button still holds focus, move it to the active chapter so
+    // the outline tracks the highlight. Focus is only touched when a chapter
+    // button has it, never stealing it from the card or its nav controls.
+    const active = document.activeElement;
+    const focusOnChapterButton =
+      active instanceof HTMLButtonElement &&
+      active !== button &&
+      [...chapterButtonsRef.current.values()].includes(active);
+    if (focusOnChapterButton) {
+      button.focus({ preventScroll: true });
     }
   }, [selectedChapterIndex]);
 
@@ -283,9 +316,56 @@ const TrainingSessionContent = ({
     selectedChapterIndex === sortedChapters.length - 1 &&
     selectedQuestionIndex === currentChapterQuestions.length - 1;
 
+  const currentQuestionId = currentChapterQuestions[selectedQuestionIndex]?.id;
+
+  // Reset the flip state whenever the active question changes. Sidebar clicks,
+  // arrow navigation and the __last__ replace-redirect can all switch questions
+  // outside the flip-button path, so this guards every transition. We adjust
+  // state during render (React's recommended pattern) instead of in an effect
+  // so the reset is applied before paint and avoids cascading effect renders.
+  if (lastQuestionIdRef.current !== currentQuestionId) {
+    lastQuestionIdRef.current = currentQuestionId;
+    if (flipped) setFlipped(false);
+    if (flipping) setFlipping(false);
+  }
+
+  // Clearing the pending flip timers is an external-system side effect, so it
+  // belongs in an effect keyed on the active question — this prevents a
+  // mid-flip navigation from firing setState on a stale card.
+  useEffect(() => {
+    clearFlipTimers();
+  }, [currentQuestionId, clearFlipTimers]);
+
+  useEffect(() => clearFlipTimers, [clearFlipTimers]);
+
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (document.activeElement === searchInputRef.current) return;
+      const active = document.activeElement as HTMLElement | null;
+      if (
+        active &&
+        (active.tagName === 'INPUT' ||
+          active.tagName === 'TEXTAREA' ||
+          active.isContentEditable)
+      ) {
+        return;
+      }
+
+      if (event.code === 'Space') {
+        // Don't hijack Space when a button/link is focused — the browser needs
+        // it to activate the focused control (Space-to-click). Only flip when
+        // focus is on a non-interactive element.
+        if (
+          active &&
+          (active.tagName === 'BUTTON' ||
+            active.tagName === 'A' ||
+            active.getAttribute('role') === 'button')
+        ) {
+          return;
+        }
+        event.preventDefault();
+        flip();
+        return;
+      }
 
       if (event.key === 'ArrowRight' && !isLastQuestion) {
         handleNextQuestion();
@@ -307,14 +387,19 @@ const TrainingSessionContent = ({
     isLastQuestion,
     handleNextQuestion,
     handlePrevQuestion,
+    flip,
   ]);
 
   const utils = trpc.useContext();
   const updateQuestion = trpc.questions.updateQuestion.useMutation({
-    onSuccess: () => {
-      utils.questions.getQuestions.invalidate({
-        chapterId: currentChapter?.id,
-      });
+    // Invalidate by the chapter the mutated question belongs to (captured from
+    // the variables) so a navigation away from the current chapter during the
+    // request still refreshes the right list.
+    onSuccess: (_data, variables) => {
+      const chapterId =
+        currentChapterQuestions.find((q) => q.id === variables.id)?.chapterId ??
+        currentChapter?.id;
+      utils.questions.getQuestions.invalidate({ chapterId });
       utils.questions.getAnnotatedChapterIdsByLecture.invalidate({
         lectureId,
       });
@@ -323,32 +408,24 @@ const TrainingSessionContent = ({
 
   return (
     <div className="min-h-screen bg-background">
-      <AppHeader />
+      <AppHeader back={{ to: '/', label: t('lectureTrain.backToLectures') }} />
 
       <main className="container mx-auto px-4 py-4 md:py-12">
         <div className="mb-4 lg:mb-8">
-          <BackButton to="/" label={t('lectureTrain.backToLectures')} />
           <Accordion
             title={lecture.title}
             description={lecture.description ?? undefined}
-            rightElement={
-              mode === 'randomized' ? (
-                <span className="px-3 py-1 text-sm font-medium bg-amber-100 text-amber-700 rounded-full whitespace-nowrap">
-                  {t('lectureTrain.randomizedMode')}
-                </span>
-              ) : undefined
-            }
           />
         </div>
 
         {chapters.length === 0 ? (
-          <div className="bg-surface rounded-xl shadow-md p-8 text-center">
+          <div className="bg-surface border border-border rounded-xl shadow-sm p-8 text-center">
             <p className="text-on-surface-variant mb-4">
               {t('lectureTrain.noChaptersYet')}
             </p>
             <button
               onClick={() => navigate(`/edit/${lectureId}`)}
-              className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors"
+              className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-on-primary rounded-lg transition-colors"
             >
               {t('lectureTrain.addChapters')}
             </button>
@@ -377,132 +454,162 @@ const TrainingSessionContent = ({
               chapterButtonsRef={chapterButtonsRef}
             />
 
-            <div className="min-w-0 overflow-hidden bg-surface-container rounded-xl shadow-md">
+            <div className="min-w-0">
               {currentChapter ? (
-                <>
-                  {/* Progress Bar - at top of card, below border */}
-                  {totalQuestionsQuery.data && totalQuestionsQuery.data > 0 && (
-                    <ProgressBar
-                      current={currentProgressPosition}
-                      total={totalQuestionsQuery.data}
-                      flush
-                    />
-                  )}
+                currentChapterQuestions.length > 0 ? (
+                  (() => {
+                    const question =
+                      currentChapterQuestions[selectedQuestionIndex];
+                    if (!question) return null;
+                    return (
+                      <div>
+                        <div className="flex items-center justify-between gap-4 mb-3">
+                          <div className="text-sm font-medium text-ink-soft">
+                            {mode === 'randomized'
+                              ? t('lectureTrain.questionProgressRandomized', {
+                                  current: selectedQuestionIndex + 1,
+                                  total: currentChapterQuestions.length,
+                                  chapterIndex: selectedChapterIndex + 1,
+                                  chapterTotal: sortedChapters.length,
+                                })
+                              : t('lectureTrain.questionProgress', {
+                                  current: selectedQuestionIndex + 1,
+                                  total: currentChapterQuestions.length,
+                                })}
+                          </div>
+                          <ShuffleToggle
+                            checked={mode === 'randomized'}
+                            onChange={(checked) =>
+                              navigate(
+                                `/${checked ? 'train-random' : 'train'}/${lectureId}`,
+                              )
+                            }
+                          />
+                        </div>
 
-                  <div className="p-8 pt-0">
-                    <div className="flex justify-between items-start mb-2">
-                      <h2 className="text-2xl font-bold text-on-background"></h2>
-                      {currentChapter.association && (
-                        <span className="px-3 py-1 text-sm font-medium bg-primary-100 text-primary-700 rounded-full">
-                          {currentChapter.association}
-                        </span>
-                      )}
-                    </div>
+                        {totalQuestionsQuery.data &&
+                          totalQuestionsQuery.data > 0 && (
+                            <ProgressBar
+                              current={currentProgressPosition}
+                              total={totalQuestionsQuery.data}
+                            />
+                          )}
 
-                    {currentChapterQuestions.length > 0 ? (
-                      <div className="space-y-4">
-                        {(() => {
-                          const question =
-                            currentChapterQuestions[selectedQuestionIndex];
-                          if (!question) return null;
-                          return (
-                            <div key={question.id}>
-                              <div className="text-sm text-on-surface-variant">
-                                {mode === 'randomized'
-                                  ? t(
-                                      'lectureTrain.questionProgressRandomized',
-                                      {
-                                        current: selectedQuestionIndex + 1,
-                                        total: currentChapterQuestions.length,
-                                        chapterIndex: selectedChapterIndex + 1,
-                                        chapterTotal: sortedChapters.length,
-                                      },
-                                    )
-                                  : t('lectureTrain.questionProgress', {
-                                      current: selectedQuestionIndex + 1,
-                                      total: currentChapterQuestions.length,
-                                    })}
-                              </div>
-                              <Accordion
-                                title={question.question}
-                                noShadow
-                                noPadding
-                                leftIcon={
-                                  <span className="flex items-center gap-1">
-                                    <button
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        updateQuestion.mutate({
-                                          id: question.id,
-                                          isAnnotated: !question.isAnnotated,
-                                        });
-                                      }}
-                                      className={`p-1 rounded-full transition-all hover:scale-110 ${
-                                        question.isAnnotated
-                                          ? ''
-                                          : 'opacity-50 hover:opacity-100'
-                                      }`}
-                                      title={
-                                        question.isAnnotated
-                                          ? t('lectureTrain.annotated')
-                                          : t('lectureTrain.annotate')
-                                      }
-                                    >
-                                      <span
-                                        className={`text-xl ${
-                                          question.isAnnotated
-                                            ? ''
-                                            : 'grayscale'
-                                        }`}
-                                      >
-                                        🦉
-                                      </span>
-                                    </button>
-                                    <SpeechPlayButton
-                                      text={question.question}
-                                      language={
-                                        (
-                                          i18n.resolvedLanguage ?? i18n.language
-                                        ).startsWith('de')
-                                          ? 'de'
-                                          : 'en'
-                                      }
-                                    />
-                                  </span>
+                        <div className="mt-5">
+                          <FlashCard
+                            question={question.question}
+                            answer={question.answer || null}
+                            association={currentChapter.association}
+                            flipped={flipped}
+                            onFlip={flip}
+                            flipping={flipping}
+                            annotateButton={
+                              <button
+                                onClick={() => {
+                                  updateQuestion.mutate({
+                                    id: question.id,
+                                    isAnnotated: !question.isAnnotated,
+                                  });
+                                }}
+                                className={`p-1 rounded-full transition-all hover:scale-110 ${
+                                  question.isAnnotated
+                                    ? ''
+                                    : 'opacity-50 hover:opacity-100'
+                                }`}
+                                title={
+                                  question.isAnnotated
+                                    ? t('lectureTrain.annotated')
+                                    : t('lectureTrain.annotate')
                                 }
                               >
-                                {question.answer ? (
-                                  <div>
-                                    <div className="prose prose-lg max-w-none">
-                                      <ReactMarkdown>
-                                        {question.answer}
-                                      </ReactMarkdown>
-                                    </div>
-                                  </div>
-                                ) : (
-                                  <p className="text-on-surface-variant italic">
-                                    {t('lectureTrain.noAnswerYet')}
-                                  </p>
-                                )}
-                              </Accordion>
-                            </div>
-                          );
-                        })()}
-                      </div>
-                    ) : (
-                      <p className="text-on-surface-variant italic">
-                        {t('lectureTrain.noContentYet')}
-                      </p>
-                    )}
+                                <span
+                                  className={`text-xl ${
+                                    question.isAnnotated ? '' : 'grayscale'
+                                  }`}
+                                >
+                                  🦉
+                                </span>
+                              </button>
+                            }
+                            voice={
+                              <SpeechPlayButton
+                                text={question.question}
+                                language={
+                                  (
+                                    i18n.resolvedLanguage ?? i18n.language
+                                  ).startsWith('de')
+                                    ? 'de'
+                                    : 'en'
+                                }
+                              />
+                            }
+                          />
+                        </div>
 
-                    <LectureNavigation
-                      onPrev={handlePrevQuestion}
-                      onNext={handleNextQuestion}
-                      disablePrev={isFirstQuestion}
-                      disableNext={isLastQuestion}
-                    />
-                  </div>
-                </>
+                        {!flipped ? (
+                          <div className="flex items-center justify-between gap-3 mt-6">
+                            <button
+                              type="button"
+                              className="nav-round"
+                              disabled={isFirstQuestion}
+                              onClick={handlePrevQuestion}
+                              aria-label={t('common.previous')}
+                            >
+                              <ChevronLeft size={20} />
+                            </button>
+                            <Button
+                              variant="secondary"
+                              size="lg"
+                              className="flex-1 max-w-[320px] inline-flex items-center justify-center gap-2"
+                              onClick={flip}
+                            >
+                              <RotateCw size={18} />
+                              {t('lectureTrain.flipCard')}
+                            </Button>
+                            <button
+                              type="button"
+                              className="nav-round"
+                              disabled={isLastQuestion}
+                              onClick={handleNextQuestion}
+                              aria-label={t('common.next')}
+                            >
+                              <ChevronRight size={20} />
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="flex gap-3 mt-6 justify-center">
+                            <button
+                              type="button"
+                              className="flex-1 max-w-[220px] py-3.5 rounded-lg font-semibold inline-flex items-center justify-center gap-2 bg-surface border border-border text-ink-soft hover:border-accent hover:text-ink transition-colors"
+                              onClick={() => {
+                                updateQuestion.mutate({
+                                  id: question.id,
+                                  isAnnotated: true,
+                                });
+                                handleNextQuestion();
+                              }}
+                            >
+                              <RotateCw size={18} />
+                              {t('lectureTrain.reviewAgain')}
+                            </button>
+                            <button
+                              type="button"
+                              className="flex-1 max-w-[220px] py-3.5 rounded-lg font-semibold inline-flex items-center justify-center gap-2 bg-success text-accent-ink transition-colors hover:opacity-90 active:translate-y-px"
+                              onClick={handleNextQuestion}
+                            >
+                              <Check size={18} />
+                              {t('lectureTrain.gotIt')}
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()
+                ) : (
+                  <p className="text-on-surface-variant italic">
+                    {t('lectureTrain.noContentYet')}
+                  </p>
+                )
               ) : (
                 <p className="text-on-surface-variant">
                   {t('lectureTrain.selectAChapter')}

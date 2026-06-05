@@ -15,7 +15,6 @@ import { ErrorState } from '../components/ErrorState';
 import { LectureNavigation } from '../components/LectureNavigation';
 import { LoadingState } from '../components/LoadingState';
 import { VoicePlaybackButton } from '../components/VoicePlaybackButton';
-import { BackButton } from '../components/buttons/BackButton';
 import { useChapterVoicePlayback } from '../hooks/useChapterVoicePlayback';
 import { highlightText } from '../utils/highlightText';
 import { trpc } from '../utils/trpc';
@@ -131,11 +130,24 @@ export const LectureLearn = () => {
     }
   }, [isSearchOpen]);
 
-  // Scroll selected chapter into view
+  // Scroll selected chapter into view, and keep the focus ring from lingering
+  // on a previously-selected entry. Selecting a chapter leaves DOM focus on its
+  // sidebar button; keyboard navigation moves the active chapter via the URL
+  // without moving focus, so the old button would keep its :focus-visible
+  // outline. When a chapter button still holds focus, move it to the active
+  // chapter so the outline tracks the highlight (never stealing focus from
+  // other controls).
   useEffect(() => {
     const button = chapterButtonsRef.current.get(selectedChapterIndex);
-    if (button) {
-      button.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    if (!button) return;
+    button.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    const active = document.activeElement;
+    const focusOnChapterButton =
+      active instanceof HTMLButtonElement &&
+      active !== button &&
+      [...chapterButtonsRef.current.values()].includes(active);
+    if (focusOnChapterButton) {
+      button.focus({ preventScroll: true });
     }
   }, [selectedChapterIndex]);
 
@@ -267,23 +279,22 @@ export const LectureLearn = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <AppHeader />
+      <AppHeader back={{ to: '/', label: t('lectureTrain.backToLectures') }} />
 
       <main className="container mx-auto px-4 py-8 md:py-12">
         {/* Lecture Header */}
         <div className="mb-8">
-          <BackButton to="/" label={t('lectureTrain.backToLectures')} />
           <Accordion title={lecture.title} description={lecture.description} />
         </div>
 
         {chapters.length === 0 ? (
-          <div className="bg-surface rounded-xl shadow-md p-8 text-center">
+          <div className="bg-surface border border-border rounded-xl shadow-sm p-8 text-center">
             <p className="text-on-surface-variant mb-4">
               {t('lectureTrain.noChaptersYet')}
             </p>
             <button
               onClick={() => navigate(`/edit/${id}`)}
-              className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors"
+              className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-on-primary rounded-lg transition-colors"
             >
               {t('lectureTrain.addChapters')}
             </button>
@@ -320,36 +331,45 @@ export const LectureLearn = () => {
             />
 
             {/* Chapter Content */}
-            <div className="min-w-0 overflow-hidden bg-surface-container rounded-xl shadow-md p-8">
+            <div className="min-w-0 overflow-hidden bg-surface-container border border-border rounded-xl shadow-sm p-8">
               {currentChapter ? (
                 <>
-                  <div className="flex justify-between items-start mb-6">
-                    <h2 className="text-2xl font-bold text-on-background">
-                      {currentFirstQuestion?.question || t('common.untitled')}
-                    </h2>
-                    <div className="flex flex-wrap items-center gap-2">
-                      {currentChapter.association && (
-                        <span className="px-3 py-1 text-sm font-medium bg-primary-100 text-primary-700 rounded-full">
-                          {currentChapter.association}
-                        </span>
-                      )}
-                      {speechConfigured &&
-                        currentChapterQuestions.length > 0 && (
-                          <>
+                  <div className="mb-6">
+                    {/* Title row: keep it compact so it stays clean on narrow
+                        screens — only the chapter pill, voice icon, and menu. */}
+                    <div className="flex justify-between items-start gap-3">
+                      <h2 className="text-2xl font-bold text-on-background">
+                        {currentFirstQuestion?.question || t('common.untitled')}
+                      </h2>
+                      <div className="flex items-center gap-2 shrink-0">
+                        {currentChapter.association && (
+                          <span className="px-3 py-1 text-sm font-medium bg-accent-soft text-accent-soft-ink rounded-full">
+                            {currentChapter.association}
+                          </span>
+                        )}
+                        {speechConfigured &&
+                          currentChapterQuestions.length > 0 && (
                             <VoicePlaybackButton
                               status={voice.status}
                               isActive={voice.isActive}
                               isPaused={voice.isPaused}
                               onToggle={voice.toggle}
                             />
-                            <AutoAdvanceToggle
-                              checked={autoAdvance}
-                              onChange={handleAutoAdvanceChange}
-                            />
-                          </>
-                        )}
-                      <ChapterMenu chapter={currentChapter} lectureId={id!} />
+                          )}
+                        <ChapterMenu chapter={currentChapter} lectureId={id!} />
+                      </div>
                     </div>
+
+                    {/* Auto-advance gets its own row beneath the title so the
+                        toggle never crowds the header on small screens. */}
+                    {speechConfigured && currentChapterQuestions.length > 0 && (
+                      <div className="mt-4">
+                        <AutoAdvanceToggle
+                          checked={autoAdvance}
+                          onChange={handleAutoAdvanceChange}
+                        />
+                      </div>
+                    )}
                   </div>
 
                   {/* Announces auto-play position and failures to screen readers. */}
@@ -391,7 +411,7 @@ export const LectureLearn = () => {
                             </h2>
                           )}
                           {question.answer ? (
-                            <div className="prose prose-lg max-w-none">
+                            <div className="prose prose-lg dark:prose-invert max-w-none">
                               <ReactMarkdown>{question.answer}</ReactMarkdown>
                             </div>
                           ) : (

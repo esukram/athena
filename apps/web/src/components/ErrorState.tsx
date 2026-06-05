@@ -26,7 +26,7 @@ export const ErrorState: React.FC<ErrorStateProps> = ({
       {actionLabel && onAction && (
         <button
           onClick={onAction}
-          className="mt-4 px-4 py-2 rounded-lg bg-primary-600 text-white hover:bg-primary-700"
+          className="mt-4 px-4 py-2 rounded-lg bg-primary-600 text-on-primary hover:bg-primary-700"
         >
           {actionLabel}
         </button>

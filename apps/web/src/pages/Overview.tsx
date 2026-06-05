@@ -22,11 +22,14 @@ export const Overview = () => {
 
   return (
     <PageLayout>
-      <div className="mb-8">
-        <h2 className="text-2xl font-bold text-on-background mb-2">
+      <div className="mb-9">
+        <p className="mb-3 text-xs font-bold tracking-[0.14em] text-accent-soft-ink uppercase">
+          {t('overview.eyebrow')}
+        </p>
+        <h1 className="text-4xl text-on-background md:text-5xl">
           {t('overview.availableLectures')}
-        </h2>
-        <p className="text-lg text-on-surface-variant">
+        </h1>
+        <p className="mt-3 max-w-[56ch] text-lg text-ink-soft">
           {t('overview.exploreCollection')}
         </p>
       </div>
