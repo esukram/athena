@@ -29,7 +29,11 @@
   --accent-soft-ink: oklch(0.44 0.12 305);
   /* Secondary-button hover fill. Derived from the two tokens above, so it flips
      with them in dark mode — define once. Shared by Button + ExpandableButton. */
-  --accent-soft-hover: color-mix(in oklab, var(--accent-soft) 80%, var(--accent));
+  --accent-soft-hover: color-mix(
+    in oklab,
+    var(--accent-soft) 80%,
+    var(--accent)
+  );
   --success: oklch(0.6 0.1 150);
   --success-soft: oklch(0.93 0.04 150);
   --danger: oklch(0.55 0.18 25);
