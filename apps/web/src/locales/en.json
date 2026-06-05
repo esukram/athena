@@ -141,7 +141,6 @@
     "autoPlayNowPlaying": "Auto-play: question {{current}} of {{total}}",
     "autoPlayError": "Auto-play failed — tap to retry",
     "autoAdvance": "Auto-advance to next chapter",
-    "autoAdvanceShort": "Auto-advance",
-    "autoAdvanceHint": "Reads each chapter aloud, then moves on."
+    "autoAdvanceShort": "Auto-advance"
   }
 }

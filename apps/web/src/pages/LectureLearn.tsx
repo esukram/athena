@@ -361,16 +361,13 @@ export const LectureLearn = () => {
                     </div>
 
                     {/* Auto-advance gets its own row beneath the title so the
-                        toggle + hint never crowd the header on small screens. */}
+                        toggle never crowds the header on small screens. */}
                     {speechConfigured && currentChapterQuestions.length > 0 && (
-                      <div className="mt-4 flex flex-wrap items-center gap-2">
+                      <div className="mt-4">
                         <AutoAdvanceToggle
                           checked={autoAdvance}
                           onChange={handleAutoAdvanceChange}
                         />
-                        <span className="text-sm text-ink-faint">
-                          {t('speech.autoAdvanceHint')}
-                        </span>
                       </div>
                     )}
                   </div>
