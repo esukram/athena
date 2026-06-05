@@ -37,7 +37,8 @@
     "trainRandomized": "Randomized",
     "editLecture": "Edit Lecture",
     "deleteLecture": "Delete Lecture",
-    "confirmDelete": "Are you sure you want to delete \"{{title}}\"?"
+    "confirmDelete": "Are you sure you want to delete \"{{title}}\"?",
+    "meta": "{{chapters}} chapters · {{cards}} cards"
   },
   "lectureAdd": {
     "title": "Add New Lecture",

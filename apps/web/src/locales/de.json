@@ -37,7 +37,8 @@
     "trainRandomized": "Zufällig",
     "editLecture": "Fach bearbeiten",
     "deleteLecture": "Fach löschen",
-    "confirmDelete": "Möchten Sie \"{{title}}\" wirklich löschen?"
+    "confirmDelete": "Möchten Sie \"{{title}}\" wirklich löschen?",
+    "meta": "{{chapters}} Kapitel · {{cards}} Karten"
   },
   "lectureAdd": {
     "title": "Neues Fach hinzufügen",

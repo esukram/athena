@@ -2,10 +2,16 @@ import { ZodError } from 'zod';
 
 import { initTRPC } from '@trpc/server';
 
-import type { Chapter, Lecture, Question, SpeechService } from './types.js';
+import type {
+  Chapter,
+  Lecture,
+  LectureListItem,
+  Question,
+  SpeechService,
+} from './types.js';
 
 export interface LectureRepository {
-  getAll: () => Lecture[];
+  getAll: () => LectureListItem[];
   getById: (id: string) => Lecture | undefined;
   create: (lecture: Omit<Lecture, 'id'>) => Lecture;
   update: (id: string, lecture: Omit<Lecture, 'id'>) => Lecture | undefined;

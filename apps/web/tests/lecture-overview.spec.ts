@@ -66,16 +66,22 @@ test.describe('Lecture Overview', () => {
         id: '1',
         title: 'Introduction to Physics',
         description: 'Basic principles of motion and energy.',
+        chapterCount: 3,
+        questionCount: 12,
       },
       {
         id: '2',
         title: 'Advanced Chemistry',
         description: 'Organic compounds and reactions.',
+        chapterCount: 5,
+        questionCount: 24,
       },
       {
         id: '3',
         title: 'World History',
         description: 'Civilizations from ancient to modern times.',
+        chapterCount: 7,
+        questionCount: 30,
       },
     ];
 
@@ -111,6 +117,12 @@ test.describe('Lecture Overview', () => {
     await expect(
       page.getByRole('button', { name: en.lectureCard.train }),
     ).toHaveCount(mockLectures.length);
+
+    // Verify the meta line (chapter/card counts) renders for the first lecture
+    const meta = en.lectureCard.meta
+      .replace('{{chapters}}', '3')
+      .replace('{{cards}}', '12');
+    await expect(page.getByText(meta)).toBeVisible();
   });
 
   test('Edit button navigates to edit page', async ({ page }) => {
@@ -119,6 +131,8 @@ test.describe('Lecture Overview', () => {
         id: 'test-lecture-1',
         title: 'Test Lecture',
         description: 'Test description',
+        chapterCount: 2,
+        questionCount: 8,
       },
     ];
 
@@ -155,6 +169,8 @@ test.describe('Lecture Overview', () => {
         id: 'test-lecture-2',
         title: 'Lecture to Delete',
         description: 'This lecture will be deleted',
+        chapterCount: 4,
+        questionCount: 16,
       },
     ];
 

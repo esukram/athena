@@ -8,6 +8,7 @@ export {
 } from './trpc.js';
 export type {
   Lecture,
+  LectureListItem,
   Chapter,
   Question,
   SpeechService,
