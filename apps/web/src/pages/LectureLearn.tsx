@@ -334,36 +334,45 @@ export const LectureLearn = () => {
             <div className="min-w-0 overflow-hidden bg-surface-container border border-border rounded-xl shadow-sm p-8">
               {currentChapter ? (
                 <>
-                  <div className="flex justify-between items-start mb-6">
-                    <h2 className="text-2xl font-bold text-on-background">
-                      {currentFirstQuestion?.question || t('common.untitled')}
-                    </h2>
-                    <div className="flex flex-wrap items-center gap-2">
-                      {currentChapter.association && (
-                        <span className="px-3 py-1 text-sm font-medium bg-accent-soft text-accent-soft-ink rounded-full">
-                          {currentChapter.association}
-                        </span>
-                      )}
-                      {speechConfigured &&
-                        currentChapterQuestions.length > 0 && (
-                          <div className="flex flex-wrap items-center gap-2">
+                  <div className="mb-6">
+                    {/* Title row: keep it compact so it stays clean on narrow
+                        screens — only the chapter pill, voice icon, and menu. */}
+                    <div className="flex justify-between items-start gap-3">
+                      <h2 className="text-2xl font-bold text-on-background">
+                        {currentFirstQuestion?.question || t('common.untitled')}
+                      </h2>
+                      <div className="flex items-center gap-2 shrink-0">
+                        {currentChapter.association && (
+                          <span className="px-3 py-1 text-sm font-medium bg-accent-soft text-accent-soft-ink rounded-full">
+                            {currentChapter.association}
+                          </span>
+                        )}
+                        {speechConfigured &&
+                          currentChapterQuestions.length > 0 && (
                             <VoicePlaybackButton
                               status={voice.status}
                               isActive={voice.isActive}
                               isPaused={voice.isPaused}
                               onToggle={voice.toggle}
                             />
-                            <AutoAdvanceToggle
-                              checked={autoAdvance}
-                              onChange={handleAutoAdvanceChange}
-                            />
-                            <span className="text-sm text-ink-faint">
-                              {t('speech.autoAdvanceHint')}
-                            </span>
-                          </div>
-                        )}
-                      <ChapterMenu chapter={currentChapter} lectureId={id!} />
+                          )}
+                        <ChapterMenu chapter={currentChapter} lectureId={id!} />
+                      </div>
                     </div>
+
+                    {/* Auto-advance gets its own row beneath the title so the
+                        toggle + hint never crowd the header on small screens. */}
+                    {speechConfigured && currentChapterQuestions.length > 0 && (
+                      <div className="mt-4 flex flex-wrap items-center gap-2">
+                        <AutoAdvanceToggle
+                          checked={autoAdvance}
+                          onChange={handleAutoAdvanceChange}
+                        />
+                        <span className="text-sm text-ink-faint">
+                          {t('speech.autoAdvanceHint')}
+                        </span>
+                      </div>
+                    )}
                   </div>
 
                   {/* Announces auto-play position and failures to screen readers. */}
