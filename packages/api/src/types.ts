@@ -4,6 +4,11 @@ export interface Lecture {
   description: string;
 }
 
+export interface LectureListItem extends Lecture {
+  chapterCount: number;
+  questionCount: number;
+}
+
 export interface Chapter {
   id: string;
   lectureId: string;

@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
-import type { Lecture } from '@athena/api';
+import type { LectureListItem } from '@athena/api';
 
 import { trpc } from '../utils/trpc';
 import { ExpandableButton } from './buttons';
@@ -9,7 +9,7 @@ import { Button } from './buttons/Button';
 import { IconButtonDelete } from './buttons/IconButtonDelete';
 import { IconButtonEdit } from './buttons/IconButtonEdit';
 
-export const LectureCard = ({ lecture }: { lecture: Lecture }) => {
+export const LectureCard = ({ lecture }: { lecture: LectureListItem }) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const utils = trpc.useUtils();
@@ -69,6 +69,12 @@ export const LectureCard = ({ lecture }: { lecture: Lecture }) => {
       <div className="flex flex-1 flex-col p-5">
         <div className="flex-1">
           <h2 className="mb-2 text-xl text-ink">{lecture.title}</h2>
+          <p className="mb-2 text-xs font-medium text-ink-soft">
+            {t('lectureCard.meta', {
+              chapters: lecture.chapterCount,
+              cards: lecture.questionCount,
+            })}
+          </p>
           <p className="text-sm leading-relaxed text-ink-soft line-clamp-3">
             {lecture.description}
           </p>
