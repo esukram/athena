@@ -89,7 +89,13 @@
     "questionProgress": "Frage {{current}} von {{total}}",
     "questionProgressRandomized": "Kapitel {{chapterIndex}}/{{chapterTotal}} · Frage {{current}}/{{total}}",
     "randomizedMode": "Zufällig",
-    "progressLabel": "Trainingsfortschritt: {{current}} von {{total}} Fragen ({{percent}}%)"
+    "progressLabel": "Trainingsfortschritt: {{current}} von {{total}} Fragen ({{percent}}%)",
+    "flipCard": "Karte umdrehen",
+    "sideQuestion": "Frage",
+    "sideAnswer": "Antwort",
+    "tapToReveal": "oder tippen, um die Antwort anzuzeigen",
+    "reviewAgain": "Nochmal üben",
+    "gotIt": "Verstanden"
   },
   "globalSearch": {
     "searchChapters": "Kapitel suchen...",
@@ -135,6 +141,7 @@
     "autoPlayNowPlaying": "Automatisches Vorlesen: Frage {{current}} von {{total}}",
     "autoPlayError": "Vorlesen fehlgeschlagen – zum Wiederholen tippen",
     "autoAdvance": "Automatisch zum nächsten Kapitel",
-    "autoAdvanceShort": "Automatisch weiter"
+    "autoAdvanceShort": "Automatisch weiter",
+    "autoAdvanceHint": "Liest jedes Kapitel vor und geht dann weiter."
   }
 }

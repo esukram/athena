@@ -89,7 +89,13 @@
     "questionProgress": "Question {{current}} of {{total}}",
     "questionProgressRandomized": "Chapter {{chapterIndex}}/{{chapterTotal}} · Question {{current}}/{{total}}",
     "randomizedMode": "Randomized",
-    "progressLabel": "Training progress: {{current}} of {{total}} questions ({{percent}}%)"
+    "progressLabel": "Training progress: {{current}} of {{total}} questions ({{percent}}%)",
+    "flipCard": "Flip card",
+    "sideQuestion": "Question",
+    "sideAnswer": "Answer",
+    "tapToReveal": "or tap to reveal the answer",
+    "reviewAgain": "Review again",
+    "gotIt": "Got it"
   },
   "globalSearch": {
     "searchChapters": "Search chapters...",
@@ -135,6 +141,7 @@
     "autoPlayNowPlaying": "Auto-play: question {{current}} of {{total}}",
     "autoPlayError": "Auto-play failed — tap to retry",
     "autoAdvance": "Auto-advance to next chapter",
-    "autoAdvanceShort": "Auto-advance"
+    "autoAdvanceShort": "Auto-advance",
+    "autoAdvanceHint": "Reads each chapter aloud, then moves on."
   }
 }

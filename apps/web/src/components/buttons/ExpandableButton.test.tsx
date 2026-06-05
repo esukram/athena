@@ -172,7 +172,7 @@ describe('ExpandableButton', () => {
     );
 
     const mainButton = screen.getByTestId('expandable-button-main');
-    expect(mainButton.className).toContain('bg-red-600');
+    expect(mainButton.className).toContain('bg-danger');
   });
 
   it('disables individual action when action.disabled is true', () => {

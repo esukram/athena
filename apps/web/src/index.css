@@ -47,6 +47,7 @@
   --r-md: 12px;
   --r-lg: 18px;
   --r-xl: 26px;
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
   color-scheme: light;
 }
 
@@ -218,4 +219,72 @@
     outline: 2px solid var(--accent);
     outline-offset: 2px;
   }
+}
+
+/* ---------------------------------------------------------------------------
+   Train / flashcard — flip card + round nav (flat variant).
+   Ported from the Dusk prototype; consumes existing runtime tokens only.
+--------------------------------------------------------------------------- */
+@keyframes flipswap {
+  0% {
+    transform: rotateY(0);
+  }
+  50% {
+    transform: rotateY(90deg);
+  }
+  100% {
+    transform: rotateY(0);
+  }
+}
+
+.flip-scene {
+  perspective: 2000px;
+}
+
+.flip-card {
+  position: relative;
+  width: 100%;
+  cursor: pointer;
+}
+
+.flip-card.flipping {
+  animation: flipswap 0.42s var(--ease);
+}
+
+.flip-face {
+  position: relative;
+  min-height: 380px;
+  border-radius: var(--r-xl);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  box-shadow: 0 30px 60px -38px rgb(var(--shadow-color) / 0.85);
+  padding: clamp(28px, 5vw, 48px);
+  display: flex;
+  flex-direction: column;
+}
+
+.nav-round {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--ink-soft);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: all 0.18s;
+  flex-shrink: 0;
+}
+
+.nav-round:hover {
+  color: var(--ink);
+  border-color: var(--accent);
+  transform: scale(1.05);
+}
+
+.nav-round:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  transform: none;
 }

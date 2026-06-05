@@ -14,13 +14,12 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
 
 const variantClasses: Record<ButtonVariant, string> = {
   primary:
-    'bg-gradient-to-r from-primary-600 to-primary-700 text-on-primary hover:from-primary-700 hover:to-primary-800 shadow-sm hover:shadow-sm',
+    'bg-accent text-accent-ink hover:bg-accent-press shadow-[0_8px_18px_-10px_rgb(var(--shadow-color)/0.7)] hover:shadow-[0_12px_24px_-10px_rgb(var(--shadow-color)/0.75)]',
   secondary:
-    'bg-primary-50 text-primary-600 hover:bg-primary-100 hover:shadow-sm',
+    'bg-accent-soft text-accent-soft-ink hover:bg-[color-mix(in_oklab,var(--accent-soft)_80%,var(--accent))]',
   ghost:
-    'text-primary-600 hover:bg-primary-50 disabled:text-gray-400 disabled:hover:bg-transparent',
-  danger:
-    'bg-red-600 text-on-primary hover:bg-red-700 shadow-sm hover:shadow-sm',
+    'border border-border text-ink-soft hover:bg-surface-2 hover:text-ink disabled:opacity-40',
+  danger: 'bg-danger text-danger-ink hover:bg-danger-press',
 };
 
 const sizeClasses: Record<ButtonSize, string> = {
@@ -46,6 +45,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
           ${sizeClasses[size]}
           ${variantClasses[variant]}
           font-semibold rounded-lg transition-all duration-200
+          active:translate-y-px
           disabled:opacity-50 disabled:cursor-not-allowed
           ${className}
         `.trim()}

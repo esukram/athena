@@ -8,7 +8,7 @@ import { trpc } from '../utils/trpc';
 
 export const GlobalSearch = () => {
   const { t } = useTranslation();
-  const [isOpen, setIsOpen] = useState(false);
+  const [showResults, setShowResults] = useState(false);
   const [query, setQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(-1);
@@ -50,28 +50,22 @@ export const GlobalSearch = () => {
   const handleResultClick = useCallback(
     (lectureId: string, chapterId: string) => {
       navigate(`/learn/${lectureId}/${chapterId}`);
-      setIsOpen(false);
+      setShowResults(false);
       setQuery('');
     },
     [navigate],
   );
 
-  // Focus input when opened
-  useEffect(() => {
-    if (isOpen && inputRef.current) {
-      inputRef.current.focus();
-    }
-  }, [isOpen]);
-
   // Keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (!isOpen) return;
+      if (!query.trim()) return;
 
       if (e.key === 'Escape') {
-        setIsOpen(false);
         setQuery('');
         setSelectedIndex(-1);
+        setShowResults(false);
+        inputRef.current?.blur();
       } else if (e.key === 'ArrowDown') {
         e.preventDefault();
         setSelectedIndex((prev) => {
@@ -96,17 +90,16 @@ export const GlobalSearch = () => {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, results, selectedIndex, handleResultClick]);
+  }, [query, results, selectedIndex, handleResultClick]);
 
-  // Close on click outside
+  // Hide results dropdown on click outside (keep the typed query)
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (
         containerRef.current &&
         !containerRef.current.contains(e.target as Node)
       ) {
-        setIsOpen(false);
-        setQuery('');
+        setShowResults(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -159,40 +152,40 @@ export const GlobalSearch = () => {
 
   return (
     <div ref={containerRef} className="relative">
-      {isOpen ? (
-        <div className="flex items-center gap-2">
-          <input
-            ref={inputRef}
-            type="text"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder={t('globalSearch.searchChapters')}
-            className="w-48 sm:w-64 px-3 py-1.5 text-sm border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-surface text-on-surface"
-          />
+      <div className="flex items-center gap-2 rounded-xl border border-border bg-surface-2 px-3 py-2 min-w-[200px] transition focus-within:border-accent focus-within:ring-3 focus-within:ring-accent-soft max-[720px]:min-w-0 max-[720px]:w-[42px] max-[720px]:justify-center max-[720px]:px-0">
+        <Search size={18} className="text-ink-faint shrink-0" />
+        <input
+          ref={inputRef}
+          type="text"
+          value={query}
+          onChange={(e) => {
+            setQuery(e.target.value);
+            setShowResults(true);
+          }}
+          onFocus={() => {
+            if (query.trim()) setShowResults(true);
+          }}
+          placeholder={t('globalSearch.searchChapters')}
+          aria-label={t('globalSearch.openSearch')}
+          className="w-full border-0 bg-transparent text-sm text-ink outline-none placeholder:text-ink-faint max-[720px]:hidden"
+        />
+        {query && (
           <button
             onClick={() => {
-              setIsOpen(false);
               setQuery('');
+              setShowResults(false);
+              inputRef.current?.focus();
             }}
-            className="p-1.5 rounded-lg hover:bg-bg-tint transition-colors text-on-surface-variant hover:text-on-surface"
+            className="shrink-0 text-ink-faint transition-colors hover:text-ink max-[720px]:hidden"
             aria-label={t('globalSearch.closeSearch')}
           >
-            <X size={18} />
+            <X size={16} />
           </button>
-        </div>
-      ) : (
-        <button
-          onClick={() => setIsOpen(true)}
-          className="flex items-center gap-2 text-base font-medium text-on-surface hover:text-primary-600 transition-colors"
-          aria-label={t('globalSearch.openSearch')}
-        >
-          <Search size={18} />
-          <span className="hidden sm:inline">{t('common.search')}</span>
-        </button>
-      )}
+        )}
+      </div>
 
       {/* Search Results Overlay */}
-      {isOpen && query.trim() && (
+      {showResults && query.trim() && (
         <div className="absolute top-full left-0 mt-2 w-80 sm:w-96 max-h-96 bg-surface rounded-xl shadow-sm border border-border overflow-hidden z-50">
           {searchQuery.isLoading || query !== debouncedQuery ? (
             <div className="p-4 text-sm text-on-surface-variant">

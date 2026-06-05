@@ -29,10 +29,10 @@ export const LectureCard = ({ lecture }: { lecture: Lecture }) => {
   const initial = lecture.title.trim().charAt(0).toUpperCase() || '?';
 
   return (
-    <div className="group relative flex flex-col overflow-visible rounded-2xl border border-border bg-surface shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-accent/40 hover:shadow-lg">
+    <div className="group relative flex flex-col overflow-visible rounded-xl border border-border bg-surface shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-accent/40 hover:shadow-lg">
       {/* Cover — soft accent wash with the lecture initial set large and faint */}
       <div
-        className="relative flex h-32 items-end overflow-hidden rounded-t-2xl bg-surface-2 p-5"
+        className="relative flex h-32 items-end overflow-hidden rounded-t-xl bg-surface-2 p-5"
         style={{
           backgroundImage:
             'radial-gradient(120% 140% at 85% 10%, var(--accent-soft) 0%, transparent 55%)',

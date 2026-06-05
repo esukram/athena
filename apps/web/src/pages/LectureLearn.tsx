@@ -15,7 +15,6 @@ import { ErrorState } from '../components/ErrorState';
 import { LectureNavigation } from '../components/LectureNavigation';
 import { LoadingState } from '../components/LoadingState';
 import { VoicePlaybackButton } from '../components/VoicePlaybackButton';
-import { BackButton } from '../components/buttons/BackButton';
 import { useChapterVoicePlayback } from '../hooks/useChapterVoicePlayback';
 import { highlightText } from '../utils/highlightText';
 import { trpc } from '../utils/trpc';
@@ -267,12 +266,11 @@ export const LectureLearn = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <AppHeader />
+      <AppHeader back={{ to: '/', label: t('lectureTrain.backToLectures') }} />
 
       <main className="container mx-auto px-4 py-8 md:py-12">
         {/* Lecture Header */}
         <div className="mb-8">
-          <BackButton to="/" label={t('lectureTrain.backToLectures')} />
           <Accordion title={lecture.title} description={lecture.description} />
         </div>
 
@@ -335,7 +333,7 @@ export const LectureLearn = () => {
                       )}
                       {speechConfigured &&
                         currentChapterQuestions.length > 0 && (
-                          <>
+                          <div className="flex flex-wrap items-center gap-2">
                             <VoicePlaybackButton
                               status={voice.status}
                               isActive={voice.isActive}
@@ -346,7 +344,10 @@ export const LectureLearn = () => {
                               checked={autoAdvance}
                               onChange={handleAutoAdvanceChange}
                             />
-                          </>
+                            <span className="text-sm text-ink-faint">
+                              {t('speech.autoAdvanceHint')}
+                            </span>
+                          </div>
                         )}
                       <ChapterMenu chapter={currentChapter} lectureId={id!} />
                     </div>

@@ -67,9 +67,9 @@ export const VoicePlaybackButton = ({
       aria-label={label}
       title={label}
       aria-pressed={showPause}
-      className={showPause ? '!bg-primary-100' : ''}
+      className={showPause ? '!bg-accent-soft' : ''}
       iconClassName={
-        isLoading ? 'animate-spin' : showPause ? '!text-primary-700' : ''
+        isLoading ? 'animate-spin' : showPause ? '!text-accent-soft-ink' : ''
       }
     />
   );

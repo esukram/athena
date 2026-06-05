@@ -92,45 +92,46 @@ test.describe('Lecture Train', () => {
 
     await page.goto(`/#/train/${lectureId}`);
 
-    // Verify Q1 displayed
-    await expect(
-      page.getByRole('heading', { name: 'Q1 Chapter 1' }),
-    ).toBeVisible();
+    // The Train screen is now a flip card. The question text shows on the card
+    // front, with a "Question" side label; the answer stays hidden until flip.
+    await expect(page.getByText('Q1 Chapter 1')).toBeVisible();
     await expect(page.getByText('Question 1 of 2')).toBeVisible();
-
-    // Verify "Show Answer" / Accordion logic
-    // The accordion content (answer) might be hidden or visible depending on default.
-    // In LectureTrain.tsx: Accordion title={question.question} ... {question.answer}
-    // So usually you click title to expand.
-    // The code shows `Accordion` is used.
+    await expect(page.getByText('Question', { exact: true })).toBeVisible();
     await expect(page.getByText('A1')).not.toBeVisible();
-    await page.getByRole('heading', { name: 'Q1 Chapter 1' }).click(); // Expand
-    await expect(page.getByText('A1')).toBeVisible();
 
-    // Test Annotation (Owl)
+    // Annotation (owl) lives on the card front; its title is unchanged.
     const owlButton = page.getByTitle(
       'Question not highlighted, click to highlight',
     );
     await expect(owlButton).toBeVisible();
     await owlButton.click();
 
-    // Verify mutation called
-    // We can't easily wait for a variable in this scope without exposing it or pausing.
-    // The previous check verified the click worked.
+    // Flipping the card reveals the answer and switches the side label to
+    // "Answer". Use the dedicated "Flip card" button (clicking the card or
+    // pressing Space would work too).
+    await page.getByRole('button', { name: 'Flip card' }).click();
+    await expect(page.getByText('A1')).toBeVisible();
+    await expect(page.getByText('Answer', { exact: true })).toBeVisible();
 
-    // Test Navigation to Next Question
-    const nextButton = page.getByRole('button', { name: 'Next' });
-    await nextButton.click();
+    // The rate buttons replace flip/nav on the back; "Got it" advances to the
+    // next card. (The owl click above persisted the highlight, so c1 is fetched
+    // again on navigation — the mocked list is returned verbatim.)
+    await page.getByRole('button', { name: 'Got it' }).click();
 
-    // Should be on Q2
+    // Should be on Q2, front side again.
     await expect(page).toHaveURL(new RegExp(`/train/${lectureId}/c1/q2`));
     await expect(page.getByText('Q2 Chapter 1')).toBeVisible();
     await expect(page.getByText('Question 2 of 2')).toBeVisible();
 
-    // Previous button should work
+    // The round Previous nav (visible on the card front) navigates back.
     const prevButton = page.getByRole('button', { name: 'Previous' });
     await prevButton.click();
     await expect(page).toHaveURL(new RegExp(`/train/${lectureId}/c1/q1`));
+
+    // "Review again" is the other rate button: flip, then rate to advance.
+    await page.getByRole('button', { name: 'Flip card' }).click();
+    await page.getByRole('button', { name: 'Review again' }).click();
+    await expect(page).toHaveURL(new RegExp(`/train/${lectureId}/c1/q2`));
   });
 
   test('edit button should not be visible in training mode', async ({
@@ -203,10 +204,9 @@ test.describe('Lecture Train', () => {
 
     await page.goto(`/#/train/${lectureId}`);
 
-    // Verify question is displayed
-    await expect(
-      page.getByRole('heading', { name: 'Question 1' }),
-    ).toBeVisible();
+    // Verify the question is displayed on the flip-card front (a div, not a
+    // heading).
+    await expect(page.getByText('Question 1')).toBeVisible();
 
     // Verify edit button is NOT visible in training mode
     await expect(page.getByTestId('chapter-edit-button')).not.toBeVisible();
