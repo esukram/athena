@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 
-import { ThemeContext, type Theme } from './themeContext';
+import { type Theme, ThemeContext } from './themeContext';
 
 const STORAGE_KEY = 'athena-theme';
 
