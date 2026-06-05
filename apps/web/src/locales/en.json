@@ -16,13 +16,17 @@
   },
   "header": {
     "addLecture": "Add Lecture",
-    "menuLabel": "Menu"
+    "menuLabel": "Menu",
+    "toggleTheme": "Toggle theme",
+    "toLight": "Switch to light mode",
+    "toDark": "Switch to dark mode"
   },
   "language": {
     "german": "Deutsch",
     "english": "English"
   },
   "overview": {
+    "eyebrow": "Your library",
     "availableLectures": "Available Lectures",
     "exploreCollection": "Explore our collection of educational content",
     "errorLoading": "Error loading lectures"

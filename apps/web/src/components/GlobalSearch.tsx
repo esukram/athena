@@ -167,14 +167,14 @@ export const GlobalSearch = () => {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder={t('globalSearch.searchChapters')}
-            className="w-48 sm:w-64 px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white text-on-surface"
+            className="w-48 sm:w-64 px-3 py-1.5 text-sm border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-surface text-on-surface"
           />
           <button
             onClick={() => {
               setIsOpen(false);
               setQuery('');
             }}
-            className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors text-on-surface-variant hover:text-on-surface"
+            className="p-1.5 rounded-lg hover:bg-bg-tint transition-colors text-on-surface-variant hover:text-on-surface"
             aria-label={t('globalSearch.closeSearch')}
           >
             <X size={18} />
@@ -193,7 +193,7 @@ export const GlobalSearch = () => {
 
       {/* Search Results Overlay */}
       {isOpen && query.trim() && (
-        <div className="absolute top-full left-0 mt-2 w-80 sm:w-96 max-h-96 bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden z-50">
+        <div className="absolute top-full left-0 mt-2 w-80 sm:w-96 max-h-96 bg-surface rounded-xl shadow-sm border border-border overflow-hidden z-50">
           {searchQuery.isLoading || query !== debouncedQuery ? (
             <div className="p-4 text-sm text-on-surface-variant">
               {t('globalSearch.searching')}
@@ -203,7 +203,7 @@ export const GlobalSearch = () => {
               {t('globalSearch.noResults')}
             </div>
           ) : (
-            <ul className="divide-y divide-gray-100 max-h-80 overflow-y-auto">
+            <ul className="divide-y divide-border-soft max-h-80 overflow-y-auto">
               {results.map((chapter, index) => (
                 <li key={chapter.id}>
                   <button
@@ -213,8 +213,8 @@ export const GlobalSearch = () => {
                     onClick={() =>
                       handleResultClick(chapter.lectureId, chapter.id)
                     }
-                    className={`w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors ${
-                      index === selectedIndex ? 'bg-gray-100' : ''
+                    className={`w-full text-left px-4 py-3 hover:bg-bg-tint transition-colors ${
+                      index === selectedIndex ? 'bg-bg-tint' : ''
                     }`}
                   >
                     <div className="font-medium text-on-surface mb-1">
@@ -231,7 +231,7 @@ export const GlobalSearch = () => {
                       {chapter.association && (
                         <>
                           <span>•</span>
-                          <span className="px-2 py-0.5 bg-primary-50 text-primary-600 rounded-full">
+                          <span className="px-2 py-0.5 bg-accent-soft text-accent-soft-ink rounded-full">
                             {highlightMatches(
                               chapter.association,
                               debouncedQuery,

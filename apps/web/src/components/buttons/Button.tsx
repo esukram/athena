@@ -14,12 +14,13 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
 
 const variantClasses: Record<ButtonVariant, string> = {
   primary:
-    'bg-gradient-to-r from-primary-600 to-primary-700 text-white hover:from-primary-700 hover:to-primary-800 shadow-md hover:shadow-lg',
+    'bg-gradient-to-r from-primary-600 to-primary-700 text-on-primary hover:from-primary-700 hover:to-primary-800 shadow-sm hover:shadow-sm',
   secondary:
-    'bg-primary-50 text-primary-600 hover:bg-primary-100 hover:shadow-md',
+    'bg-primary-50 text-primary-600 hover:bg-primary-100 hover:shadow-sm',
   ghost:
     'text-primary-600 hover:bg-primary-50 disabled:text-gray-400 disabled:hover:bg-transparent',
-  danger: 'bg-red-600 text-white hover:bg-red-700 shadow-md hover:shadow-lg',
+  danger:
+    'bg-red-600 text-on-primary hover:bg-red-700 shadow-sm hover:shadow-sm',
 };
 
 const sizeClasses: Record<ButtonSize, string> = {

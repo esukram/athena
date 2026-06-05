@@ -57,7 +57,6 @@ export const EditLecture = () => {
     Map<number, string> | undefined
   > | null>(null);
 
-
   const lectureQuery = trpc.lectures.getLecture.useQuery(
     { id: id! },
     {
@@ -65,8 +64,8 @@ export const EditLecture = () => {
     },
   );
 
-  const title = draftTitle ?? (lectureQuery.data?.title ?? '');
-  const description = draftDescription ?? (lectureQuery.data?.description ?? '');
+  const title = draftTitle ?? lectureQuery.data?.title ?? '';
+  const description = draftDescription ?? lectureQuery.data?.description ?? '';
 
   const chaptersQuery = trpc.chapters.getChapters.useQuery(
     { lectureId: id! },
@@ -592,7 +591,7 @@ export const EditLecture = () => {
           <p className="text-error">{t('lectureEdit.lectureNotFound')}</p>
           <button
             onClick={() => navigate('/')}
-            className="mt-4 px-4 py-2 rounded-lg bg-primary-600 text-white hover:bg-primary-700"
+            className="mt-4 px-4 py-2 rounded-lg bg-primary-600 text-on-primary hover:bg-primary-700"
           >
             {t('lectureEdit.backToOverview')}
           </button>
@@ -622,7 +621,7 @@ export const EditLecture = () => {
                   value={title}
                   onChange={(e) => setDraftTitle(e.target.value)}
                   required
-                  className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-colors"
+                  className="w-full px-4 py-3 rounded-lg bg-surface border border-border focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-colors"
                   placeholder={t('lectureAdd.titlePlaceholder')}
                 />
               </div>
@@ -640,7 +639,7 @@ export const EditLecture = () => {
                   onChange={(e) => setDraftDescription(e.target.value)}
                   required
                   rows={4}
-                  className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-colors resize-none"
+                  className="w-full px-4 py-3 rounded-lg bg-surface border border-border focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-colors resize-none"
                   placeholder={t('lectureAdd.descriptionPlaceholder')}
                 />
               </div>
@@ -665,7 +664,7 @@ export const EditLecture = () => {
                 <button
                   type="submit"
                   disabled={updateLecture.isPending}
-                  className="flex-1 bg-primary-600 hover:bg-primary-700 disabled:bg-primary-400 text-white font-medium py-3 px-6 rounded-lg transition-colors"
+                  className="flex-1 bg-primary-600 hover:bg-primary-700 disabled:bg-primary-400 text-on-primary font-medium py-3 px-6 rounded-lg transition-colors"
                 >
                   {updateLecture.isPending
                     ? t('lectureEdit.saving')
@@ -674,7 +673,7 @@ export const EditLecture = () => {
                 <button
                   type="button"
                   onClick={() => navigate('/')}
-                  className="px-6 py-3 rounded-lg border border-gray-300 text-on-surface hover:bg-gray-50 transition-colors"
+                  className="px-6 py-3 rounded-lg bg-surface border border-border text-on-surface hover:bg-bg-tint transition-colors"
                 >
                   {t('common.back')}
                 </button>
@@ -697,12 +696,12 @@ export const EditLecture = () => {
                 value={newChapterQuestion}
                 onChange={(e) => setNewChapterQuestion(e.target.value)}
                 placeholder={t('lectureEdit.newChapterQuestion')}
-                className="flex-1 px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-colors"
+                className="flex-1 px-4 py-2 rounded-lg bg-surface border border-border focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-colors"
               />
               <button
                 type="submit"
                 disabled={createChapter.isPending || !newChapterQuestion.trim()}
-                className="px-4 py-2 bg-primary-600 hover:bg-primary-700 disabled:bg-primary-400 text-white font-medium rounded-lg transition-colors"
+                className="px-4 py-2 bg-primary-600 hover:bg-primary-700 disabled:bg-primary-400 text-on-primary font-medium rounded-lg transition-colors"
               >
                 {createChapter.isPending
                   ? t('lectureEdit.adding')
@@ -780,7 +779,7 @@ export const EditLecture = () => {
                     return (
                       <div
                         key={chapter.id}
-                        className="p-3 sm:p-4 bg-gray-50 rounded-lg border border-gray-200 grid grid-cols-[1fr_auto_auto] items-center gap-2 sm:gap-4"
+                        className="p-3 sm:p-4 bg-bg-tint rounded-lg border border-border grid grid-cols-[1fr_auto_auto] items-center gap-2 sm:gap-4"
                       >
                         <div className="min-w-0">
                           <div className="flex items-center gap-2 sm:gap-3">
@@ -791,7 +790,7 @@ export const EditLecture = () => {
                                 handleReorderTo(Number(e.target.value))
                               }
                               disabled={reorderChapter.isPending}
-                              className="shrink-0 w-12 sm:w-14 px-1.5 sm:px-2 py-1 sm:py-1.5 text-sm bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-colors disabled:opacity-50"
+                              className="shrink-0 w-12 sm:w-14 px-1.5 sm:px-2 py-1 sm:py-1.5 text-sm bg-surface border border-border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-colors disabled:opacity-50"
                               aria-label="Chapter position"
                             >
                               {Array.from({ length: totalChapters }, (_, i) => (
@@ -806,7 +805,7 @@ export const EditLecture = () => {
                             </span>
                           </div>
                           {firstQuestion?.answer && (
-                            <div className="mt-3 pl-11 text-sm text-gray-500 truncate hidden sm:block">
+                            <div className="mt-3 pl-11 text-sm text-ink-faint truncate hidden sm:block">
                               {firstQuestion.answer.substring(0, 100)}
                               {firstQuestion.answer.length > 100 && '...'}
                             </div>
@@ -835,7 +834,7 @@ export const EditLecture = () => {
                           <button
                             onClick={handleMoveUp}
                             disabled={isFirst || reorderChapter.isPending}
-                            className="p-1 text-gray-500 hover:text-primary-600 hover:bg-primary-50 rounded disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                            className="p-1 text-ink-faint hover:text-primary-600 hover:bg-primary-50 rounded disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                             aria-label={t('lectureEdit.moveUp')}
                           >
                             <ChevronUp size={16} />
@@ -843,7 +842,7 @@ export const EditLecture = () => {
                           <button
                             onClick={handleMoveDown}
                             disabled={isLast || reorderChapter.isPending}
-                            className="p-1 text-gray-500 hover:text-primary-600 hover:bg-primary-50 rounded disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                            className="p-1 text-ink-faint hover:text-primary-600 hover:bg-primary-50 rounded disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                             aria-label={t('lectureEdit.moveDown')}
                           >
                             <ChevronDown size={16} />

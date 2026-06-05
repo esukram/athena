@@ -60,17 +60,17 @@ export const LanguageSelector = () => {
 
       {isOpen && (
         <div
-          className="absolute right-0 mt-1 w-44 bg-white rounded-lg shadow-lg border border-gray-200 z-50"
+          className="absolute right-0 mt-1 w-44 bg-surface rounded-lg shadow-sm border border-border z-50"
           role="listbox"
         >
           {languages.map((lang) => (
             <button
               key={lang.code}
               onClick={() => handleLanguageChange(lang.code)}
-              className={`w-full px-4 py-2 text-left text-sm flex items-center gap-3 hover:bg-gray-100 transition-colors ${
+              className={`w-full px-4 py-2 text-left text-sm flex items-center gap-3 hover:bg-bg-tint transition-colors ${
                 lang.code === i18n.resolvedLanguage
                   ? 'bg-primary-50 text-primary-700 font-medium'
-                  : 'text-gray-700'
+                  : 'text-ink'
               }`}
               role="option"
               aria-selected={lang.code === i18n.resolvedLanguage}

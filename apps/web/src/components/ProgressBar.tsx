@@ -41,16 +41,16 @@ export const ProgressBar = ({
       aria-label={label}
     >
       <div
-        className={`w-full h-2 bg-gray-200 overflow-hidden ${flush ? '' : 'rounded-full'}`}
+        className={`w-full h-2 bg-surface-2 overflow-hidden ${flush ? '' : 'rounded-full'}`}
       >
         <div
-          className="h-full bg-green-500 transition-all duration-300 ease-out"
+          className="h-full bg-success transition-all duration-300 ease-out"
           style={{ width: `${percent}%` }}
           data-testid="progress-bar-fill"
         />
       </div>
       <div
-        className={`text-xs text-green-600 font-bold mt-1 ${flush ? 'px-8' : ''}`}
+        className={`text-xs text-success font-bold mt-1 ${flush ? 'px-8' : ''}`}
         data-testid="progress-bar-percent"
       >
         {roundedPercent}%

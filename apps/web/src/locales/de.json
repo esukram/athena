@@ -16,13 +16,17 @@
   },
   "header": {
     "addLecture": "Fach hinzufügen",
-    "menuLabel": "Menü"
+    "menuLabel": "Menü",
+    "toggleTheme": "Design umschalten",
+    "toLight": "Zum hellen Modus wechseln",
+    "toDark": "Zum dunklen Modus wechseln"
   },
   "language": {
     "german": "Deutsch",
     "english": "English"
   },
   "overview": {
+    "eyebrow": "Deine Bibliothek",
     "availableLectures": "Verfügbare Fächer",
     "exploreCollection": "Entdecken Sie unsere Sammlung an Lerninhalten",
     "errorLoading": "Fehler beim Laden der Fächer"

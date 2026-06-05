@@ -1,29 +1,33 @@
 import { Link } from 'react-router-dom';
 
-import appHeaderBg from '../../assets/app-header.png';
+import logoSoftDark from '../../assets/logo-mark-soft-dark.png';
+import logoSoftLight from '../../assets/logo-mark-soft-light.png';
+import { useTheme } from '../theme/ThemeProvider';
 import { GlobalSearch } from './GlobalSearch';
 import { LanguageSelector } from './LanguageSelector';
 import { NavMenu } from './NavMenu';
+import { ThemeToggle } from './ThemeToggle';
 
 export const AppHeader = () => {
+  const { theme } = useTheme();
+  const logoSrc = theme === 'dark' ? logoSoftDark : logoSoftLight;
+
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-gray-200 bg-surface shadow-sm">
+    <header className="sticky top-0 z-50 w-full border-b border-border bg-surface/80 backdrop-blur">
       <div className="container mx-auto flex items-center justify-between px-4 py-4">
         <Link
           to="/"
-          className="flex items-center gap-3 hover:opacity-80 transition-opacity px-4 py-2 rounded-lg bg-center bg-no-repeat"
-          style={{
-            backgroundImage: `url(${appHeaderBg})`,
-            backgroundSize: '100%',
-          }}
+          className="inline-flex items-center gap-2 rounded-full bg-accent-soft px-3 py-1.5 hover:opacity-90 transition-opacity"
         >
-          <h1 className="text-2xl font-bold tracking-tight text-white ml-16">
+          <img src={logoSrc} alt="" aria-hidden className="h-7 w-auto" />
+          <span className="font-display font-extrabold tracking-[-0.022em] text-accent-soft-ink text-xl">
             Athena
-          </h1>
+          </span>
         </Link>
 
         <nav className="flex items-center gap-2 lg:gap-4">
           <GlobalSearch />
+          <ThemeToggle />
           <LanguageSelector />
           <NavMenu />
         </nav>

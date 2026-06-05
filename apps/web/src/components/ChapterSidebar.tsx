@@ -59,7 +59,7 @@ export function ChapterSidebar<T extends ChapterItem>({
   const { t } = useTranslation();
 
   return (
-    <div className="min-w-0 overflow-hidden bg-surface-container-low rounded-xl shadow-md p-4 h-fit lg:sticky lg:top-8">
+    <div className="min-w-0 overflow-hidden bg-surface-container-low border border-border rounded-xl shadow-sm p-4 h-fit lg:sticky lg:top-8">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-sm font-semibold text-on-surface-variant uppercase tracking-wide">
           {title}
@@ -71,7 +71,7 @@ export function ChapterSidebar<T extends ChapterItem>({
               onSearchChange('');
             }
           }}
-          className="p-1 rounded-lg hover:bg-gray-100 transition-colors text-on-surface-variant hover:text-on-surface"
+          className="p-1 rounded-lg hover:bg-bg-tint transition-colors text-on-surface-variant hover:text-on-surface"
           aria-label={
             isSearchOpen
               ? t('globalSearch.closeSearch')
@@ -90,7 +90,7 @@ export function ChapterSidebar<T extends ChapterItem>({
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
             placeholder={t('lectureTrain.searchChapters')}
-            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white text-on-surface"
+            className="w-full px-3 py-2 text-sm border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-surface text-on-surface"
           />
         </div>
       )}
@@ -129,7 +129,7 @@ export function ChapterSidebar<T extends ChapterItem>({
                 } ${
                   selectedIndex === originalIndex
                     ? 'bg-primary-100 text-primary-700 shadow-sm'
-                    : 'text-on-surface hover:bg-gray-100'
+                    : 'text-on-surface hover:bg-bg-tint'
                 }`}
               >
                 <span className="text-sm wrap-break-words flex items-center gap-2">

@@ -32,7 +32,7 @@ export const Accordion: React.FC<AccordionProps> = ({
 
   return (
     <div
-      className={`rounded-xl bg-surface-container overflow-hidden ${noShadow ? '' : 'shadow-md'}`}
+      className={`rounded-xl border border-border bg-surface-container overflow-hidden ${noShadow ? '' : 'shadow-sm'}`}
     >
       <div
         role="button"

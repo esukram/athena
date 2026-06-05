@@ -333,7 +333,7 @@ const TrainingSessionContent = ({
             description={lecture.description ?? undefined}
             rightElement={
               mode === 'randomized' ? (
-                <span className="px-3 py-1 text-sm font-medium bg-amber-100 text-amber-700 rounded-full whitespace-nowrap">
+                <span className="px-3 py-1 text-sm font-medium bg-accent-soft text-accent-soft-ink rounded-full whitespace-nowrap">
                   {t('lectureTrain.randomizedMode')}
                 </span>
               ) : undefined
@@ -342,13 +342,13 @@ const TrainingSessionContent = ({
         </div>
 
         {chapters.length === 0 ? (
-          <div className="bg-surface rounded-xl shadow-md p-8 text-center">
+          <div className="bg-surface border border-border rounded-xl shadow-sm p-8 text-center">
             <p className="text-on-surface-variant mb-4">
               {t('lectureTrain.noChaptersYet')}
             </p>
             <button
               onClick={() => navigate(`/edit/${lectureId}`)}
-              className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors"
+              className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-on-primary rounded-lg transition-colors"
             >
               {t('lectureTrain.addChapters')}
             </button>
@@ -377,7 +377,7 @@ const TrainingSessionContent = ({
               chapterButtonsRef={chapterButtonsRef}
             />
 
-            <div className="min-w-0 overflow-hidden bg-surface-container rounded-xl shadow-md">
+            <div className="min-w-0 overflow-hidden bg-surface-container border border-border rounded-xl shadow-sm">
               {currentChapter ? (
                 <>
                   {/* Progress Bar - at top of card, below border */}
@@ -393,7 +393,7 @@ const TrainingSessionContent = ({
                     <div className="flex justify-between items-start mb-2">
                       <h2 className="text-2xl font-bold text-on-background"></h2>
                       {currentChapter.association && (
-                        <span className="px-3 py-1 text-sm font-medium bg-primary-100 text-primary-700 rounded-full">
+                        <span className="px-3 py-1 text-sm font-medium bg-accent-soft text-accent-soft-ink rounded-full">
                           {currentChapter.association}
                         </span>
                       )}
@@ -473,7 +473,7 @@ const TrainingSessionContent = ({
                               >
                                 {question.answer ? (
                                   <div>
-                                    <div className="prose prose-lg max-w-none">
+                                    <div className="prose prose-lg dark:prose-invert max-w-none">
                                       <ReactMarkdown>
                                         {question.answer}
                                       </ReactMarkdown>

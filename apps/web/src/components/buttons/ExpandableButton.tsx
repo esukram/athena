@@ -134,12 +134,12 @@ export const ExpandableButton = ({
           rounded-r-lg transition-all duration-200
           ${
             variant === 'primary'
-              ? 'bg-primary-700 text-white hover:bg-primary-800 active:bg-primary-900'
+              ? 'bg-primary-700 text-on-primary hover:bg-primary-800 active:bg-primary-900'
               : ''
           }
           ${variant === 'secondary' ? 'bg-primary-50 text-primary-600 hover:bg-primary-200 active:bg-primary-300' : ''}
           ${variant === 'ghost' ? 'text-primary-600 hover:bg-primary-100 active:bg-primary-200' : ''}
-          ${variant === 'danger' ? 'bg-red-600 text-white hover:bg-red-700 active:bg-red-800' : ''}
+          ${variant === 'danger' ? 'bg-red-600 text-on-primary hover:bg-red-700 active:bg-red-800' : ''}
           disabled:opacity-50 disabled:cursor-not-allowed
         `}
         data-testid="expandable-button-dropdown"
@@ -158,11 +158,11 @@ export const ExpandableButton = ({
           className={`
             absolute top-full left-0 mt-0.5 z-50
             w-full font-semibold
-            rounded-lg shadow-lg
+            rounded-lg shadow-sm
             animate-in fade-in slide-in-from-top-1 duration-150
             ${variant === 'primary' ? 'bg-primary-700 border border-primary-600' : ''}
             ${variant === 'secondary' ? 'bg-primary-50 border border-primary-200' : ''}
-            ${variant === 'ghost' ? 'bg-white border border-gray-200' : ''}
+            ${variant === 'ghost' ? 'bg-surface border border-border' : ''}
             ${variant === 'danger' ? 'bg-red-600 border border-red-500' : ''}
           `}
           data-testid="expandable-button-menu"
@@ -179,10 +179,10 @@ export const ExpandableButton = ({
                 first:rounded-t-lg last:rounded-b-lg
                 disabled:opacity-50 disabled:cursor-not-allowed
                 transition-colors duration-150
-                ${variant === 'primary' ? 'text-white hover:bg-primary-800' : ''}
+                ${variant === 'primary' ? 'text-on-primary hover:bg-primary-800' : ''}
                 ${variant === 'secondary' ? 'text-primary-700 hover:bg-primary-100' : ''}
-                ${variant === 'ghost' ? 'text-gray-700 hover:bg-primary-50' : ''}
-                ${variant === 'danger' ? 'text-white hover:bg-red-700' : ''}
+                ${variant === 'ghost' ? 'text-ink-soft hover:bg-primary-50' : ''}
+                ${variant === 'danger' ? 'text-on-primary hover:bg-red-700' : ''}
               `}
               data-testid={`expandable-button-action-${index}`}
             >

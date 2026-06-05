@@ -204,9 +204,9 @@ export const EditChapterModal = ({
   }, [showSuggestions, canSave, isSaving, onCancel, handleSave, isDirty, t]);
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col">
-        <div className="p-6 border-b border-gray-200">
+    <div className="fixed inset-0 bg-ink/40 flex items-center justify-center z-50 p-4">
+      <div className="bg-surface border border-border rounded-xl shadow-sm w-full max-w-4xl max-h-[90vh] flex flex-col">
+        <div className="p-6 border-b border-border">
           <h3 className="text-xl font-semibold text-on-surface">
             {t('editChapterModal.editChapter')}
           </h3>
@@ -228,13 +228,13 @@ export const EditChapterModal = ({
               }}
               onFocus={() => setShowSuggestions(true)}
               onKeyDown={handleKeyDown}
-              className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+              className="w-full px-4 py-2 rounded-lg bg-surface border border-border focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
               placeholder={t('editChapterModal.associationPlaceholder')}
             />
             {showSuggestions && filteredSuggestions.length > 0 && (
               <div
                 ref={suggestionsRef}
-                className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-48 overflow-y-auto"
+                className="absolute z-10 w-full mt-1 bg-surface border border-border rounded-lg shadow-sm max-h-48 overflow-y-auto"
               >
                 {filteredSuggestions.map((suggestion, index) => (
                   <button
@@ -272,13 +272,13 @@ export const EditChapterModal = ({
               {questions.map((eq, index) => (
                 <div
                   key={eq.id || `new-${index}`}
-                  className="border border-gray-200 rounded-lg overflow-hidden"
+                  className="border border-border rounded-lg overflow-hidden"
                 >
                   {/* Accordion Header */}
                   <button
                     type="button"
                     onClick={() => onToggleQuestionExpanded(index)}
-                    className="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 transition-colors text-left"
+                    className="w-full flex items-center justify-between p-4 bg-bg-tint hover:bg-surface-2 transition-colors text-left"
                   >
                     <div className="flex items-center gap-3 flex-1 min-w-0">
                       <span className="shrink-0 w-6 h-6 flex items-center justify-center bg-primary-100 text-primary-700 font-semibold rounded-full text-xs">
@@ -303,16 +303,16 @@ export const EditChapterModal = ({
                         </button>
                       )}
                       {eq.isExpanded ? (
-                        <ChevronUp size={20} className="text-gray-500" />
+                        <ChevronUp size={20} className="text-ink-faint" />
                       ) : (
-                        <ChevronDown size={20} className="text-gray-500" />
+                        <ChevronDown size={20} className="text-ink-faint" />
                       )}
                     </div>
                   </button>
 
                   {/* Accordion Content */}
                   {eq.isExpanded && (
-                    <div className="p-4 space-y-4 border-t border-gray-200">
+                    <div className="p-4 space-y-4 border-t border-border">
                       <div>
                         <label className="block text-sm font-medium text-on-surface mb-2">
                           {t('editChapterModal.question')}
@@ -325,7 +325,7 @@ export const EditChapterModal = ({
                               question: e.target.value,
                             })
                           }
-                          className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+                          className="w-full px-4 py-2 rounded-lg bg-surface border border-border focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
                           placeholder={t(
                             'editChapterModal.questionPlaceholder',
                           )}
@@ -354,11 +354,11 @@ export const EditChapterModal = ({
                         </div>
 
                         {eq.showPreview ? (
-                          <div className="w-full min-h-[200px] px-4 py-3 rounded-lg border border-gray-300 bg-white prose prose-sm max-w-none overflow-y-auto">
+                          <div className="w-full min-h-[200px] px-4 py-3 rounded-lg border border-border bg-surface prose prose-sm dark:prose-invert max-w-none overflow-y-auto">
                             {eq.answer ? (
                               <ReactMarkdown>{eq.answer}</ReactMarkdown>
                             ) : (
-                              <p className="text-gray-400 italic">
+                              <p className="text-ink-faint italic">
                                 {t('editChapterModal.noContentYet')}
                               </p>
                             )}
@@ -375,7 +375,7 @@ export const EditChapterModal = ({
                               handleAnswerKeyDown(e, index, eq.answer)
                             }
                             rows={8}
-                            className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none font-mono text-sm resize-none"
+                            className="w-full px-4 py-3 rounded-lg bg-surface border border-border focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none font-mono text-sm resize-none"
                             placeholder={t(
                               'editChapterModal.answerPlaceholder',
                             )}
@@ -390,11 +390,11 @@ export const EditChapterModal = ({
           </div>
         </div>
 
-        <div className="p-6 border-t border-gray-200 flex gap-3 justify-end">
+        <div className="p-6 border-t border-border flex gap-3 justify-end">
           <button
             onClick={onCancel}
             title={`${t('common.cancel')} (Esc)`}
-            className="min-w-[7rem] px-4 py-2 rounded-lg border border-gray-300 text-on-surface hover:bg-gray-50 transition-colors"
+            className="min-w-[7rem] px-4 py-2 rounded-lg bg-surface border border-border text-on-surface hover:bg-bg-tint transition-colors"
           >
             {t('common.cancel')}
           </button>
@@ -402,7 +402,7 @@ export const EditChapterModal = ({
             onClick={handleSave}
             disabled={isSaving || !canSave}
             title={`${t('common.save')} (Ctrl+Enter)`}
-            className="min-w-[7rem] px-4 py-2 bg-primary-600 hover:bg-primary-700 disabled:bg-primary-400 text-white font-medium rounded-lg transition-colors"
+            className="min-w-[7rem] px-4 py-2 bg-primary-600 hover:bg-primary-700 disabled:bg-primary-400 text-on-primary font-medium rounded-lg transition-colors"
           >
             {isSaving ? t('common.saving') : t('common.save')}
           </button>

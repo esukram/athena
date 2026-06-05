@@ -62,7 +62,7 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
     const iconButtonClasses = `
       ${sizeClasses[size]}
       ${variantClasses[variant]}
-      !rounded-full !bg-white/80 !shadow-md 
+      !rounded-full !bg-surface/80 !shadow-sm border border-border
       !font-normal
       opacity-90 lg:opacity-80 lg:hover:opacity-100
       ${className}
@@ -78,7 +78,7 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
         {...props}
       >
         <Icon
-          className={`${iconSizeClasses[size]} text-gray-600 ${iconClassName}`.trim()}
+          className={`${iconSizeClasses[size]} text-ink-soft ${iconClassName}`.trim()}
         />
       </Button>
     );

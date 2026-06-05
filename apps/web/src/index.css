@@ -1,35 +1,221 @@
 @import 'tailwindcss';
 @plugin '@tailwindcss/typography';
 
+/* Dusk rebrand: dark-mode keys off a data-theme attribute on <html>.
+   Enables `dark:` utilities and typography `dark:prose-invert`. */
+@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
+
+/* Hanken Grotesk (variable, weights 100-900) */
+@font-face {
+  font-family: 'Hanken Grotesk';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('https://fonts.gstatic.com/s/hankengrotesk/v8/ieVq2YZDLWuGJpnzaiwFXS9tYvBSGtMtwzZHQjz_.woff2')
+    format('woff2');
+}
+
+/* ---------------------------------------------------------------------------
+   Dusk semantic tokens — runtime light/dark via CSS custom properties.
+   These flip live; the @theme inline block below maps Tailwind utilities to
+   var() references so every utility recolors at runtime.
+--------------------------------------------------------------------------- */
+:root {
+  --bg: oklch(0.984 0.008 310);
+  --bg-tint: oklch(0.966 0.012 308);
+  --surface: oklch(0.999 0.004 310);
+  --surface-2: oklch(0.955 0.013 308);
+  --border: oklch(0.9 0.015 308);
+  --border-soft: oklch(0.93 0.01 308);
+  --ink: oklch(0.27 0.02 300);
+  --ink-soft: oklch(0.47 0.02 300);
+  --ink-faint: oklch(0.62 0.018 302);
+  --accent: oklch(0.56 0.13 305);
+  --accent-press: oklch(0.49 0.13 303);
+  --accent-ink: oklch(0.99 0.01 310);
+  --accent-soft: oklch(0.93 0.045 308);
+  --accent-soft-ink: oklch(0.44 0.12 305);
+  --success: oklch(0.6 0.1 150);
+  --success-soft: oklch(0.93 0.04 150);
+  --danger: oklch(0.55 0.18 25);
+  --danger-press: oklch(0.48 0.18 25);
+  --danger-soft: oklch(0.93 0.05 25);
+  --danger-ink: oklch(0.99 0.01 25);
+  --highlight: oklch(0.92 0.16 100);
+  --shadow-color: 34 24 44;
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 18px;
+  --r-xl: 26px;
+  color-scheme: light;
+}
+
+[data-theme='dark'] {
+  --bg: oklch(0.205 0.012 305);
+  --bg-tint: oklch(0.235 0.014 305);
+  --surface: oklch(0.247 0.014 305);
+  --surface-2: oklch(0.29 0.016 305);
+  --border: oklch(0.36 0.016 305);
+  --border-soft: oklch(0.32 0.014 305);
+  --ink: oklch(0.94 0.012 305);
+  --ink-soft: oklch(0.75 0.016 305);
+  --ink-faint: oklch(0.6 0.016 305);
+  --accent: oklch(0.73 0.12 305);
+  --accent-press: oklch(0.67 0.12 305);
+  --accent-ink: oklch(0.2 0.02 305);
+  --accent-soft: oklch(0.33 0.06 305);
+  --accent-soft-ink: oklch(0.85 0.09 305);
+  --success: oklch(0.74 0.1 150);
+  --success-soft: oklch(0.33 0.05 150);
+  --danger: oklch(0.7 0.16 25);
+  --danger-press: oklch(0.64 0.16 25);
+  --danger-soft: oklch(0.33 0.08 25);
+  --danger-ink: oklch(0.2 0.02 25);
+  --highlight: oklch(0.55 0.12 95);
+  --shadow-color: 0 0 0;
+  color-scheme: dark;
+}
+
+/* ---------------------------------------------------------------------------
+   @theme inline — maps Tailwind utility tokens to the live var() references
+   above so utilities resolve at runtime and flip with [data-theme].
+--------------------------------------------------------------------------- */
+@theme inline {
+  /* Fonts */
+  --font-sans: 'Hanken Grotesk', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Hanken Grotesk', ui-sans-serif, system-ui, sans-serif;
+
+  /* --- New semantic utilities --- */
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-ink-faint: var(--ink-faint);
+  --color-bg: var(--bg);
+  --color-bg-tint: var(--bg-tint);
+  --color-surface-2: var(--surface-2);
+  --color-accent: var(--accent);
+  --color-accent-press: var(--accent-press);
+  --color-accent-ink: var(--accent-ink);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-soft-ink: var(--accent-soft-ink);
+  --color-border: var(--border);
+  --color-border-soft: var(--border-soft);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-danger: var(--danger);
+  --color-danger-press: var(--danger-press);
+  --color-danger-soft: var(--danger-soft);
+  --color-danger-ink: var(--danger-ink);
+  --color-highlight: var(--highlight);
+
+  /* --- Remapped Material Design tokens (recolor + flip in dark) --- */
+  --color-background: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-container: var(--surface-2);
+  --color-surface-container-low: var(--bg-tint);
+  --color-surface-container-high: var(--surface-2);
+  --color-surface-variant: var(--border-soft);
+  --color-on-surface: var(--ink);
+  --color-on-surface-variant: var(--ink-soft);
+  --color-on-background: var(--ink);
+  --color-on-primary: var(--accent-ink);
+  --color-primary: var(--accent);
+  --color-error: var(--danger);
+
+  /* Primary scale */
+  --color-primary-50: var(--accent-soft);
+  --color-primary-100: var(--accent-soft);
+  --color-primary-200: var(--accent-soft);
+  --color-primary-300: var(--accent);
+  --color-primary-400: var(--accent);
+  --color-primary-500: var(--accent);
+  --color-primary-600: var(--accent);
+  --color-primary-700: var(--accent-soft-ink);
+  --color-primary-800: var(--accent-press);
+  --color-primary-900: var(--accent-press);
+
+  /* --- Neutral / semantic scale remaps (map by lightness) --- */
+  --color-gray-50: var(--bg-tint);
+  --color-gray-100: var(--surface-2);
+  --color-gray-200: var(--border-soft);
+  --color-gray-300: var(--border);
+  --color-gray-400: var(--ink-faint);
+  --color-gray-500: var(--ink-faint);
+  --color-gray-600: var(--ink-soft);
+  --color-gray-700: var(--ink);
+  --color-gray-800: var(--ink);
+  --color-gray-900: var(--ink);
+
+  --color-red-50: var(--danger-soft);
+  --color-red-100: var(--danger-soft);
+  --color-red-200: var(--danger-soft);
+  --color-red-400: var(--danger);
+  --color-red-500: var(--danger);
+  --color-red-600: var(--danger);
+  --color-red-700: var(--danger-press);
+  --color-red-800: var(--danger-press);
+  --color-red-900: var(--danger-press);
+
+  --color-green-50: var(--success-soft);
+  --color-green-100: var(--success-soft);
+  --color-green-200: var(--success-soft);
+  --color-green-500: var(--success);
+  --color-green-600: var(--success);
+  --color-green-700: var(--success);
+
+  --color-emerald-100: var(--success-soft);
+  --color-emerald-200: var(--success-soft);
+  --color-emerald-800: var(--success);
+
+  --color-amber-50: var(--accent-soft);
+  --color-amber-100: var(--accent-soft);
+  --color-amber-400: var(--accent);
+  --color-amber-700: var(--accent-soft-ink);
+
+  --color-yellow-200: var(--highlight);
+
+  /* --- Radii (flat system) --- */
+  --radius-sm: var(--r-sm);
+  --radius-md: var(--r-sm);
+  --radius-lg: var(--r-md);
+  --radius-xl: var(--r-lg);
+  --radius-2xl: var(--r-xl);
+}
+
+/* ---------------------------------------------------------------------------
+   Softer elevation — override Tailwind v4 --shadow-* namespace so the whole
+   app reads flat. Built from rgb(var(--shadow-color) / <low alpha>).
+--------------------------------------------------------------------------- */
 @theme {
-  --color-primary-50: #f5f3ff;
-  --color-primary-100: #ede9fe;
-  --color-primary-200: #ddd6fe;
-  --color-primary-300: #c4b5fd;
-  --color-primary-400: #a78bfa;
-  --color-primary-500: #8b5cf6;
-  --color-primary-600: #6750a4;
-  --color-primary-700: #5b21b6;
-  --color-primary-800: #4c1d95;
-  --color-primary-900: #2e1065;
-  --color-primary: #6750a4;
-
-  --color-surface: #fffbfe;
-  --color-surface-container: #f3edf7;
-  --color-surface-container-low: #f7f2fa;
-  --color-surface-container-high: #ece6f0;
-  --color-surface-variant: #e7e0ec;
-
-  --color-background: #fffbfe;
-  --color-error: #b3261e;
-  --color-on-surface: #1c1b1f;
-  --color-on-surface-variant: #49454f;
-  --color-on-background: #1c1b1f;
-  --color-on-primary: #ffffff;
+  --shadow-sm: 0 1px 2px 0 rgb(var(--shadow-color) / 0.05);
+  --shadow-md:
+    0 2px 6px -1px rgb(var(--shadow-color) / 0.07),
+    0 1px 2px -1px rgb(var(--shadow-color) / 0.05);
+  --shadow-lg:
+    0 6px 16px -3px rgb(var(--shadow-color) / 0.08),
+    0 2px 6px -4px rgb(var(--shadow-color) / 0.06);
+  --shadow-xl:
+    0 12px 28px -6px rgb(var(--shadow-color) / 0.1),
+    0 4px 10px -6px rgb(var(--shadow-color) / 0.07);
+  --shadow-2xl: 0 20px 44px -10px rgb(var(--shadow-color) / 0.14);
 }
 
 @layer base {
   body {
     @apply bg-background text-on-surface;
+    font-family: var(--font-sans);
+    letter-spacing: -0.011em;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    font-weight: 800;
+    letter-spacing: -0.022em;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
   }
 }
