@@ -59,7 +59,10 @@ export const GlobalSearch = () => {
   // Keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (!query.trim()) return;
+      // Only handle navigation while the dropdown is actually visible —
+      // otherwise Enter/arrows would act on a hidden result list (e.g. after a
+      // click-outside that keeps the typed query).
+      if (!showResults || !query.trim()) return;
 
       if (e.key === 'Escape') {
         setQuery('');
@@ -90,7 +93,7 @@ export const GlobalSearch = () => {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [query, results, selectedIndex, handleResultClick]);
+  }, [showResults, query, results, selectedIndex, handleResultClick]);
 
   // Hide results dropdown on click outside (keep the typed query)
   useEffect(() => {
@@ -152,7 +155,12 @@ export const GlobalSearch = () => {
 
   return (
     <div ref={containerRef} className="relative">
-      <div className="flex items-center gap-2 rounded-xl border border-border bg-surface-2 px-3 py-2 min-w-[200px] transition focus-within:border-accent focus-within:ring-3 focus-within:ring-accent-soft max-[720px]:min-w-0 max-[720px]:w-[42px] max-[720px]:justify-center max-[720px]:px-0">
+      {/* Tapping anywhere (notably the collapsed icon on narrow screens)
+          focuses the width-0 input, which expands it via focus-within. */}
+      <div
+        onClick={() => inputRef.current?.focus()}
+        className="group flex items-center gap-2 rounded-xl border border-border bg-surface-2 px-3 py-2 min-w-[200px] transition-all focus-within:border-accent focus-within:ring-3 focus-within:ring-accent-soft max-[720px]:min-w-0 max-[720px]:w-[42px] max-[720px]:cursor-text max-[720px]:justify-center max-[720px]:px-0 max-[720px]:focus-within:w-[220px] max-[720px]:focus-within:justify-start max-[720px]:focus-within:px-3"
+      >
         <Search size={18} className="text-ink-faint shrink-0" />
         <input
           ref={inputRef}
@@ -167,7 +175,7 @@ export const GlobalSearch = () => {
           }}
           placeholder={t('globalSearch.searchChapters')}
           aria-label={t('globalSearch.openSearch')}
-          className="w-full border-0 bg-transparent text-sm text-ink outline-none placeholder:text-ink-faint max-[720px]:hidden"
+          className="w-full border-0 bg-transparent text-sm text-ink outline-none placeholder:text-ink-faint max-[720px]:w-0 max-[720px]:focus:w-full"
         />
         {query && (
           <button
@@ -176,7 +184,7 @@ export const GlobalSearch = () => {
               setShowResults(false);
               inputRef.current?.focus();
             }}
-            className="shrink-0 text-ink-faint transition-colors hover:text-ink max-[720px]:hidden"
+            className="shrink-0 text-ink-faint transition-colors hover:text-ink max-[720px]:hidden max-[720px]:group-focus-within:block"
             aria-label={t('globalSearch.closeSearch')}
           >
             <X size={16} />

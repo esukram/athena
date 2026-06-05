@@ -5,15 +5,7 @@
    Enables `dark:` utilities and typography `dark:prose-invert`. */
 @custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
 
-/* Hanken Grotesk (variable, weights 100-900) */
-@font-face {
-  font-family: 'Hanken Grotesk';
-  font-style: normal;
-  font-weight: 100 900;
-  font-display: swap;
-  src: url('https://fonts.gstatic.com/s/hankengrotesk/v8/ieVq2YZDLWuGJpnzaiwFXS9tYvBSGtMtwzZHQjz_.woff2')
-    format('woff2');
-}
+/* Hanken Grotesk is loaded via the Google Fonts <link> in index.html. */
 
 /* ---------------------------------------------------------------------------
    Dusk semantic tokens — runtime light/dark via CSS custom properties.
@@ -287,4 +279,21 @@
   opacity: 0.35;
   cursor: not-allowed;
   transform: none;
+}
+
+/* Respect users who prefer reduced motion: drop the card flip animation and
+   the nav-button scale so the train flow stays still. State still toggles —
+   only the motion is removed. */
+@media (prefers-reduced-motion: reduce) {
+  .flip-card.flipping {
+    animation: none;
+  }
+
+  .nav-round {
+    transition: none;
+  }
+
+  .nav-round:hover {
+    transform: none;
+  }
 }

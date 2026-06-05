@@ -351,6 +351,17 @@ const TrainingSessionContent = ({
       }
 
       if (event.code === 'Space') {
+        // Don't hijack Space when a button/link is focused — the browser needs
+        // it to activate the focused control (Space-to-click). Only flip when
+        // focus is on a non-interactive element.
+        if (
+          active &&
+          (active.tagName === 'BUTTON' ||
+            active.tagName === 'A' ||
+            active.getAttribute('role') === 'button')
+        ) {
+          return;
+        }
         event.preventDefault();
         flip();
         return;
@@ -583,14 +594,8 @@ const TrainingSessionContent = ({
                             </button>
                             <button
                               type="button"
-                              className="flex-1 max-w-[220px] py-3.5 rounded-lg font-semibold inline-flex items-center justify-center gap-2 bg-success text-accent-ink transition-colors"
-                              onClick={() => {
-                                updateQuestion.mutate({
-                                  id: question.id,
-                                  isAnnotated: false,
-                                });
-                                handleNextQuestion();
-                              }}
+                              className="flex-1 max-w-[220px] py-3.5 rounded-lg font-semibold inline-flex items-center justify-center gap-2 bg-success text-accent-ink transition-colors hover:opacity-90 active:translate-y-px"
+                              onClick={handleNextQuestion}
                             >
                               <Check size={18} />
                               {t('lectureTrain.gotIt')}
