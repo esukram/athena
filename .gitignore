@@ -8,4 +8,5 @@ playwright-report
 .claude/worktrees/*
 
 .env*
+.gsa.json
 athena.db
