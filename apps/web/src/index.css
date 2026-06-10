@@ -27,6 +27,13 @@
   --accent-ink: oklch(0.99 0.01 310);
   --accent-soft: oklch(0.93 0.045 308);
   --accent-soft-ink: oklch(0.44 0.12 305);
+  /* Secondary-button hover fill. Derived from the two tokens above, so it flips
+     with them in dark mode — define once. Shared by Button + ExpandableButton. */
+  --accent-soft-hover: color-mix(
+    in oklab,
+    var(--accent-soft) 80%,
+    var(--accent)
+  );
   --success: oklch(0.6 0.1 150);
   --success-soft: oklch(0.93 0.04 150);
   --danger: oklch(0.55 0.18 25);
@@ -90,6 +97,7 @@
   --color-accent-ink: var(--accent-ink);
   --color-accent-soft: var(--accent-soft);
   --color-accent-soft-ink: var(--accent-soft-ink);
+  --color-accent-soft-hover: var(--accent-soft-hover);
   --color-border: var(--border);
   --color-border-soft: var(--border-soft);
   --color-success: var(--success);
@@ -190,6 +198,11 @@
     0 12px 28px -6px rgb(var(--shadow-color) / 0.1),
     0 4px 10px -6px rgb(var(--shadow-color) / 0.07);
   --shadow-2xl: 0 20px 44px -10px rgb(var(--shadow-color) / 0.14);
+
+  /* Raised elevation for the primary Button and the ExpandableButton split
+     wrapper — single source so the two stay in sync (rest + hover-grown). */
+  --shadow-elevate: 0 8px 18px -10px rgb(var(--shadow-color) / 0.7);
+  --shadow-elevate-raised: 0 12px 24px -10px rgb(var(--shadow-color) / 0.75);
 }
 
 @layer base {

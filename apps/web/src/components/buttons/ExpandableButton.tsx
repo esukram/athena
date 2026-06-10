@@ -107,48 +107,82 @@ export const ExpandableButton = ({
     danger: 'border-red-400/30',
   };
 
+  // Hovering either half highlights both. These reuse each variant's main-button
+  // hover token (Button.tsx) so the two halves share one highlight; suppressed
+  // when disabled so a dead button doesn't react to hover.
+  const splitHoverClasses: Record<ButtonVariant, string> = {
+    primary: 'group-hover/split:bg-accent-press',
+    secondary: 'group-hover/split:bg-accent-soft-hover',
+    ghost: 'group-hover/split:bg-surface-2',
+    danger: 'group-hover/split:bg-danger-press',
+  };
+  const splitHover = disabled ? '' : splitHoverClasses[variant];
+
+  // The primary main button carries an elevation shadow (Button.tsx, via the
+  // shared shadow-elevate token). Lift it onto the whole split wrapper so it
+  // spans both halves and grows on hovering either; the inner button's own
+  // shadow is suppressed below to avoid doubling it. Dropped when disabled so the
+  // dead button reads flat (and never casts a full-strength shadow under its
+  // dimmed halves, since the wrapper has no disabled:opacity of its own).
+  const splitShadowClasses: Record<ButtonVariant, string> = {
+    primary:
+      'shadow-elevate group-hover/split:shadow-elevate-raised transition-shadow duration-200',
+    secondary: '',
+    ghost: '',
+    danger: '',
+  };
+  const splitShadow = disabled ? '' : splitShadowClasses[variant];
+
   return (
     <div ref={containerRef} className={`relative flex ${className}`}>
-      {/* Main button */}
-      <Button
-        variant={variant}
-        disabled={disabled}
-        onClick={handleMainClick}
-        className={`rounded-r-none! pr-3! flex-1 ${buttonClassName}`}
-        data-testid="expandable-button-main"
+      {/* Button row — hovering either half highlights both (group/split); the
+          shadow lives here so it spans both halves and grows on either hover. */}
+      <div
+        className={`group/split flex flex-1 rounded-lg ${splitShadow}`}
+        data-testid="expandable-button-split"
       >
-        {children}
-      </Button>
+        {/* Main button — own shadow suppressed; the wrapper carries it instead */}
+        <Button
+          variant={variant}
+          disabled={disabled}
+          onClick={handleMainClick}
+          className={`rounded-r-none! pr-3! flex-1 shadow-none! ${splitHover} ${buttonClassName}`}
+          data-testid="expandable-button-main"
+        >
+          {children}
+        </Button>
 
-      {/* Dropdown trigger */}
-      <button
-        type="button"
-        disabled={disabled}
-        onClick={handleToggleDropdown}
-        aria-label={dropdownLabel}
-        aria-haspopup="true"
-        aria-expanded={isOpen}
-        className={`
-          flex items-center justify-center px-2
-          border-l-2 ${dropdownBorderClasses[variant]}
-          rounded-r-lg transition-all duration-200
-          ${
-            variant === 'primary'
-              ? 'bg-primary-700 text-on-primary hover:bg-primary-800 active:bg-primary-900'
-              : ''
-          }
-          ${variant === 'secondary' ? 'bg-primary-50 text-primary-600 hover:bg-primary-200 active:bg-primary-300' : ''}
-          ${variant === 'ghost' ? 'text-primary-600 hover:bg-primary-100 active:bg-primary-200' : ''}
-          ${variant === 'danger' ? 'bg-red-600 text-on-primary hover:bg-red-700 active:bg-red-800' : ''}
-          disabled:opacity-50 disabled:cursor-not-allowed
-        `}
-        data-testid="expandable-button-dropdown"
-      >
-        <ChevronDown
-          size={16}
-          className={`transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
-        />
-      </button>
+        {/* Dropdown trigger */}
+        <button
+          type="button"
+          disabled={disabled}
+          onClick={handleToggleDropdown}
+          aria-label={dropdownLabel}
+          aria-haspopup="true"
+          aria-expanded={isOpen}
+          className={`
+            flex items-center justify-center px-2
+            border-l-2 ${dropdownBorderClasses[variant]}
+            rounded-r-lg transition-all duration-200
+            ${splitHover}
+            ${
+              variant === 'primary'
+                ? 'bg-accent text-accent-ink active:translate-y-px'
+                : ''
+            }
+            ${variant === 'secondary' ? 'bg-primary-50 text-primary-600 active:bg-primary-300' : ''}
+            ${variant === 'ghost' ? 'text-primary-600 active:bg-primary-200' : ''}
+            ${variant === 'danger' ? 'bg-red-600 text-on-primary active:bg-red-800' : ''}
+            disabled:opacity-50 disabled:cursor-not-allowed
+          `}
+          data-testid="expandable-button-dropdown"
+        >
+          <ChevronDown
+            size={16}
+            className={`transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
+          />
+        </button>
+      </div>
 
       {/* Dropdown menu */}
       {isOpen && actions.length > 0 && (
@@ -160,7 +194,7 @@ export const ExpandableButton = ({
             w-full font-semibold
             rounded-lg shadow-sm
             animate-in fade-in slide-in-from-top-1 duration-150
-            ${variant === 'primary' ? 'bg-primary-700 border border-primary-600' : ''}
+            ${variant === 'primary' ? 'bg-accent border border-accent-press' : ''}
             ${variant === 'secondary' ? 'bg-primary-50 border border-primary-200' : ''}
             ${variant === 'ghost' ? 'bg-surface border border-border' : ''}
             ${variant === 'danger' ? 'bg-red-600 border border-red-500' : ''}
@@ -179,7 +213,7 @@ export const ExpandableButton = ({
                 first:rounded-t-lg last:rounded-b-lg
                 disabled:opacity-50 disabled:cursor-not-allowed
                 transition-colors duration-150
-                ${variant === 'primary' ? 'text-on-primary hover:bg-primary-800' : ''}
+                ${variant === 'primary' ? 'text-accent-ink hover:bg-accent-press' : ''}
                 ${variant === 'secondary' ? 'text-primary-700 hover:bg-primary-100' : ''}
                 ${variant === 'ghost' ? 'text-ink-soft hover:bg-primary-50' : ''}
                 ${variant === 'danger' ? 'text-on-primary hover:bg-red-700' : ''}
