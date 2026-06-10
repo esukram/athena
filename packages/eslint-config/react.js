@@ -30,7 +30,10 @@ export const config = [
     },
     settings: {
       react: {
-        version: "detect",
+        // Pinned instead of "detect": eslint-plugin-react 7.37.5's version
+        // detection calls the legacy context.getFilename(), removed in ESLint
+        // 10, which crashes rule loading. Pinning skips detection entirely.
+        version: "19.0",
       },
     },
     rules: {
