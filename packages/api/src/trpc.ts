@@ -3,48 +3,17 @@ import { ZodError } from 'zod';
 import { initTRPC } from '@trpc/server';
 
 import type {
-  Chapter,
-  Lecture,
-  LectureListItem,
-  Question,
+  ChapterRepository,
+  LectureRepository,
+  QuestionRepository,
   SpeechService,
-} from './types.js';
+} from '@athena/domain';
 
-export interface LectureRepository {
-  getAll: () => LectureListItem[];
-  getById: (id: string) => Lecture | undefined;
-  create: (lecture: Omit<Lecture, 'id'>) => Lecture;
-  update: (id: string, lecture: Omit<Lecture, 'id'>) => Lecture | undefined;
-  delete: (id: string) => boolean;
-}
-
-export interface ChapterRepository {
-  getById: (id: string) => Chapter | undefined;
-  getByLectureId: (lectureId: string) => Chapter[];
-  getDistinctAssociations: () => string[];
-  search: (query: string) => (Chapter & { firstQuestion?: Question })[];
-  create: (chapter: Omit<Chapter, 'id'>) => Chapter;
-  update: (
-    id: string,
-    chapter: Partial<Omit<Chapter, 'id'>>,
-  ) => Chapter | undefined;
-  delete: (id: string) => boolean;
-}
-
-export interface QuestionRepository {
-  getByChapterId: (chapterId: string) => Question[];
-  getFirstByChapterId: (chapterId: string) => Question | undefined;
-  getFirstByLectureId: (lectureId: string) => Record<string, Question>;
-  getAnnotatedChapterIdsByLecture: (lectureId: string) => string[];
-  create: (question: Omit<Question, 'id'>) => Question;
-  update: (
-    id: string,
-    question: Partial<Omit<Question, 'id'>>,
-  ) => Question | undefined;
-  delete: (id: string) => boolean;
-  getQuestionCountsByLecture: (lectureId: string) => number;
-  getQuestionCountsPerChapter: (lectureId: string) => Record<string, number>;
-}
+export type {
+  ChapterRepository,
+  LectureRepository,
+  QuestionRepository,
+} from '@athena/domain';
 
 export interface AppContext {
   lectureRepository: LectureRepository;

@@ -1,24 +1,6 @@
 /**
- * Rewrites symbols that text-to-speech engines would otherwise spell out
- * ("slash", "greater than") or mangle into spoken-friendly words and pauses.
- *
- * Operates on plain, unescaped text. For the SSML path it must run *before*
- * XML-escaping, so an arrow's `>` is rewritten before it becomes `&gt;`.
+ * Re-export of the speech context's `verbalizeSymbols` so the published
+ * `@athena/api/speakable-text` entry point stays stable. The implementation
+ * now lives in `@athena/domain`.
  */
-export function verbalizeSymbols(text: string): string {
-  return (
-    text
-      // Arrows — ASCII (`->`, `-->`) and common Unicode forms — read as "to".
-      // The dash run is bounded so the trailing `>` cannot trigger quadratic
-      // backtracking on long dash sequences (ReDoS).
-      .replace(/-{1,6}>|[→⇒⟶➔➙➜]/g, ' to ')
-      // Reverse arrows read as "from". Requiring a dash leaves the comparison
-      // operators `<=` / `>=` untouched.
-      .replace(/<-{1,6}|[←⇐⟵]/g, ' from ')
-      // A slash usually pairs two terms ("TCP/IP", "and/or"); a comma gives the
-      // brief pause a spoken "slash" never would.
-      .replace(/\s*\/\s*/g, ', ')
-      // Collapse whitespace the substitutions introduced.
-      .replace(/\s+/g, ' ')
-  );
-}
+export { verbalizeSymbols } from '@athena/domain';
