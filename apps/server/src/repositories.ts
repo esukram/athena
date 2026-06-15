@@ -38,12 +38,19 @@ export function createLectureRepository(db: Database): LectureRepository {
       ).run(id, lecture.title, lecture.description);
       return { id, ...lecture };
     },
-    update: (id: string, lecture: Omit<Lecture, 'id'>): Lecture | undefined => {
-      const result = db
-        .prepare('UPDATE lectures SET title = ?, description = ? WHERE id = ?')
-        .run(lecture.title, lecture.description, id);
-      if (result.changes === 0) return undefined;
-      return { id, ...lecture };
+    update: (
+      id: string,
+      lecture: Partial<Omit<Lecture, 'id'>>,
+    ): Lecture | undefined => {
+      const existing = db
+        .prepare('SELECT * FROM lectures WHERE id = ?')
+        .get(id) as Lecture | undefined;
+      if (!existing) return undefined;
+      const updated = { ...existing, ...lecture };
+      db.prepare(
+        'UPDATE lectures SET title = ?, description = ? WHERE id = ?',
+      ).run(updated.title, updated.description, id);
+      return updated;
     },
     delete: (id: string): boolean => {
       const result = db.prepare('DELETE FROM lectures WHERE id = ?').run(id);

@@ -1,13 +1,15 @@
 import { ZodError } from 'zod';
 
-import { initTRPC } from '@trpc/server';
+import { TRPCError, initTRPC } from '@trpc/server';
 
-import type {
-  ChapterRepository,
-  LectureRepository,
-  QuestionRepository,
-  SpeechService,
-  UnitOfWork,
+import {
+  type ChapterRepository,
+  type LectureRepository,
+  NotFoundError,
+  type QuestionRepository,
+  type SpeechService,
+  type UnitOfWork,
+  ValidationError,
 } from '@athena/domain';
 
 export type {
@@ -45,4 +47,33 @@ const t = initTRPC.context<Context>().create({
 });
 
 export const router = t.router;
-export const publicProcedure = t.procedure;
+
+/**
+ * Translates domain errors thrown by use cases into the matching tRPC
+ * transport codes, in one place, so a missing aggregate surfaces as
+ * `NOT_FOUND` and an invariant violation as `BAD_REQUEST` instead of leaking
+ * as `INTERNAL_SERVER_ERROR`. Non-domain errors pass through unchanged.
+ */
+const domainErrorMapper = t.middleware(async ({ next }) => {
+  const result = await next();
+  if (result.ok) return result;
+
+  const error = result.error.cause;
+  if (error instanceof NotFoundError) {
+    throw new TRPCError({
+      code: 'NOT_FOUND',
+      message: error.message,
+      cause: error,
+    });
+  }
+  if (error instanceof ValidationError) {
+    throw new TRPCError({
+      code: 'BAD_REQUEST',
+      message: error.message,
+      cause: error,
+    });
+  }
+  return result;
+});
+
+export const publicProcedure = t.procedure.use(domainErrorMapper);

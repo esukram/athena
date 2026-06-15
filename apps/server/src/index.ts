@@ -10,7 +10,7 @@ import { fastifyTRPCPlugin } from '@trpc/server/adapters/fastify';
 
 import { appRouter, createContext } from '@athena/api';
 
-import { db } from './db.js';
+import { createDatabase } from './db.js';
 import { runMigrations } from './migration.js';
 import {
   createChapterRepository,
@@ -29,7 +29,8 @@ async function main() {
     origin: true, // Allow all origins for dev simplicity
   });
 
-  // Run migrations
+  // Open the database and run migrations
+  const db = createDatabase();
   runMigrations(db);
 
   const lectureRepository = createLectureRepository(db);

@@ -11,7 +11,12 @@ export interface LectureRepository {
   getAll: () => LectureListItem[];
   getById: (id: string) => Lecture | undefined;
   create: (lecture: Omit<Lecture, 'id'>) => Lecture;
-  update: (id: string, lecture: Omit<Lecture, 'id'>) => Lecture | undefined;
+  // Accepts a partial patch, consistent with the chapter and question
+  // repositories, rather than requiring a full replacement object.
+  update: (
+    id: string,
+    lecture: Partial<Omit<Lecture, 'id'>>,
+  ) => Lecture | undefined;
   delete: (id: string) => boolean;
 }
 

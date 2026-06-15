@@ -25,8 +25,8 @@ export const lecturesRouter = router({
     .input(
       z.object({
         id: z.string(),
-        title: z.string().min(1),
-        description: z.string().min(1),
+        title: z.string().min(1).optional(),
+        description: z.string().min(1).optional(),
       }),
     )
     .mutation(({ ctx, input }) => {
