@@ -11,12 +11,12 @@ export const chaptersRouter = router({
       return ctx.chapterRepository.getByLectureId(input.lectureId);
     }),
   getDistinctAssociations: publicProcedure.query(({ ctx }) => {
-    return ctx.chapterRepository.getDistinctAssociations();
+    return ctx.chapterSearchQuery.getDistinctAssociations();
   }),
   searchChapters: publicProcedure
     .input(z.object({ query: z.string() }))
     .query(({ ctx, input }) => {
-      return ctx.chapterRepository.search(input.query);
+      return ctx.chapterSearchQuery.search(input.query);
     }),
   createChapter: publicProcedure
     .input(

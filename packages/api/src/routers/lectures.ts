@@ -4,7 +4,7 @@ import { publicProcedure, router } from '../trpc.js';
 
 export const lecturesRouter = router({
   getLectures: publicProcedure.query(({ ctx }) => {
-    return ctx.lectureRepository.getAll();
+    return ctx.lectureOverviewQuery.getAll();
   }),
   getLecture: publicProcedure
     .input(z.object({ id: z.string() }))

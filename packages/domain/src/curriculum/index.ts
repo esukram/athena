@@ -4,6 +4,12 @@ export type {
   LectureRepository,
   QuestionRepository,
 } from './ports.js';
+export type {
+  ChapterSearchQuery,
+  ChapterSearchResult,
+  LectureOverviewQuery,
+  QuestionStatsQuery,
+} from './read-models.js';
 export {
   ChapterNotFoundError,
   LectureNotFoundError,

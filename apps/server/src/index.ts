@@ -13,6 +13,11 @@ import { appRouter, createContext } from '@athena/api';
 import { createDatabase } from './db.js';
 import { runMigrations } from './migration.js';
 import {
+  createChapterSearchQuery,
+  createLectureOverviewQuery,
+  createQuestionStatsQuery,
+} from './queries.js';
+import {
   createChapterRepository,
   createLectureRepository,
   createQuestionRepository,
@@ -36,6 +41,9 @@ async function main() {
   const lectureRepository = createLectureRepository(db);
   const chapterRepository = createChapterRepository(db);
   const questionRepository = createQuestionRepository(db);
+  const lectureOverviewQuery = createLectureOverviewQuery(db);
+  const chapterSearchQuery = createChapterSearchQuery(db);
+  const questionStatsQuery = createQuestionStatsQuery(db);
   const unitOfWork = createUnitOfWork(db);
   const speechService = createConfiguredSpeechService();
 
@@ -47,6 +55,9 @@ async function main() {
         lectureRepository,
         chapterRepository,
         questionRepository,
+        lectureOverviewQuery,
+        chapterSearchQuery,
+        questionStatsQuery,
         unitOfWork,
         speechService,
       }),

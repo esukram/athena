@@ -4,9 +4,12 @@ import { TRPCError, initTRPC } from '@trpc/server';
 
 import {
   type ChapterRepository,
+  type ChapterSearchQuery,
+  type LectureOverviewQuery,
   type LectureRepository,
   NotFoundError,
   type QuestionRepository,
+  type QuestionStatsQuery,
   type SpeechService,
   type UnitOfWork,
   ValidationError,
@@ -14,8 +17,11 @@ import {
 
 export type {
   ChapterRepository,
+  ChapterSearchQuery,
+  LectureOverviewQuery,
   LectureRepository,
   QuestionRepository,
+  QuestionStatsQuery,
   UnitOfWork,
 } from '@athena/domain';
 
@@ -23,6 +29,9 @@ export interface AppContext {
   lectureRepository: LectureRepository;
   chapterRepository: ChapterRepository;
   questionRepository: QuestionRepository;
+  lectureOverviewQuery: LectureOverviewQuery;
+  chapterSearchQuery: ChapterSearchQuery;
+  questionStatsQuery: QuestionStatsQuery;
   unitOfWork: UnitOfWork;
   speechService?: SpeechService;
 }

@@ -4,28 +4,13 @@ import {
   type Chapter,
   type ChapterRepository,
   type Lecture,
-  type LectureListItem,
   type LectureRepository,
   type Question,
   type QuestionRepository,
-} from '@athena/api';
+} from '@athena/domain';
 
 export function createLectureRepository(db: Database): LectureRepository {
   return {
-    getAll: (): LectureListItem[] => {
-      return db
-        .prepare(
-          `SELECT
-             l.id, l.title, l.description,
-             COUNT(DISTINCT c.id) AS chapterCount,
-             COUNT(q.id)          AS questionCount
-           FROM lectures l
-           LEFT JOIN chapters c ON c.lectureId = l.id
-           LEFT JOIN questions q ON q.chapterId = c.id
-           GROUP BY l.id, l.title, l.description`,
-        )
-        .all() as LectureListItem[];
-    },
     getById: (id: string): Lecture | undefined => {
       return db.prepare('SELECT * FROM lectures WHERE id = ?').get(id) as
         | Lecture
@@ -71,71 +56,6 @@ export function createChapterRepository(db: Database): ChapterRepository {
         .prepare('SELECT * FROM chapters WHERE lectureId = ? ORDER BY "order"')
         .all(lectureId) as Chapter[];
     },
-    getDistinctAssociations: (): string[] => {
-      const rows = db
-        .prepare(
-          "SELECT DISTINCT association FROM chapters WHERE association != '' ORDER BY association",
-        )
-        .all() as { association: string }[];
-      return rows.map((row) => row.association);
-    },
-    search: (query: string): (Chapter & { firstQuestion?: Question })[] => {
-      if (!query.trim()) return [];
-
-      const tokens = query.toLowerCase().split(/\s+/).filter(Boolean);
-      if (tokens.length === 0) return [];
-
-      // Search in questions (question text) and chapters (association)
-      // Use aliases for the main query
-      const questionConditions = tokens
-        .map(() => 'LOWER(q.question) LIKE ?')
-        .join(' AND ');
-
-      const associationConditions = tokens
-        .map(() => 'LOWER(c.association) LIKE ?')
-        .join(' AND ');
-
-      const questionParams = tokens.map((token) => `%${token}%`);
-      const associationParams = tokens.map((token) => `%${token}%`);
-
-      // Get chapters that match via ANY question or association
-      const chapters = db
-        .prepare(
-          `
-          SELECT DISTINCT c.* FROM chapters c
-          LEFT JOIN questions q ON q.chapterId = c.id
-          WHERE (${questionConditions}) OR (${associationConditions})
-          ORDER BY c."order"
-        `,
-        )
-        .all(...questionParams, ...associationParams) as Chapter[];
-
-      // Conditions for finding the matching question within a specific chapter
-      const innerQuestionConditions = tokens
-        .map(() => 'LOWER(question) LIKE ?')
-        .join(' AND ');
-
-      // Attach the best matching question to each chapter
-      return chapters.map((chapter) => {
-        // First try to find a question that matches the search query
-        let firstQuestion = db
-          .prepare(
-            `SELECT * FROM questions WHERE chapterId = ? AND (${innerQuestionConditions}) LIMIT 1`,
-          )
-          .get(chapter.id, ...questionParams) as Question | undefined;
-
-        // If no question matches (match was on association), fall back to the actual first question
-        if (!firstQuestion) {
-          firstQuestion = db
-            .prepare(
-              'SELECT * FROM questions WHERE chapterId = ? ORDER BY "order" LIMIT 1',
-            )
-            .get(chapter.id) as Question | undefined;
-        }
-
-        return { ...chapter, firstQuestion };
-      });
-    },
     create: (chapter: Omit<Chapter, 'id'>): Chapter => {
       const id = crypto.randomUUID();
       db.prepare(
@@ -177,36 +97,6 @@ export function createQuestionRepository(db: Database): QuestionRepository {
           'SELECT * FROM questions WHERE chapterId = ? ORDER BY "order" LIMIT 1',
         )
         .get(chapterId) as Question | undefined;
-    },
-    getFirstByLectureId: (lectureId: string): Record<string, Question> => {
-      // Get all chapters for this lecture, then get first question for each
-      const rows = db
-        .prepare(
-          `SELECT q.* FROM questions q
-           INNER JOIN (
-             SELECT chapterId, MIN("order") as minOrder
-             FROM questions
-             WHERE chapterId IN (SELECT id FROM chapters WHERE lectureId = ?)
-             GROUP BY chapterId
-           ) first ON q.chapterId = first.chapterId AND q."order" = first.minOrder`,
-        )
-        .all(lectureId) as Question[];
-
-      const result: Record<string, Question> = {};
-      for (const question of rows) {
-        result[question.chapterId] = question;
-      }
-      return result;
-    },
-    getAnnotatedChapterIdsByLecture: (lectureId: string): string[] => {
-      const rows = db
-        .prepare(
-          `SELECT DISTINCT q.chapterId FROM questions q
-           INNER JOIN chapters c ON q.chapterId = c.id
-           WHERE c.lectureId = ? AND q.isAnnotated = 1`,
-        )
-        .all(lectureId) as { chapterId: string }[];
-      return rows.map((row) => row.chapterId);
     },
     create: (question: Omit<Question, 'id'>): Question => {
       const id = crypto.randomUUID();
@@ -250,34 +140,6 @@ export function createQuestionRepository(db: Database): QuestionRepository {
     delete: (id: string): boolean => {
       const result = db.prepare('DELETE FROM questions WHERE id = ?').run(id);
       return result.changes > 0;
-    },
-    getQuestionCountsByLecture: (lectureId: string): number => {
-      const result = db
-        .prepare(
-          `SELECT COUNT(*) as count FROM questions q
-           INNER JOIN chapters c ON q.chapterId = c.id
-           WHERE c.lectureId = ?`,
-        )
-        .get(lectureId) as { count: number };
-      return result.count;
-    },
-    getQuestionCountsPerChapter: (
-      lectureId: string,
-    ): Record<string, number> => {
-      const rows = db
-        .prepare(
-          `SELECT c.id as chapterId, COUNT(q.id) as count
-           FROM chapters c
-           LEFT JOIN questions q ON q.chapterId = c.id
-           WHERE c.lectureId = ?
-           GROUP BY c.id`,
-        )
-        .all(lectureId) as { chapterId: string; count: number }[];
-      const result: Record<string, number> = {};
-      for (const row of rows) {
-        result[row.chapterId] = row.count;
-      }
-      return result;
     },
   };
 }
