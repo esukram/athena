@@ -1,8 +1,10 @@
+import type { UnitOfWork } from '../../shared/unit-of-work.js';
 import { planNormalization } from '../chapter-ordering.js';
 import type { ChapterRepository } from '../ports.js';
 
 export interface DeleteChapterDeps {
   chapterRepository: ChapterRepository;
+  unitOfWork: UnitOfWork;
 }
 
 export interface DeleteChapterInput {
@@ -15,18 +17,20 @@ export interface DeleteChapterInput {
  * Returns whether a chapter was actually removed.
  */
 export function deleteChapter(
-  { chapterRepository }: DeleteChapterDeps,
+  { chapterRepository, unitOfWork }: DeleteChapterDeps,
   input: DeleteChapterInput,
 ): boolean {
-  const chapter = chapterRepository.getById(input.id);
-  const deleted = chapterRepository.delete(input.id);
+  return unitOfWork.run(() => {
+    const chapter = chapterRepository.getById(input.id);
+    const deleted = chapterRepository.delete(input.id);
 
-  if (deleted && chapter) {
-    const remaining = chapterRepository.getByLectureId(chapter.lectureId);
-    for (const update of planNormalization(remaining)) {
-      chapterRepository.update(update.id, { order: update.order });
+    if (deleted && chapter) {
+      const remaining = chapterRepository.getByLectureId(chapter.lectureId);
+      for (const update of planNormalization(remaining)) {
+        chapterRepository.update(update.id, { order: update.order });
+      }
     }
-  }
 
-  return deleted;
+    return deleted;
+  });
 }

@@ -1,3 +1,4 @@
+import type { UnitOfWork } from '../../shared/unit-of-work.js';
 import { nextChapterOrder, planNormalization } from '../chapter-ordering.js';
 import { ChapterNotFoundError } from '../errors.js';
 import type { ChapterRepository } from '../ports.js';
@@ -5,6 +6,7 @@ import type { Chapter } from '../types.js';
 
 export interface MoveChapterDeps {
   chapterRepository: ChapterRepository;
+  unitOfWork: UnitOfWork;
 }
 
 export interface MoveChapterInput {
@@ -19,29 +21,31 @@ export interface MoveChapterInput {
  * @throws {ChapterNotFoundError} if the chapter does not exist.
  */
 export function moveChapter(
-  { chapterRepository }: MoveChapterDeps,
+  { chapterRepository, unitOfWork }: MoveChapterDeps,
   input: MoveChapterInput,
 ): Chapter {
-  const chapter = chapterRepository.getById(input.chapterId);
-  if (!chapter) throw new ChapterNotFoundError(input.chapterId);
+  return unitOfWork.run(() => {
+    const chapter = chapterRepository.getById(input.chapterId);
+    if (!chapter) throw new ChapterNotFoundError(input.chapterId);
 
-  const sourceLectureId = chapter.lectureId;
-  const targetChapters = chapterRepository.getByLectureId(
-    input.targetLectureId,
-  );
+    const sourceLectureId = chapter.lectureId;
+    const targetChapters = chapterRepository.getByLectureId(
+      input.targetLectureId,
+    );
 
-  const moved = chapterRepository.update(input.chapterId, {
-    lectureId: input.targetLectureId,
-    order: nextChapterOrder(targetChapters),
-  });
-  if (!moved) throw new ChapterNotFoundError(input.chapterId);
+    const moved = chapterRepository.update(input.chapterId, {
+      lectureId: input.targetLectureId,
+      order: nextChapterOrder(targetChapters),
+    });
+    if (!moved) throw new ChapterNotFoundError(input.chapterId);
 
-  if (sourceLectureId !== input.targetLectureId) {
-    const remaining = chapterRepository.getByLectureId(sourceLectureId);
-    for (const update of planNormalization(remaining)) {
-      chapterRepository.update(update.id, { order: update.order });
+    if (sourceLectureId !== input.targetLectureId) {
+      const remaining = chapterRepository.getByLectureId(sourceLectureId);
+      for (const update of planNormalization(remaining)) {
+        chapterRepository.update(update.id, { order: update.order });
+      }
     }
-  }
 
-  return moved;
+    return moved;
+  });
 }

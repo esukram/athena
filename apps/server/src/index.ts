@@ -18,6 +18,7 @@ import {
   createQuestionRepository,
 } from './repositories.js';
 import { createConfiguredSpeechService } from './tts-provider.js';
+import { createUnitOfWork } from './unit-of-work.js';
 
 const server = Fastify({
   logger: true,
@@ -34,6 +35,7 @@ async function main() {
   const lectureRepository = createLectureRepository(db);
   const chapterRepository = createChapterRepository(db);
   const questionRepository = createQuestionRepository(db);
+  const unitOfWork = createUnitOfWork(db);
   const speechService = createConfiguredSpeechService();
 
   await server.register(fastifyTRPCPlugin, {
@@ -44,6 +46,7 @@ async function main() {
         lectureRepository,
         chapterRepository,
         questionRepository,
+        unitOfWork,
         speechService,
       }),
     },

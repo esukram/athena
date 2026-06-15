@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
+import { noopUnitOfWork } from '../../shared/unit-of-work.js';
 import { ChapterNotFoundError } from '../errors.js';
 import type { ChapterRepository } from '../ports.js';
 import type { Chapter } from '../types.js';
@@ -56,7 +57,7 @@ describe('reorderChapter', () => {
       chapter('c', 'L1', 2),
     ]);
     const moved = reorderChapter(
-      { chapterRepository: repo },
+      { chapterRepository: repo, unitOfWork: noopUnitOfWork },
       {
         chapterId: 'c',
         lectureId: 'L1',
@@ -81,7 +82,7 @@ describe('moveChapter', () => {
       chapter('x', 'L2', 0),
     ]);
     const moved = moveChapter(
-      { chapterRepository: repo },
+      { chapterRepository: repo, unitOfWork: noopUnitOfWork },
       {
         chapterId: 'b',
         targetLectureId: 'L2',
@@ -100,7 +101,7 @@ describe('moveChapter', () => {
     const repo = fakeChapterRepository([]);
     expect(() =>
       moveChapter(
-        { chapterRepository: repo },
+        { chapterRepository: repo, unitOfWork: noopUnitOfWork },
         {
           chapterId: 'nope',
           targetLectureId: 'L2',
@@ -117,7 +118,10 @@ describe('deleteChapter', () => {
       chapter('b', 'L1', 1),
       chapter('c', 'L1', 2),
     ]);
-    const deleted = deleteChapter({ chapterRepository: repo }, { id: 'a' });
+    const deleted = deleteChapter(
+      { chapterRepository: repo, unitOfWork: noopUnitOfWork },
+      { id: 'a' },
+    );
     expect(deleted).toBe(true);
     expect(ordersOf(repo, 'L1')).toEqual([
       { id: 'b', order: 0 },
@@ -127,6 +131,11 @@ describe('deleteChapter', () => {
 
   it('returns false for a missing chapter', () => {
     const repo = fakeChapterRepository([]);
-    expect(deleteChapter({ chapterRepository: repo }, { id: 'x' })).toBe(false);
+    expect(
+      deleteChapter(
+        { chapterRepository: repo, unitOfWork: noopUnitOfWork },
+        { id: 'x' },
+      ),
+    ).toBe(false);
   });
 });

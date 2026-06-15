@@ -44,7 +44,13 @@ export const chaptersRouter = router({
   deleteChapter: publicProcedure
     .input(z.object({ id: z.string() }))
     .mutation(({ ctx, input }) => {
-      return deleteChapter({ chapterRepository: ctx.chapterRepository }, input);
+      return deleteChapter(
+        {
+          chapterRepository: ctx.chapterRepository,
+          unitOfWork: ctx.unitOfWork,
+        },
+        input,
+      );
     }),
   moveChapter: publicProcedure
     .input(
@@ -54,7 +60,13 @@ export const chaptersRouter = router({
       }),
     )
     .mutation(({ ctx, input }) => {
-      return moveChapter({ chapterRepository: ctx.chapterRepository }, input);
+      return moveChapter(
+        {
+          chapterRepository: ctx.chapterRepository,
+          unitOfWork: ctx.unitOfWork,
+        },
+        input,
+      );
     }),
   reorderChapter: publicProcedure
     .input(
@@ -66,7 +78,10 @@ export const chaptersRouter = router({
     )
     .mutation(({ ctx, input }) => {
       return reorderChapter(
-        { chapterRepository: ctx.chapterRepository },
+        {
+          chapterRepository: ctx.chapterRepository,
+          unitOfWork: ctx.unitOfWork,
+        },
         input,
       );
     }),

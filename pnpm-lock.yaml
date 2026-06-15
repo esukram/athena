@@ -32,6 +32,9 @@ importers:
       '@athena/api':
         specifier: workspace:*
         version: link:../../packages/api
+      '@athena/domain':
+        specifier: workspace:*
+        version: link:../../packages/domain
       '@fastify/cors':
         specifier: ^11.2.0
         version: 11.2.0

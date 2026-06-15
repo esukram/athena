@@ -7,18 +7,21 @@ import type {
   LectureRepository,
   QuestionRepository,
   SpeechService,
+  UnitOfWork,
 } from '@athena/domain';
 
 export type {
   ChapterRepository,
   LectureRepository,
   QuestionRepository,
+  UnitOfWork,
 } from '@athena/domain';
 
 export interface AppContext {
   lectureRepository: LectureRepository;
   chapterRepository: ChapterRepository;
   questionRepository: QuestionRepository;
+  unitOfWork: UnitOfWork;
   speechService?: SpeechService;
 }
 
