@@ -198,3 +198,22 @@ Going forward, a change conforms to the target architecture when:
 - Domain rules are unit-testable without tRPC, Fastify, or SQLite.
 - `packages/domain` has no runtime dependencies; dependency direction is presentation → application/domain ← infrastructure, enforced by lint.
 - New concepts enter the code with the glossary name, not an improvised one.
+
+---
+
+## 7. Resolution Log
+
+Status of each finding after the architecture-refactor work.
+
+| ID | Status | What was done |
+| :-- | :-- | :-- |
+| **F1** — logic in transport | ✅ Done | Chapter reorder/move/delete extracted into `@athena/domain` use cases; routers are thin adapters. |
+| **F2** — no transactions | ✅ Done | `UnitOfWork` port + better-sqlite3 `db.transaction()`; use cases and each migration+version bump wrapped. Commit/rollback covered by tests. |
+| **F3** — smeared boundaries | ✅ Done | New `packages/domain` (zero runtime deps) holds types, ports, errors, use cases. ESLint `no-restricted-imports` enforces dependency direction in `domain` and `api`. |
+| **F4** — logic in presentation | ◑ Substantially done | Training ordering/progress/search/sequencing rules extracted to the `training` context and unit-tested; `TrainingSession.tsx` consumes them. Speech symbol-verbalization unified in the `speech` context. The markdown→SSML _rendering_ stays client-side on purpose (the playback hook needs a synchronous speakability gate); a full server relocation is a deferred follow-up. `LectureEdit.tsx` decomposition not attempted (large, low-risk-to-leave). |
+| **F5** — read models / N+1 | ✅ Done | Read-model query ports (`LectureOverviewQuery`, `ChapterSearchQuery`, `QuestionStatsQuery`) split from repositories; search N+1 replaced with three bounded queries. |
+| **F6** — infra nits | ✅ Done | `createDatabase()` factory with `path.join`, no import-time side effect; typed domain errors mapped to tRPC codes (NOT_FOUND / BAD_REQUEST) in one middleware; lecture updates accept partials. |
+| **D1** — anemic model | ✅ Done | Chapter-ordering invariant owned by the Lecture aggregate; `OrderIndex` and `LanguageCode` value objects; typed domain errors. |
+| **D2** — no aggregates | ✅ Done | Lecture aggregate owns contiguous chapter ordering; ordering operations are pure functions persisted transactionally. |
+| **D3** — ubiquitous language | ◑ Documented + deferred rename | Glossary added to `ARCHITECTURE.md` settling the vocabulary (Lecture / Chapter / Question / **Tag**). The physical `association → tag` rename (DB column + wire contract + UI + e2e specs) is deliberately deferred as a follow-up to avoid a wire-breaking change; `association` is recorded as the persistence-level alias of _Tag_. |
+| **D4** — implicit contexts | ✅ Done | `domain` is organised by bounded context (`curriculum`, `training`, `speech`); contexts documented in `ARCHITECTURE.md`. |
