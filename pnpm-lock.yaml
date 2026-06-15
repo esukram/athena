@@ -90,6 +90,9 @@ importers:
       '@athena/api':
         specifier: workspace:*
         version: link:../../packages/api
+      '@athena/domain':
+        specifier: workspace:*
+        version: link:../../packages/domain
       '@tailwindcss/typography':
         specifier: ^0.5.19
         version: 0.5.19(tailwindcss@4.3.0)

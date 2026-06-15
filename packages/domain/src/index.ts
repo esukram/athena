@@ -11,3 +11,4 @@
 export * from './shared/index.js';
 export * from './curriculum/index.js';
 export * from './speech/index.js';
+export * from './training/index.js';
