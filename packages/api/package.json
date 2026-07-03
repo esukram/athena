@@ -18,12 +18,12 @@
   },
   "dependencies": {
     "@athena/domain": "workspace:*",
-    "@trpc/server": "^11.17.0",
-    "zod": "^4.3.6"
+    "@trpc/server": "^11.18.0",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@athena/eslint-config": "workspace:*",
     "@athena/typescript-config": "workspace:*",
-    "eslint": "^9.39.4"
+    "eslint": "^10.4.1"
   }
 }

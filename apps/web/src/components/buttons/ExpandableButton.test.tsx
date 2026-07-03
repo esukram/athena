@@ -175,6 +175,115 @@ describe('ExpandableButton', () => {
     expect(mainButton.className).toContain('bg-danger');
   });
 
+  it('colors the primary toggle and menu with the accent fill, not the ink token', () => {
+    const actions = [{ label: 'Randomized', onClick: vi.fn() }];
+    render(
+      <ExpandableButton onClick={vi.fn()} actions={actions}>
+        Train
+      </ExpandableButton>,
+    );
+
+    // Toggle shares the main button's accent fill and nudges on press.
+    const toggle = screen.getByTestId('expandable-button-dropdown');
+    expect(toggle).toHaveClass('bg-accent', 'active:translate-y-px');
+    expect(toggle).not.toHaveClass('bg-primary-700');
+
+    // Open the menu and check the panel + first action.
+    fireEvent.click(toggle);
+
+    const menu = screen.getByTestId('expandable-button-menu');
+    expect(menu).toHaveClass('bg-accent');
+    expect(menu).not.toHaveClass('bg-primary-700');
+
+    // Action items carry only the text/hover accent tokens (no bg-accent).
+    const action = screen.getByTestId('expandable-button-action-0');
+    expect(action).toHaveClass('text-accent-ink', 'hover:bg-accent-press');
+    expect(action).not.toHaveClass('hover:bg-primary-800');
+  });
+
+  it('highlights both halves on hover of either (shared group-hover)', () => {
+    const actions = [{ label: 'Randomized', onClick: vi.fn() }];
+    render(
+      <ExpandableButton onClick={vi.fn()} actions={actions}>
+        Train
+      </ExpandableButton>,
+    );
+
+    // Both halves carry the group-scoped highlight, so hovering either lights up
+    // both. The toggle no longer carries a self-only `hover:bg-*`.
+    const main = screen.getByTestId('expandable-button-main');
+    const toggle = screen.getByTestId('expandable-button-dropdown');
+    expect(main).toHaveClass('group-hover/split:bg-accent-press');
+    expect(toggle).toHaveClass('group-hover/split:bg-accent-press');
+    expect(toggle).not.toHaveClass('hover:bg-accent-press');
+  });
+
+  // Every variant shares the same group-hover highlight on both halves, using
+  // the token that matches its main-button hover (Button.tsx).
+  it.each([
+    ['primary', 'group-hover/split:bg-accent-press'],
+    ['secondary', 'group-hover/split:bg-accent-soft-hover'],
+    ['ghost', 'group-hover/split:bg-surface-2'],
+    ['danger', 'group-hover/split:bg-danger-press'],
+  ] as const)(
+    'shares the %s group-hover highlight across both halves',
+    (variant, highlight) => {
+      const actions = [{ label: 'Randomized', onClick: vi.fn() }];
+      render(
+        <ExpandableButton onClick={vi.fn()} actions={actions} variant={variant}>
+          Train
+        </ExpandableButton>,
+      );
+
+      expect(screen.getByTestId('expandable-button-main')).toHaveClass(
+        highlight,
+      );
+      expect(screen.getByTestId('expandable-button-dropdown')).toHaveClass(
+        highlight,
+      );
+    },
+  );
+
+  it('carries the elevation shadow on the split wrapper, not the inner button', () => {
+    const actions = [{ label: 'Randomized', onClick: vi.fn() }];
+    render(
+      <ExpandableButton onClick={vi.fn()} actions={actions}>
+        Train
+      </ExpandableButton>,
+    );
+
+    // Wrapper owns the resting + hover-grown shadow; the inner button suppresses
+    // its own so the two don't double up.
+    const split = screen.getByTestId('expandable-button-split');
+    expect(split).toHaveClass(
+      'shadow-elevate',
+      'group-hover/split:shadow-elevate-raised',
+    );
+    expect(screen.getByTestId('expandable-button-main')).toHaveClass(
+      'shadow-none!',
+    );
+  });
+
+  it('drops the wrapper shadow and hover highlight when disabled', () => {
+    const actions = [{ label: 'Randomized', onClick: vi.fn() }];
+    render(
+      <ExpandableButton onClick={vi.fn()} actions={actions} disabled>
+        Train
+      </ExpandableButton>,
+    );
+
+    // The wrapper has no disabled state of its own, so a disabled button must not
+    // keep a full-strength shadow or react to hover.
+    const split = screen.getByTestId('expandable-button-split');
+    expect(split).not.toHaveClass('shadow-elevate');
+    expect(screen.getByTestId('expandable-button-main')).not.toHaveClass(
+      'group-hover/split:bg-accent-press',
+    );
+    expect(screen.getByTestId('expandable-button-dropdown')).not.toHaveClass(
+      'group-hover/split:bg-accent-press',
+    );
+  });
+
   it('disables individual action when action.disabled is true', () => {
     const disabledAction = vi.fn();
     const actions = [
