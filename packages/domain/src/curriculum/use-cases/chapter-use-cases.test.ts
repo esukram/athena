@@ -21,8 +21,6 @@ function fakeChapterRepository(seed: Chapter[]): ChapterRepository {
         .filter((c) => c.lectureId === lectureId)
         .sort((a, b) => a.order - b.order)
         .map((c) => ({ ...c })),
-    getDistinctAssociations: () => [],
-    search: () => [],
     create: (chapter) => {
       const created = { ...chapter, id: `c${store.size + 1}` };
       store.set(created.id, created);
@@ -108,6 +106,25 @@ describe('moveChapter', () => {
         },
       ),
     ).toThrow(ChapterNotFoundError);
+  });
+
+  it('is a no-op when the target is the chapters own lecture', () => {
+    const repo = fakeChapterRepository([
+      chapter('a', 'L1', 0),
+      chapter('b', 'L1', 1),
+      chapter('c', 'L1', 2),
+    ]);
+    const moved = moveChapter(
+      { chapterRepository: repo, unitOfWork: noopUnitOfWork },
+      { chapterId: 'b', targetLectureId: 'L1' },
+    );
+    expect(moved).toEqual(chapter('b', 'L1', 1));
+    // Orders stay contiguous and untouched — no append-to-end, no gap.
+    expect(ordersOf(repo, 'L1')).toEqual([
+      { id: 'a', order: 0 },
+      { id: 'b', order: 1 },
+      { id: 'c', order: 2 },
+    ]);
   });
 });
 

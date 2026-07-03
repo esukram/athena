@@ -17,6 +17,8 @@ export interface MoveChapterInput {
 /**
  * Move a chapter to a different lecture: append it to the target lecture, then
  * renormalize the source lecture so its remaining chapters stay contiguous.
+ * Targeting the chapter's own lecture is a no-op — the chapter is already in a
+ * contiguous position, and appending it at `max + 1` would break the invariant.
  *
  * @throws {ChapterNotFoundError} if the chapter does not exist.
  */
@@ -29,6 +31,8 @@ export function moveChapter(
     if (!chapter) throw new ChapterNotFoundError(input.chapterId);
 
     const sourceLectureId = chapter.lectureId;
+    if (sourceLectureId === input.targetLectureId) return chapter;
+
     const targetChapters = chapterRepository.getByLectureId(
       input.targetLectureId,
     );
@@ -39,11 +43,9 @@ export function moveChapter(
     });
     if (!moved) throw new ChapterNotFoundError(input.chapterId);
 
-    if (sourceLectureId !== input.targetLectureId) {
-      const remaining = chapterRepository.getByLectureId(sourceLectureId);
-      for (const update of planNormalization(remaining)) {
-        chapterRepository.update(update.id, { order: update.order });
-      }
+    const remaining = chapterRepository.getByLectureId(sourceLectureId);
+    for (const update of planNormalization(remaining)) {
+      chapterRepository.update(update.id, { order: update.order });
     }
 
     return moved;
