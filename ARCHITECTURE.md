@@ -28,6 +28,7 @@ The repository is organized into `apps` (deployable applications) and `packages`
 │   ├── web/          # Frontend application (Vite + React)
 │   └── server/       # Backend server (Fastify + tRPC)
 ├── packages/
+│   ├── domain/       # Application & domain tier (entities, use cases, ports) — zero runtime deps
 │   ├── api/          # Shared tRPC router and procedure definitions
 │   ├── eslint-config/ # Shared ESLint config
 │   └── typescript-config/ # Shared TSConfig bases
@@ -43,9 +44,52 @@ The repository is organized into `apps` (deployable applications) and `packages`
 
 ### **2.2 Packages**
 
-- **api**: Contains the `appRouter` definition, Zod schemas, and context creators. This is imported by `server` (to implement) and `web` (to consume types), ensuring perfect type synchronization.
+- **domain**: The application & domain tier. Pure TypeScript with **zero runtime dependencies**: entities, value objects, repository ports, read-model query ports, the `UnitOfWork` transactional boundary, typed domain errors, and use cases — organised by bounded context (`curriculum`, `training`, `speech`). Both `api` (presentation) and `server` (infrastructure) depend on it; it depends on neither.
+- **api**: Contains the `appRouter` definition, Zod schemas, and context creators. Routers are thin adapters: they parse input, call one domain use case, and let the error-mapping middleware translate domain errors to tRPC codes. Imported by `server` (to implement) and `web` (to consume types), ensuring perfect type synchronization.
 - **eslint-config**: Shared ESLint flat-config presets consumed by every workspace.
 - **typescript-config**: Centralized `tsconfig.json` files to ensure consistent compiler options across the monorepo.
+
+### **2.3 Layered Architecture & Bounded Contexts**
+
+The codebase follows a three-tier layering with the dependency direction
+**presentation → application/domain ← infrastructure**:
+
+```text
+Tier 1 — Presentation     apps/web (React) + packages/api routers (thin tRPC adapters)
+Tier 2 — Application/Domain  packages/domain (entities, value objects, use cases, ports)
+Tier 3 — Infrastructure   apps/server (SQLite repositories & queries, transactions,
+                          migrations, TTS adapters, Fastify host, composition root)
+```
+
+The domain tier is split into three **bounded contexts**:
+
+- **Curriculum** (authoring): lectures, chapters, questions, ordering, search, and the
+  read-model queries behind the overview/edit screens. The _Lecture_ is the aggregate
+  root that owns chapter membership and contiguous chapter ordering.
+- **Training** (studying): session sequencing, chapter ordering (annotated-first /
+  shuffle), progress measurement, and previous/next navigation rules.
+- **Speech**: TTS text-preparation vocabulary (`verbalizeSymbols`), the `SpeechService`
+  port, and the speakable `LanguageCode`. Concrete Azure/Google adapters live in `server`.
+
+**Dependency rule (enforced by ESLint).** `packages/domain` must not import from
+`@athena/api`, `apps/*`, or any infrastructure/UI library (`@trpc/*`, `better-sqlite3`,
+`fastify`, `react`, `zod`, …); `packages/api` must not import infrastructure
+(`better-sqlite3`, `fastify`). These `no-restricted-imports` rules keep the arrows
+pointing inward so the layering can't silently erode.
+
+### **2.4 Glossary (Ubiquitous Language)**
+
+Use these terms — in code, comments, and UI copy — for the core concepts. When a new
+concept enters the code, give it its glossary name rather than an improvised one.
+
+| Term         | Meaning                                                                                  | Notes |
+| :----------- | :--------------------------------------------------------------------------------------- | :---- |
+| **Lecture**  | A course / top-level study unit. Aggregate root of the Curriculum context.               | The README's "Course" is the same concept; code uses _Lecture_. |
+| **Chapter**  | An ordered group of questions within a lecture. Has no title of its own.                 | Identified in the UI by its first question. |
+| **Question** | A single flash card (a question/answer pair) within a chapter. Also called an _Index Card_ in the UI. | Code term: _Question_. |
+| **Tag**      | A free-text category/label on a chapter (README: "associations (categories)").           | ⚠️ Stored and transported under the **legacy** field name `association`; a physical rename to `tag` is a planned follow-up (see findings D3). Treat `association` as the persistence-level alias of _Tag_. |
+| **Order**    | The 0-based contiguous position of a chapter in its lecture, or a question in its chapter. | Modelled by the `OrderIndex` value object. |
+| **Annotated**| A question the learner flagged to revisit; surfaces its chapter first in regular training. | |
 
 ## **3. UI Design Guidelines**
 

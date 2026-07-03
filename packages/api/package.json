@@ -8,10 +8,6 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
-    },
-    "./speakable-text": {
-      "types": "./dist/speakable-text.d.ts",
-      "import": "./dist/speakable-text.js"
     }
   },
   "scripts": {
@@ -21,6 +17,7 @@
     "format": "prettier --write \"src/**/*.ts\" \"*.{js,ts,json}\""
   },
   "dependencies": {
+    "@athena/domain": "workspace:*",
     "@trpc/server": "^11.18.0",
     "zod": "^4.4.3"
   },

@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@athena/api": "workspace:*",
+    "@athena/domain": "workspace:*",
     "@fastify/cors": "^11.2.0",
     "@fastify/static": "^9.1.1",
     "@trpc/server": "^11.18.0",

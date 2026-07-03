@@ -5,6 +5,16 @@ import { useNavigate } from 'react-router-dom';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import type { Chapter, Question } from '@athena/api';
+import {
+  type TrainingMode,
+  isFirstQuestion as computeIsFirstQuestion,
+  isLastQuestion as computeIsLastQuestion,
+  filterChaptersByQuestionText,
+  nextTrainingStep,
+  orderChaptersForTraining,
+  prevTrainingStep,
+  trainingProgressPosition,
+} from '@athena/domain/training';
 
 import { highlightText } from '../utils/highlightText';
 import { trpc } from '../utils/trpc';
@@ -19,7 +29,7 @@ import { ShuffleToggle } from './ShuffleToggle';
 import { SpeechPlayButton } from './SpeechPlayButton';
 import { Button } from './buttons/Button';
 
-export type TrainingMode = 'regular' | 'randomized';
+export type { TrainingMode };
 
 export interface TrainingSessionProps {
   lectureId: string;
@@ -32,15 +42,6 @@ export interface TrainingSessionProps {
 interface TrainingSessionContentProps extends TrainingSessionProps {
   lecture: { id: string; title: string; description: string | null };
 }
-
-const shuffleArray = <T,>(array: T[]): T[] => {
-  const shuffled = [...array];
-  for (let i = shuffled.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-  }
-  return shuffled;
-};
 
 const TrainingSessionContent = ({
   lectureId,
@@ -127,21 +128,11 @@ const TrainingSessionContent = ({
       annotatedChapterIdsQuery.data !== undefined &&
       sortedLectureIdRef.current !== lectureId
     ) {
-      let sorted: Chapter[];
-
-      if (mode === 'randomized') {
-        sorted = shuffleArray(chapters);
-      } else {
-        const initialAnnotatedSet = new Set(annotatedChapterIdsQuery.data);
-        sorted = [...chapters].sort((a, b) => {
-          const aAnnotated = initialAnnotatedSet.has(a.id) ? 1 : 0;
-          const bAnnotated = initialAnnotatedSet.has(b.id) ? 1 : 0;
-          if (bAnnotated !== aAnnotated) {
-            return bAnnotated - aAnnotated;
-          }
-          return a.order - b.order;
-        });
-      }
+      const sorted = orderChaptersForTraining(
+        chapters,
+        mode,
+        annotatedChapterIdsQuery.data,
+      );
 
       setSortedChapters(sorted);
       sortedLectureIdRef.current = lectureId;
@@ -176,34 +167,33 @@ const TrainingSessionContent = ({
     return 0;
   }, [questionId, currentChapterQuestions]);
 
-  const filteredChapters = useMemo(() => {
-    if (!searchQuery.trim()) return sortedChapters;
-    const tokens = searchQuery.toLowerCase().split(/\s+/).filter(Boolean);
-    return sortedChapters.filter((chapter) => {
-      const firstQuestion = firstQuestionMap.get(chapter.id);
-      const questionText = (firstQuestion?.question || '').toLowerCase();
-      return tokens.every((token) => questionText.includes(token));
-    });
-  }, [sortedChapters, searchQuery, firstQuestionMap]);
+  const filteredChapters = useMemo(
+    () =>
+      filterChaptersByQuestionText(
+        sortedChapters,
+        searchQuery,
+        (chapter) => firstQuestionMap.get(chapter.id)?.question || '',
+      ),
+    [sortedChapters, searchQuery, firstQuestionMap],
+  );
 
   // Calculate current progress position across all chapters
   // Sum questions from all previous chapters + current question index + 1
-  const currentProgressPosition = useMemo(() => {
-    const countsPerChapter = questionCountsPerChapterQuery.data || {};
-    let questionsInPreviousChapters = 0;
-    for (let i = 0; i < selectedChapterIndex; i++) {
-      const chapterId = sortedChapters[i]?.id;
-      if (chapterId) {
-        questionsInPreviousChapters += countsPerChapter[chapterId] || 0;
-      }
-    }
-    return questionsInPreviousChapters + selectedQuestionIndex + 1;
-  }, [
-    selectedChapterIndex,
-    selectedQuestionIndex,
-    sortedChapters,
-    questionCountsPerChapterQuery.data,
-  ]);
+  const currentProgressPosition = useMemo(
+    () =>
+      trainingProgressPosition({
+        sortedChapters,
+        selectedChapterIndex,
+        selectedQuestionIndex,
+        questionCountsPerChapter: questionCountsPerChapterQuery.data || {},
+      }),
+    [
+      selectedChapterIndex,
+      selectedQuestionIndex,
+      sortedChapters,
+      questionCountsPerChapterQuery.data,
+    ],
+  );
 
   useEffect(() => {
     if (isSearchOpen && searchInputRef.current) {
@@ -250,38 +240,48 @@ const TrainingSessionContent = ({
     [sortedChapters, navigate, lectureId, basePath],
   );
 
+  const cursor = useMemo(
+    () => ({
+      selectedChapterIndex,
+      selectedQuestionIndex,
+      currentChapterQuestionCount: currentChapterQuestions.length,
+      chapterCount: sortedChapters.length,
+    }),
+    [
+      selectedChapterIndex,
+      selectedQuestionIndex,
+      currentChapterQuestions.length,
+      sortedChapters.length,
+    ],
+  );
+
   const handleNextQuestion = useCallback(() => {
-    if (selectedQuestionIndex < currentChapterQuestions.length - 1) {
+    const step = nextTrainingStep(cursor);
+    if (step?.kind === 'question') {
       navigateToQuestion(
-        selectedChapterIndex,
-        selectedQuestionIndex + 1,
+        step.chapterIndex,
+        step.questionIndex,
         currentChapterQuestions,
       );
-    } else if (selectedChapterIndex < sortedChapters.length - 1) {
-      navigateToQuestion(selectedChapterIndex + 1, 0);
+    } else if (step?.kind === 'chapter-start') {
+      navigateToQuestion(step.chapterIndex, 0);
     }
-  }, [
-    selectedQuestionIndex,
-    currentChapterQuestions,
-    selectedChapterIndex,
-    sortedChapters.length,
-    navigateToQuestion,
-  ]);
+  }, [cursor, currentChapterQuestions, navigateToQuestion]);
 
   const handlePrevQuestion = useCallback(() => {
-    if (selectedQuestionIndex > 0) {
+    const step = prevTrainingStep(cursor);
+    if (step?.kind === 'question') {
       navigateToQuestion(
-        selectedChapterIndex,
-        selectedQuestionIndex - 1,
+        step.chapterIndex,
+        step.questionIndex,
         currentChapterQuestions,
       );
-    } else if (selectedChapterIndex > 0) {
-      const prevChapter = sortedChapters[selectedChapterIndex - 1];
+    } else if (step?.kind === 'chapter-end') {
+      const prevChapter = sortedChapters[step.chapterIndex];
       navigate(`/${basePath}/${lectureId}/${prevChapter.id}/__last__`);
     }
   }, [
-    selectedQuestionIndex,
-    selectedChapterIndex,
+    cursor,
     navigateToQuestion,
     currentChapterQuestions,
     sortedChapters,
@@ -310,11 +310,8 @@ const TrainingSessionContent = ({
     basePath,
   ]);
 
-  const isFirstQuestion =
-    selectedChapterIndex === 0 && selectedQuestionIndex === 0;
-  const isLastQuestion =
-    selectedChapterIndex === sortedChapters.length - 1 &&
-    selectedQuestionIndex === currentChapterQuestions.length - 1;
+  const isFirstQuestion = computeIsFirstQuestion(cursor);
+  const isLastQuestion = computeIsLastQuestion(cursor);
 
   const currentQuestionId = currentChapterQuestions[selectedQuestionIndex]?.id;
 

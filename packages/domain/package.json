@@ -1,0 +1,38 @@
+{
+  "name": "@athena/domain",
+  "version": "0.10.0",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./curriculum": {
+      "types": "./dist/curriculum/index.d.ts",
+      "import": "./dist/curriculum/index.js"
+    },
+    "./speech": {
+      "types": "./dist/speech/index.d.ts",
+      "import": "./dist/speech/index.js"
+    },
+    "./training": {
+      "types": "./dist/training/index.d.ts",
+      "import": "./dist/training/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "type-check": "tsc --noEmit",
+    "lint": "eslint .",
+    "format": "prettier --write \"src/**/*.ts\" \"*.{js,ts,json}\"",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@athena/eslint-config": "workspace:*",
+    "@athena/typescript-config": "workspace:*",
+    "eslint": "^9.39.4",
+    "vitest": "^4.1.0"
+  }
+}

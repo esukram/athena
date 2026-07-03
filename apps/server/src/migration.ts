@@ -111,7 +111,11 @@ export function runMigrations(db: Database) {
 
   for (let i = currentVersion; i < migrations.length; i++) {
     console.log(`Running migration ${i + 1}`);
-    migrations[i](db);
-    db.prepare('UPDATE version SET version = ?').run(i + 1);
+    // Run each migration and its version bump atomically so a failure can
+    // never leave the schema half-applied with the version not advanced.
+    db.transaction(() => {
+      migrations[i](db);
+      db.prepare('UPDATE version SET version = ?').run(i + 1);
+    })();
   }
 }

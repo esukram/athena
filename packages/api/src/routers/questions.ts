@@ -16,12 +16,12 @@ export const questionsRouter = router({
   getFirstQuestionsByLecture: publicProcedure
     .input(z.object({ lectureId: z.string() }))
     .query(({ ctx, input }) => {
-      return ctx.questionRepository.getFirstByLectureId(input.lectureId);
+      return ctx.questionStatsQuery.getFirstByLectureId(input.lectureId);
     }),
   getAnnotatedChapterIdsByLecture: publicProcedure
     .input(z.object({ lectureId: z.string() }))
     .query(({ ctx, input }) => {
-      return ctx.questionRepository.getAnnotatedChapterIdsByLecture(
+      return ctx.questionStatsQuery.getAnnotatedChapterIdsByLecture(
         input.lectureId,
       );
     }),
@@ -59,12 +59,12 @@ export const questionsRouter = router({
   getQuestionCountsByLecture: publicProcedure
     .input(z.object({ lectureId: z.string() }))
     .query(({ ctx, input }) => {
-      return ctx.questionRepository.getQuestionCountsByLecture(input.lectureId);
+      return ctx.questionStatsQuery.getQuestionCountsByLecture(input.lectureId);
     }),
   getQuestionCountsPerChapter: publicProcedure
     .input(z.object({ lectureId: z.string() }))
     .query(({ ctx, input }) => {
-      return ctx.questionRepository.getQuestionCountsPerChapter(
+      return ctx.questionStatsQuery.getQuestionCountsPerChapter(
         input.lectureId,
       );
     }),

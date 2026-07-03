@@ -1,55 +1,38 @@
 import { ZodError } from 'zod';
 
-import { initTRPC } from '@trpc/server';
+import { TRPCError, initTRPC } from '@trpc/server';
 
-import type {
-  Chapter,
-  Lecture,
-  LectureListItem,
-  Question,
-  SpeechService,
-} from './types.js';
+import {
+  type ChapterRepository,
+  type ChapterSearchQuery,
+  type LectureOverviewQuery,
+  type LectureRepository,
+  NotFoundError,
+  type QuestionRepository,
+  type QuestionStatsQuery,
+  type SpeechService,
+  type UnitOfWork,
+  ValidationError,
+} from '@athena/domain';
 
-export interface LectureRepository {
-  getAll: () => LectureListItem[];
-  getById: (id: string) => Lecture | undefined;
-  create: (lecture: Omit<Lecture, 'id'>) => Lecture;
-  update: (id: string, lecture: Omit<Lecture, 'id'>) => Lecture | undefined;
-  delete: (id: string) => boolean;
-}
-
-export interface ChapterRepository {
-  getById: (id: string) => Chapter | undefined;
-  getByLectureId: (lectureId: string) => Chapter[];
-  getDistinctAssociations: () => string[];
-  search: (query: string) => (Chapter & { firstQuestion?: Question })[];
-  create: (chapter: Omit<Chapter, 'id'>) => Chapter;
-  update: (
-    id: string,
-    chapter: Partial<Omit<Chapter, 'id'>>,
-  ) => Chapter | undefined;
-  delete: (id: string) => boolean;
-}
-
-export interface QuestionRepository {
-  getByChapterId: (chapterId: string) => Question[];
-  getFirstByChapterId: (chapterId: string) => Question | undefined;
-  getFirstByLectureId: (lectureId: string) => Record<string, Question>;
-  getAnnotatedChapterIdsByLecture: (lectureId: string) => string[];
-  create: (question: Omit<Question, 'id'>) => Question;
-  update: (
-    id: string,
-    question: Partial<Omit<Question, 'id'>>,
-  ) => Question | undefined;
-  delete: (id: string) => boolean;
-  getQuestionCountsByLecture: (lectureId: string) => number;
-  getQuestionCountsPerChapter: (lectureId: string) => Record<string, number>;
-}
+export type {
+  ChapterRepository,
+  ChapterSearchQuery,
+  LectureOverviewQuery,
+  LectureRepository,
+  QuestionRepository,
+  QuestionStatsQuery,
+  UnitOfWork,
+} from '@athena/domain';
 
 export interface AppContext {
   lectureRepository: LectureRepository;
   chapterRepository: ChapterRepository;
   questionRepository: QuestionRepository;
+  lectureOverviewQuery: LectureOverviewQuery;
+  chapterSearchQuery: ChapterSearchQuery;
+  questionStatsQuery: QuestionStatsQuery;
+  unitOfWork: UnitOfWork;
   speechService?: SpeechService;
 }
 
@@ -73,4 +56,33 @@ const t = initTRPC.context<Context>().create({
 });
 
 export const router = t.router;
-export const publicProcedure = t.procedure;
+
+/**
+ * Translates domain errors thrown by use cases into the matching tRPC
+ * transport codes, in one place, so a missing aggregate surfaces as
+ * `NOT_FOUND` and an invariant violation as `BAD_REQUEST` instead of leaking
+ * as `INTERNAL_SERVER_ERROR`. Non-domain errors pass through unchanged.
+ */
+const domainErrorMapper = t.middleware(async ({ next }) => {
+  const result = await next();
+  if (result.ok) return result;
+
+  const error = result.error.cause;
+  if (error instanceof NotFoundError) {
+    throw new TRPCError({
+      code: 'NOT_FOUND',
+      message: error.message,
+      cause: error,
+    });
+  }
+  if (error instanceof ValidationError) {
+    throw new TRPCError({
+      code: 'BAD_REQUEST',
+      message: error.message,
+      cause: error,
+    });
+  }
+  return result;
+});
+
+export const publicProcedure = t.procedure.use(domainErrorMapper);

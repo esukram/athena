@@ -10,14 +10,20 @@ import { fastifyTRPCPlugin } from '@trpc/server/adapters/fastify';
 
 import { appRouter, createContext } from '@athena/api';
 
-import { db } from './db.js';
+import { createDatabase } from './db.js';
 import { runMigrations } from './migration.js';
+import {
+  createChapterSearchQuery,
+  createLectureOverviewQuery,
+  createQuestionStatsQuery,
+} from './queries.js';
 import {
   createChapterRepository,
   createLectureRepository,
   createQuestionRepository,
 } from './repositories.js';
 import { createConfiguredSpeechService } from './tts-provider.js';
+import { createUnitOfWork } from './unit-of-work.js';
 
 const server = Fastify({
   logger: true,
@@ -28,12 +34,17 @@ async function main() {
     origin: true, // Allow all origins for dev simplicity
   });
 
-  // Run migrations
+  // Open the database and run migrations
+  const db = createDatabase();
   runMigrations(db);
 
   const lectureRepository = createLectureRepository(db);
   const chapterRepository = createChapterRepository(db);
   const questionRepository = createQuestionRepository(db);
+  const lectureOverviewQuery = createLectureOverviewQuery(db);
+  const chapterSearchQuery = createChapterSearchQuery(db);
+  const questionStatsQuery = createQuestionStatsQuery(db);
+  const unitOfWork = createUnitOfWork(db);
   const speechService = createConfiguredSpeechService();
 
   await server.register(fastifyTRPCPlugin, {
@@ -44,6 +55,10 @@ async function main() {
         lectureRepository,
         chapterRepository,
         questionRepository,
+        lectureOverviewQuery,
+        chapterSearchQuery,
+        questionStatsQuery,
+        unitOfWork,
         speechService,
       }),
     },

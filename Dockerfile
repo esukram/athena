@@ -17,6 +17,7 @@ WORKDIR /app
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY apps/web/package.json ./apps/web/
 COPY apps/server/package.json ./apps/server/
+COPY packages/domain/package.json ./packages/domain/
 COPY packages/api/package.json ./packages/api/
 COPY packages/eslint-config/package.json ./packages/eslint-config/
 COPY packages/typescript-config/package.json ./packages/typescript-config/
