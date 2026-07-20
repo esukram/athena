@@ -33,6 +33,6 @@
     "@athena/eslint-config": "workspace:*",
     "@athena/typescript-config": "workspace:*",
     "eslint": "^9.39.4",
-    "vitest": "^4.1.0"
+    "vitest": "^4.1.10"
   }
 }
