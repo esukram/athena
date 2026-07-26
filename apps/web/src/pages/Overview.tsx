@@ -43,8 +43,15 @@ export const Overview = () => {
   }
 
   const lectures = lecturesQuery.data ?? [];
+  // Ids the overlay doesn't know about (a refetch added one mid-drag) keep
+  // their server position instead of collapsing to the front on indexOf -1.
+  const rank = new Map(order?.map((id, i) => [id, i]));
   const sorted = order
-    ? [...lectures].sort((a, b) => order.indexOf(a.id) - order.indexOf(b.id))
+    ? [...lectures].sort(
+        (a, b) =>
+          (rank.get(a.id) ?? lectures.indexOf(a)) -
+          (rank.get(b.id) ?? lectures.indexOf(b)),
+      )
     : lectures;
 
   // ponytail: View Transitions where supported, instant elsewhere (Firefox).
