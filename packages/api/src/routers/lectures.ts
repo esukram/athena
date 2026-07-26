@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+import { reorderLecture } from '@athena/domain';
+
 import { publicProcedure, router } from '../trpc.js';
 
 export const lecturesRouter = router({
@@ -33,6 +35,24 @@ export const lecturesRouter = router({
       const { id, ...data } = input;
       return ctx.lectureRepository.update(id, data);
     }),
+  reorderLecture: publicProcedure
+    .input(
+      z.object({
+        lectureId: z.string(),
+        newOrder: z.number().int().min(0),
+      }),
+    )
+    .mutation(({ ctx, input }) => {
+      return reorderLecture(
+        {
+          lectureRepository: ctx.lectureRepository,
+          unitOfWork: ctx.unitOfWork,
+        },
+        input,
+      );
+    }),
+  // ponytail: deleting a lecture may leave an order gap; the next reorder
+  // renormalizes, so no explicit normalization use case here.
   deleteLecture: publicProcedure
     .input(z.object({ id: z.string() }))
     .mutation(({ ctx, input }) => {

@@ -107,6 +107,21 @@ export function runMigrations(db: Database) {
         }
       }
     },
+    // Migration 5: Add "order" to lectures, backfilled by insertion order
+    (db: Database) => {
+      db.prepare(
+        'ALTER TABLE lectures ADD COLUMN "order" INTEGER NOT NULL DEFAULT 0',
+      ).run();
+      const lectures = db
+        .prepare('SELECT id FROM lectures ORDER BY rowid')
+        .all() as { id: string }[];
+      for (let i = 0; i < lectures.length; i++) {
+        db.prepare('UPDATE lectures SET "order" = ? WHERE id = ?').run(
+          i,
+          lectures[i].id,
+        );
+      }
+    },
   ];
 
   for (let i = currentVersion; i < migrations.length; i++) {

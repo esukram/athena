@@ -13,3 +13,8 @@ export {
   type DeleteChapterDeps,
   type DeleteChapterInput,
 } from './delete-chapter.js';
+export {
+  reorderLecture,
+  type ReorderLectureDeps,
+  type ReorderLectureInput,
+} from './reorder-lecture.js';

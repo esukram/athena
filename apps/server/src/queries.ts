@@ -16,13 +16,14 @@ export function createLectureOverviewQuery(db: Database): LectureOverviewQuery {
       return db
         .prepare(
           `SELECT
-             l.id, l.title, l.description,
+             l.id, l.title, l.description, l."order",
              COUNT(DISTINCT c.id) AS chapterCount,
              COUNT(q.id)          AS questionCount
            FROM lectures l
            LEFT JOIN chapters c ON c.lectureId = l.id
            LEFT JOIN questions q ON q.chapterId = c.id
-           GROUP BY l.id, l.title, l.description`,
+           GROUP BY l.id, l.title, l.description, l."order"
+           ORDER BY l."order", l.id`,
         )
         .all() as LectureListItem[];
     },

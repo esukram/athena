@@ -16,12 +16,20 @@ export function createLectureRepository(db: Database): LectureRepository {
         | Lecture
         | undefined;
     },
-    create: (lecture: Omit<Lecture, 'id'>): Lecture => {
+    getAll: (): Lecture[] => {
+      return db
+        .prepare('SELECT * FROM lectures ORDER BY "order", id')
+        .all() as Lecture[];
+    },
+    create: (lecture: Omit<Lecture, 'id' | 'order'>): Lecture => {
       const id = crypto.randomUUID();
+      const { next } = db
+        .prepare('SELECT COALESCE(MAX("order") + 1, 0) AS next FROM lectures')
+        .get() as { next: number };
       db.prepare(
-        'INSERT INTO lectures (id, title, description) VALUES (?, ?, ?)',
-      ).run(id, lecture.title, lecture.description);
-      return { id, ...lecture };
+        'INSERT INTO lectures (id, title, description, "order") VALUES (?, ?, ?, ?)',
+      ).run(id, lecture.title, lecture.description, next);
+      return { id, ...lecture, order: next };
     },
     update: (
       id: string,
@@ -33,8 +41,8 @@ export function createLectureRepository(db: Database): LectureRepository {
       if (!existing) return undefined;
       const updated = { ...existing, ...lecture };
       db.prepare(
-        'UPDATE lectures SET title = ?, description = ? WHERE id = ?',
-      ).run(updated.title, updated.description, id);
+        'UPDATE lectures SET title = ?, description = ?, "order" = ? WHERE id = ?',
+      ).run(updated.title, updated.description, updated.order, id);
       return updated;
     },
     delete: (id: string): boolean => {
