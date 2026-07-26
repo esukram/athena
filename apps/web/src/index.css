@@ -309,4 +309,15 @@
   .nav-round:hover {
     transform: none;
   }
+
+  /* Tiles jump straight to their new slot instead of gliding. */
+  ::view-transition-group(*) {
+    animation-duration: 0s;
+  }
+}
+
+/* Soft landing for reordered lecture tiles (View Transitions API). */
+::view-transition-group(*) {
+  animation-duration: 300ms;
+  animation-timing-function: ease-out;
 }

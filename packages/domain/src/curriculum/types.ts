@@ -12,6 +12,7 @@ export interface Lecture {
   id: string;
   title: string;
   description: string;
+  order: number;
 }
 
 export interface LectureListItem extends Lecture {

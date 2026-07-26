@@ -67,6 +67,57 @@ describe('createLectureOverviewQuery', () => {
     expect(lectureB?.chapterCount).toBe(0);
     expect(lectureB?.questionCount).toBe(0);
   });
+
+  it('returns order fields and sorts lectures by order without changing counts', () => {
+    const db = freshDb();
+    insertLecture(db, 'lecture-a');
+    insertLecture(db, 'lecture-b');
+    insertLecture(db, 'lecture-c');
+    db.prepare('UPDATE lectures SET "order" = ? WHERE id = ?').run(
+      2,
+      'lecture-a',
+    );
+    db.prepare('UPDATE lectures SET "order" = ? WHERE id = ?').run(
+      0,
+      'lecture-b',
+    );
+    db.prepare('UPDATE lectures SET "order" = ? WHERE id = ?').run(
+      1,
+      'lecture-c',
+    );
+    insertChapter(db, 'chapter-a1', 'lecture-a', 0);
+    insertQuestion(db, 'q-a1', 'chapter-a1', 'A1', 0);
+    insertChapter(db, 'chapter-c1', 'lecture-c', 0);
+    insertQuestion(db, 'q-c1', 'chapter-c1', 'C1', 0);
+    insertQuestion(db, 'q-c2', 'chapter-c1', 'C2', 1);
+
+    expect(createLectureOverviewQuery(db).getAll()).toEqual([
+      {
+        id: 'lecture-b',
+        title: 'Title lecture-b',
+        description: 'Desc lecture-b',
+        order: 0,
+        chapterCount: 0,
+        questionCount: 0,
+      },
+      {
+        id: 'lecture-c',
+        title: 'Title lecture-c',
+        description: 'Desc lecture-c',
+        order: 1,
+        chapterCount: 1,
+        questionCount: 2,
+      },
+      {
+        id: 'lecture-a',
+        title: 'Title lecture-a',
+        description: 'Desc lecture-a',
+        order: 2,
+        chapterCount: 1,
+        questionCount: 1,
+      },
+    ]);
+  });
 });
 
 describe('createChapterSearchQuery', () => {

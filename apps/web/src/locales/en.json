@@ -29,7 +29,10 @@
     "eyebrow": "Your library",
     "availableLectures": "Available Lectures",
     "exploreCollection": "Explore our collection of educational content",
-    "errorLoading": "Error loading lectures"
+    "errorLoading": "Error loading lectures",
+    "dragHandle": "Reorder {{title}}",
+    "movedTo": "Moved to position {{position}} of {{total}}",
+    "reorderFailed": "Reordering failed"
   },
   "lectureCard": {
     "learn": "Learn",
@@ -74,7 +77,8 @@
     "reorderLast": "Last",
     "editChapter": "Edit Chapter",
     "moveChapterTooltip": "Move Chapter",
-    "deleteChapter": "Delete Chapter"
+    "deleteChapter": "Delete Chapter",
+    "reorderFailed": "Reordering chapter failed"
   },
   "lectureTrain": {
     "backToLectures": "Back to Lectures",

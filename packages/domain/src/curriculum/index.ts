@@ -19,6 +19,7 @@ export {
   nextChapterOrder,
   planNormalization,
   planReorder,
-  type ChapterOrderUpdate,
+  type OrderedItem,
+  type OrderUpdate,
 } from './chapter-ordering.js';
 export * from './use-cases/index.js';

@@ -29,7 +29,10 @@
     "eyebrow": "Deine Bibliothek",
     "availableLectures": "Verfügbare Fächer",
     "exploreCollection": "Entdecken Sie unsere Sammlung an Lerninhalten",
-    "errorLoading": "Fehler beim Laden der Fächer"
+    "errorLoading": "Fehler beim Laden der Fächer",
+    "dragHandle": "„{{title}}“ verschieben",
+    "movedTo": "An Position {{position}} von {{total}} verschoben",
+    "reorderFailed": "Neuordnung fehlgeschlagen"
   },
   "lectureCard": {
     "learn": "Lernen",
@@ -74,7 +77,8 @@
     "reorderLast": "Letzte",
     "editChapter": "Kapitel bearbeiten",
     "moveChapterTooltip": "Kapitel verschieben",
-    "deleteChapter": "Kapitel löschen"
+    "deleteChapter": "Kapitel löschen",
+    "reorderFailed": "Kapitel-Neuordnung fehlgeschlagen"
   },
   "lectureTrain": {
     "backToLectures": "Zurück zu den Fächern",

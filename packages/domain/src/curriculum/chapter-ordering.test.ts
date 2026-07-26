@@ -63,6 +63,19 @@ describe('planReorder', () => {
     expect(applyAndList(chapters, updates)).toEqual(['b', 'c', 'a', 'd']);
   });
 
+  it('accepts plain ordered items and returns contiguous updates', () => {
+    const items = [
+      { id: 'a', order: 0 },
+      { id: 'b', order: 1 },
+      { id: 'c', order: 2 },
+    ];
+    expect(planReorder(items, 'a', 2)).toEqual([
+      { id: 'b', order: 0 },
+      { id: 'c', order: 1 },
+      { id: 'a', order: 2 },
+    ]);
+  });
+
   it('is a no-op when the target equals the current position', () => {
     expect(planReorder(base(), 'b', 1)).toEqual([]);
   });

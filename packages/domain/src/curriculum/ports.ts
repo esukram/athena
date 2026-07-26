@@ -10,7 +10,9 @@ import type { Chapter, Lecture, Question } from './types.js';
 
 export interface LectureRepository {
   getById: (id: string) => Lecture | undefined;
-  create: (lecture: Omit<Lecture, 'id'>) => Lecture;
+  getAll: () => Lecture[];
+  // `order` is assigned by the repository (append at the end).
+  create: (lecture: Omit<Lecture, 'id' | 'order'>) => Lecture;
   // Accepts a partial patch, consistent with the chapter and question
   // repositories, rather than requiring a full replacement object.
   update: (
