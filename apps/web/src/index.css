@@ -310,3 +310,9 @@
     transform: none;
   }
 }
+
+/* Soft landing for reordered lecture tiles (View Transitions API). */
+::view-transition-group(*) {
+  animation-duration: 300ms;
+  animation-timing-function: ease-out;
+}

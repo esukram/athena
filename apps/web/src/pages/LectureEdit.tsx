@@ -45,6 +45,7 @@ export const EditLecture = () => {
 
   // Auto-save state
   const [showSavedToast, setShowSavedToast] = useState(false);
+  const [showReorderErrorToast, setShowReorderErrorToast] = useState(false);
   const savedChapterIdRef = useRef<string | null>(null);
   // Association used when the chapter row was persisted, so a manual save
   // can tell whether the association actually changed afterwards.
@@ -160,6 +161,7 @@ export const EditLecture = () => {
   });
 
   const reorderChapter = trpc.chapters.reorderChapter.useMutation({
+    onError: () => setShowReorderErrorToast(true),
     onSuccess: () => {
       utils.chapters.getChapters.invalidate({ lectureId: id! });
     },
@@ -897,6 +899,13 @@ export const EditLecture = () => {
           message={t('editChapterModal.autoSaved')}
           visible={showSavedToast}
           onDismiss={() => setShowSavedToast(false)}
+        />
+
+        <Toast
+          message={t('lectureEdit.reorderFailed')}
+          variant="error"
+          visible={showReorderErrorToast}
+          onDismiss={() => setShowReorderErrorToast(false)}
         />
       </main>
     </div>
