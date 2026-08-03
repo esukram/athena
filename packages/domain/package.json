@@ -32,7 +32,7 @@
   "devDependencies": {
     "@athena/eslint-config": "workspace:*",
     "@athena/typescript-config": "workspace:*",
-    "eslint": "^9.39.4",
+    "eslint": "^10.8.0",
     "vitest": "^4.1.10"
   }
 }
