@@ -13,13 +13,13 @@ importers:
     devDependencies:
       '@trivago/prettier-plugin-sort-imports':
         specifier: ^6.0.2
-        version: 6.0.2(prettier@3.8.4)
+        version: 6.0.2(prettier@3.9.6)
       husky:
         specifier: ^9.1.7
         version: 9.1.7
       prettier:
-        specifier: ^3.8.4
-        version: 3.8.4
+        specifier: ^3.9.6
+        version: 3.9.6
       turbo:
         specifier: latest
         version: 2.10.10
@@ -252,8 +252,8 @@ importers:
         specifier: ^17.4.0
         version: 17.4.0
       prettier:
-        specifier: ^3.8.4
-        version: 3.8.4
+        specifier: ^3.9.6
+        version: 3.9.6
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
@@ -2668,8 +2668,8 @@ packages:
     resolution: {integrity: sha512-vkcDPrRZo1QZLbn5RLGPpg/WmIQ65qoWWhcGKf/b5eplkkarX0m9z8ppCat4mlOqUsWpyNuYgO3VRyrYHSzX5g==}
     engines: {node: '>= 0.8.0'}
 
-  prettier@3.8.4:
-    resolution: {integrity: sha512-N2MylSdi48+5N/6S5j+maeHbUSIzzZ5uOcX5Hm4QpV8Dkb1HFjfAKTKX6yNPJQD9AhcT3ifHNB66tWTTJDi11Q==}
+  prettier@3.9.6:
+    resolution: {integrity: sha512-OpN0zzVdiaiAhxpuuj5efpIS4sY9j7bY6uR5mnj5yPzGkdkjNKSJeUThPb60Jw29QuAZgA4o+/iB49kFiaBX6g==}
     engines: {node: '>=14'}
     hasBin: true
 
@@ -3997,7 +3997,7 @@ snapshots:
     dependencies:
       '@testing-library/dom': 10.4.1
 
-  '@trivago/prettier-plugin-sort-imports@6.0.2(prettier@3.8.4)':
+  '@trivago/prettier-plugin-sort-imports@6.0.2(prettier@3.9.6)':
     dependencies:
       '@babel/generator': 7.29.1
       '@babel/parser': 7.29.0
@@ -4007,7 +4007,7 @@ snapshots:
       lodash-es: 4.18.1
       minimatch: 9.0.9
       parse-imports-exports: 0.2.4
-      prettier: 3.8.4
+      prettier: 3.9.6
     transitivePeerDependencies:
       - supports-color
 
@@ -5924,7 +5924,7 @@ snapshots:
 
   prelude-ls@1.2.1: {}
 
-  prettier@3.8.4: {}
+  prettier@3.9.6: {}
 
   pretty-format@27.5.1:
     dependencies:

@@ -16,7 +16,7 @@
     "eslint-plugin-react-refresh": "^0.5.3",
     "eslint-plugin-turbo": "^2.10.8",
     "globals": "^17.4.0",
-    "prettier": "^3.8.4",
+    "prettier": "^3.9.6",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.65.0"
   },
