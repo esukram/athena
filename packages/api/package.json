@@ -18,7 +18,7 @@
   },
   "dependencies": {
     "@athena/domain": "workspace:*",
-    "@trpc/server": "^11.18.0",
+    "@trpc/server": "^11.19.0",
     "zod": "^4.4.3"
   },
   "devDependencies": {
