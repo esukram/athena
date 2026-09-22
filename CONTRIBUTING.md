@@ -4,12 +4,12 @@ Thank you for your interest in contributing to Athena! We welcome all contributi
 
 ## 🚀 Getting Started
 
-Before you start, please ensure you have read the [README.md](README.md) for installation and setup instructions.
+Before you start, please ensure you have read the [README.md](README.md) for installation and setup instructions. Run `pnpm build` once after `pnpm install` (and again after changing `packages/*`) — the apps consume the workspace packages from their `dist/` output.
 
 ### Prerequisites
 
-- **Node.js**: v18 or higher
-- **pnpm**: v9 or higher
+- **Node.js**: v20.19 or higher (CI runs on 20, the Docker image on 26)
+- **pnpm**: v10 or higher
 - **GitHub CLI**: (Optional, but recommended)
 
 ## 🛠️ Development Workflow
