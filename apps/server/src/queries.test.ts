@@ -151,6 +151,20 @@ describe('createChapterSearchQuery', () => {
     expect(createChapterSearchQuery(db).search('   ')).toEqual([]);
   });
 
+  it('ignores tokens beyond the cap', () => {
+    const noise = Array.from({ length: 20 }, (_, i) => `zz${i}`).join(' ');
+    const results = createChapterSearchQuery(db).search(
+      `eigen value define ${'eigenvalue '.repeat(5)}${noise}`,
+    );
+    expect(results.map((chapter) => chapter.id)).toEqual(['c1']);
+  });
+
+  it('caps the number of returned chapters', () => {
+    for (let i = 0; i < 60; i++)
+      insertChapter(db, `x${i}`, 'L1', i + 2, 'bulk');
+    expect(createChapterSearchQuery(db).search('bulk')).toHaveLength(50);
+  });
+
   it('lists distinct non-empty associations', () => {
     expect(createChapterSearchQuery(db).getDistinctAssociations()).toEqual([
       'algebra',
