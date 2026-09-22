@@ -4,7 +4,6 @@ import { fileURLToPath } from 'url';
 
 import './env.js';
 
-import cors from '@fastify/cors';
 import staticPlugin from '@fastify/static';
 import { fastifyTRPCPlugin } from '@trpc/server/adapters/fastify';
 
@@ -30,10 +29,6 @@ const server = Fastify({
 });
 
 async function main() {
-  await server.register(cors, {
-    origin: true, // Allow all origins for dev simplicity
-  });
-
   // Open the database and run migrations
   const db = createDatabase();
   runMigrations(db);
