@@ -8,7 +8,9 @@ export const speechRouter = router({
   synthesize: publicProcedure
     .input(
       z.object({
-        text: z.string().min(1),
+        // Caps paid-provider fan-out per request (Google splits at 4800 bytes,
+        // one billable call per chunk). Longest real answer is ~1.5k chars.
+        text: z.string().min(1).max(10_000),
         language: z.enum(['de', 'en']),
         format: z.enum(['text', 'ssml']).default('text'),
       }),
