@@ -50,8 +50,8 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for more information on the architecture 
 
 ### **Prerequisites**
 
-- Node.js (v18 or higher)
-- pnpm
+- Node.js (v20.19 or higher; CI runs on 20, the Docker image on 26)
+- pnpm (v10)
 
 ### **Installation**
 
@@ -67,7 +67,10 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for more information on the architecture 
 3. Install dependencies:
    pnpm install
 
-4. Start the development server:
+4. Build the workspace packages (`apps/*` import `@athena/api` and `@athena/domain` from their `dist/` output):
+   pnpm build
+
+5. Start the development server:
    pnpm dev
 
 ## **📄 License**
