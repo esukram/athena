@@ -30,6 +30,11 @@ export function createLectureOverviewQuery(db: Database): LectureOverviewQuery {
   };
 }
 
+// Bounds the per-query SQL: one LIKE per token, and one IN placeholder per
+// returned chapter.
+const MAX_SEARCH_TOKENS = 8;
+const MAX_SEARCH_RESULTS = 50;
+
 export function createChapterSearchQuery(db: Database): ChapterSearchQuery {
   return {
     getDistinctAssociations: (): string[] => {
@@ -43,7 +48,11 @@ export function createChapterSearchQuery(db: Database): ChapterSearchQuery {
     search: (query: string): ChapterSearchResult[] => {
       if (!query.trim()) return [];
 
-      const tokens = query.toLowerCase().split(/\s+/).filter(Boolean);
+      const tokens = query
+        .toLowerCase()
+        .split(/\s+/)
+        .filter(Boolean)
+        .slice(0, MAX_SEARCH_TOKENS);
       if (tokens.length === 0) return [];
 
       const questionConditions = tokens
@@ -60,9 +69,10 @@ export function createChapterSearchQuery(db: Database): ChapterSearchQuery {
           `SELECT DISTINCT c.* FROM chapters c
            LEFT JOIN questions q ON q.chapterId = c.id
            WHERE (${questionConditions}) OR (${associationConditions})
-           ORDER BY c."order"`,
+           ORDER BY c."order"
+           LIMIT ?`,
         )
-        .all(...tokenParams, ...tokenParams) as Chapter[];
+        .all(...tokenParams, ...tokenParams, MAX_SEARCH_RESULTS) as Chapter[];
 
       if (chapters.length === 0) return [];
 

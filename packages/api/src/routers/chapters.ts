@@ -14,7 +14,7 @@ export const chaptersRouter = router({
     return ctx.chapterSearchQuery.getDistinctAssociations();
   }),
   searchChapters: publicProcedure
-    .input(z.object({ query: z.string() }))
+    .input(z.object({ query: z.string().max(200) }))
     .query(({ ctx, input }) => {
       return ctx.chapterSearchQuery.search(input.query);
     }),

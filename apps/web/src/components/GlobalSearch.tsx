@@ -166,6 +166,7 @@ export const GlobalSearch = () => {
           ref={inputRef}
           type="text"
           value={query}
+          maxLength={200}
           onChange={(e) => {
             setQuery(e.target.value);
             setShowResults(true);
