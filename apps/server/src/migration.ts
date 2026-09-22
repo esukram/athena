@@ -10,8 +10,7 @@ export function runMigrations(db: Database) {
 
   // Check current version
   const row = db.prepare('SELECT version FROM version').get() as
-    | { version: number }
-    | undefined;
+    { version: number } | undefined;
 
   let currentVersion = 0;
 

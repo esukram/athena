@@ -12,8 +12,7 @@ describe('runMigrations lecture ordering', () => {
       .prepare('PRAGMA table_info(lectures)')
       .all()
       .find((column) => (column as { name: string }).name === 'order') as
-      | { notnull: number; dflt_value: string }
-      | undefined;
+      { notnull: number; dflt_value: string } | undefined;
     expect(orderColumn).toMatchObject({
       notnull: 1,
       dflt_value: '0',
