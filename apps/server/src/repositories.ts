@@ -13,8 +13,7 @@ export function createLectureRepository(db: Database): LectureRepository {
   return {
     getById: (id: string): Lecture | undefined => {
       return db.prepare('SELECT * FROM lectures WHERE id = ?').get(id) as
-        | Lecture
-        | undefined;
+        Lecture | undefined;
     },
     getAll: (): Lecture[] => {
       return db
@@ -56,8 +55,7 @@ export function createChapterRepository(db: Database): ChapterRepository {
   return {
     getById: (id: string): Chapter | undefined => {
       return db.prepare('SELECT * FROM chapters WHERE id = ?').get(id) as
-        | Chapter
-        | undefined;
+        Chapter | undefined;
     },
     getByLectureId: (lectureId: string): Chapter[] => {
       return db
