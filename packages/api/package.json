@@ -24,6 +24,6 @@
   "devDependencies": {
     "@athena/eslint-config": "workspace:*",
     "@athena/typescript-config": "workspace:*",
-    "eslint": "^10.8.0"
+    "eslint": "^10.11.0"
   }
 }

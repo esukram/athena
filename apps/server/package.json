@@ -26,7 +26,7 @@
     "@athena/typescript-config": "workspace:*",
     "@types/better-sqlite3": "^9.6.0",
     "@types/node": "^26.2.0",
-    "eslint": "^10.8.0",
+    "eslint": "^10.11.0",
     "tsx": "^4.23.11",
     "typescript": "~6.0.3",
     "vitest": "^5.0.0"
