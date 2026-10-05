@@ -17,7 +17,7 @@
   "devDependencies": {
     "@trivago/prettier-plugin-sort-imports": "^6.0.2",
     "husky": "^9.1.7",
-    "prettier": "^3.9.6",
+    "prettier": "^3.9.9",
     "turbo": "latest",
     "typescript": "~6.0.3"
   },
