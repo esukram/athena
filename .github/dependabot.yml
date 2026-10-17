@@ -18,6 +18,19 @@ updates:
     schedule:
       interval: "weekly"
     groups:
+      # Validate compatible ESLint toolchain updates together; review majors separately.
+      eslint-toolchain:
+        patterns:
+          - "eslint"
+          - "@eslint/*"
+          - "typescript-eslint"
+          - "@typescript-eslint/*"
+          - "eslint-plugin-*"
+          - "eslint-config-*"
+          - "globals"
+        update-types:
+          - "minor"
+          - "patch"
       # react and react-dom must stay on the exact same version
       react:
         patterns:
