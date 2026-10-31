@@ -25,6 +25,8 @@ export const highlightText = (text: string, query: string): React.ReactNode => {
     const isMatch = tokens.some((token) => part.toLowerCase() === token);
     if (isMatch) {
       return (
+        // Parts derive purely from (text, query) and never reorder, so the index is a stable key.
+        // eslint-disable-next-line @eslint-react/no-array-index-key
         <mark key={index} className="bg-yellow-200 text-inherit rounded px-0.5">
           {part}
         </mark>

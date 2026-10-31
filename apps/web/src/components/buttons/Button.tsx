@@ -1,9 +1,7 @@
-import { forwardRef } from 'react';
-
 export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger';
 export type ButtonSize = 'sm' | 'md' | 'lg';
 
-export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+export interface ButtonProps extends React.ComponentProps<'button'> {
   /** Visual variant */
   variant?: ButtonVariant;
   /** Size variant */
@@ -31,16 +29,17 @@ const sizeClasses: Record<ButtonSize, string> = {
  * Base button component with consistent styling.
  * Supports multiple variants (primary, secondary, ghost, danger) and sizes.
  */
-export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-  (
-    { variant = 'primary', size = 'md', className = '', children, ...props },
-    ref,
-  ) => {
-    return (
-      <button
-        ref={ref}
-        type="button"
-        className={`
+export const Button = ({
+  variant = 'primary',
+  size = 'md',
+  className = '',
+  children,
+  ...props
+}: ButtonProps) => {
+  return (
+    <button
+      type="button"
+      className={`
           ${sizeClasses[size]}
           ${variantClasses[variant]}
           font-semibold rounded-lg transition-all duration-200
@@ -48,12 +47,9 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
           disabled:opacity-50 disabled:cursor-not-allowed
           ${className}
         `.trim()}
-        {...props}
-      >
-        {children}
-      </button>
-    );
-  },
-);
-
-Button.displayName = 'Button';
+      {...props}
+    >
+      {children}
+    </button>
+  );
+};

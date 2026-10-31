@@ -203,7 +203,7 @@ export const ExpandableButton = ({
         >
           {actions.map((action, index) => (
             <button
-              key={index}
+              key={action.label}
               type="button"
               role="menuitem"
               disabled={action.disabled}

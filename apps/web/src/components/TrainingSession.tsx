@@ -58,20 +58,20 @@ const TrainingSessionContent = ({
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [flipped, setFlipped] = useState(false);
   const [flipping, setFlipping] = useState(false);
-  const flipTimers = useRef<number[]>([]);
+  const flipTimersRef = useRef<number[]>([]);
   const lastQuestionIdRef = useRef<string | undefined>(undefined);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const chapterButtonsRef = useRef<Map<number, HTMLButtonElement>>(new Map());
 
   const clearFlipTimers = useCallback(() => {
-    flipTimers.current.forEach((id) => window.clearTimeout(id));
-    flipTimers.current = [];
+    flipTimersRef.current.forEach((id) => window.clearTimeout(id));
+    flipTimersRef.current = [];
   }, []);
 
   const flip = useCallback(() => {
     if (flipping) return;
     setFlipping(true);
-    flipTimers.current.push(
+    flipTimersRef.current.push(
       window.setTimeout(() => setFlipped((f) => !f), 190),
       window.setTimeout(() => setFlipping(false), 410),
     );
@@ -387,7 +387,7 @@ const TrainingSessionContent = ({
     flip,
   ]);
 
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const updateQuestion = trpc.questions.updateQuestion.useMutation({
     // Invalidate by the chapter the mutated question belongs to (captured from
     // the variables) so a navigation away from the current chapter during the

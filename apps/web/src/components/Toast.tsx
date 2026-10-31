@@ -18,7 +18,6 @@ export const Toast = ({
   duration ??= variant === 'error' ? 4000 : 2000;
   const [isShowing, setIsShowing] = useState(false);
   const onDismissRef = useRef(onDismiss);
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Keep ref updated
   useEffect(() => {
@@ -26,29 +25,22 @@ export const Toast = ({
   }, [onDismiss]);
 
   useEffect(() => {
-    if (visible) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setIsShowing(true);
+    if (!visible) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setIsShowing(true);
 
-      // Clear any existing timer
-      if (timerRef.current) {
-        clearTimeout(timerRef.current);
-      }
-
-      // Set timer to hide after duration
-      timerRef.current = setTimeout(() => {
-        setIsShowing(false);
-        // Wait for fade-out animation, then call dismiss
-        setTimeout(() => {
-          onDismissRef.current();
-        }, 300);
-      }, duration);
-    }
+    let dismissTimer: ReturnType<typeof setTimeout> | undefined;
+    // Hide after duration, then wait for the fade-out animation before dismissing
+    const hideTimer = setTimeout(() => {
+      setIsShowing(false);
+      dismissTimer = setTimeout(() => {
+        onDismissRef.current();
+      }, 300);
+    }, duration);
 
     return () => {
-      if (timerRef.current) {
-        clearTimeout(timerRef.current);
-      }
+      clearTimeout(hideTimer);
+      clearTimeout(dismissTimer);
     };
   }, [visible, duration]);
 

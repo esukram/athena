@@ -271,7 +271,7 @@ export const EditChapterModal = ({
             <div className="space-y-3">
               {questions.map((eq, index) => (
                 <div
-                  key={eq.id || `new-${index}`}
+                  key={eq.id ?? `new-${eq.order}`}
                   className="border border-border rounded-lg overflow-hidden"
                 >
                   {/* Accordion Header */}

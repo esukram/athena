@@ -1,13 +1,11 @@
 import type { LucideIcon } from 'lucide-react';
 
-import { forwardRef } from 'react';
-
 import { Button } from './Button';
 
 export type IconButtonVariant = 'primary' | 'danger';
 
 export interface IconButtonProps extends Omit<
-  React.ButtonHTMLAttributes<HTMLButtonElement>,
+  React.ComponentProps<'button'>,
   'children'
 > {
   /** The icon component to render */
@@ -44,22 +42,18 @@ const variantClasses = {
  * Icon-only button component that composes the base Button.
  * Use specialized variants (IconButtonEdit, IconButtonDelete, IconButtonMove) for common actions.
  */
-export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
-  (
-    {
-      icon: Icon,
-      'aria-label': ariaLabel,
-      title,
-      variant = 'primary',
-      size = 'md',
-      className = '',
-      iconClassName = '',
-      ...props
-    },
-    ref,
-  ) => {
-    // IconButton applies its own styling by overriding Button's defaults via className
-    const iconButtonClasses = `
+export const IconButton = ({
+  icon: Icon,
+  'aria-label': ariaLabel,
+  title,
+  variant = 'primary',
+  size = 'md',
+  className = '',
+  iconClassName = '',
+  ...props
+}: IconButtonProps) => {
+  // IconButton applies its own styling by overriding Button's defaults via className
+  const iconButtonClasses = `
       ${sizeClasses[size]}
       ${variantClasses[variant]}
       !rounded-full !bg-surface/80 !shadow-sm border border-border
@@ -68,21 +62,17 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
       ${className}
     `.trim();
 
-    return (
-      <Button
-        ref={ref}
-        variant="ghost"
-        aria-label={ariaLabel}
-        title={title || ariaLabel}
-        className={iconButtonClasses}
-        {...props}
-      >
-        <Icon
-          className={`${iconSizeClasses[size]} text-ink-soft ${iconClassName}`.trim()}
-        />
-      </Button>
-    );
-  },
-);
-
-IconButton.displayName = 'IconButton';
+  return (
+    <Button
+      variant="ghost"
+      aria-label={ariaLabel}
+      title={title || ariaLabel}
+      className={iconButtonClasses}
+      {...props}
+    >
+      <Icon
+        className={`${iconSizeClasses[size]} text-ink-soft ${iconClassName}`.trim()}
+      />
+    </Button>
+  );
+};
