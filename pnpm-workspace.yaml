@@ -12,6 +12,12 @@ overrides:
   # GHSA-rj75-hqrm-r3gf (#289): @tailwindcss/typography@0.5.20 pins 6.0.10 exactly.
   # Remove once a typography release depends on >=6.1.5.
   "@tailwindcss/typography>postcss-selector-parser": 6.1.5
+  # GHSA-3g3m-2fjr-6pw4 / GHSA-g3hv-75wg-m249 (#292): fixed only in new majors that
+  # @fastify/static (glob@^13), eslint and the sort-imports plugin don't allow yet.
+  # Their call sites only use glob() and minimatch()/Minimatch#match(), unchanged in
+  # these majors. Remove once those parents allow glob>=14.0.2 and minimatch>=11.0.1.
+  "glob@<14.0.2": ^14.0.3
+  "minimatch@<11.0.1": ^11.0.3
 
 peerDependencyRules:
   allowedVersions:
