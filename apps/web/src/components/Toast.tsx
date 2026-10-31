@@ -25,9 +25,10 @@ export const Toast = ({
   }, [onDismiss]);
 
   useEffect(() => {
-    if (!visible) return;
+    // Also reset when the parent hides early, otherwise the toast stays mounted (#296)
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setIsShowing(true);
+    setIsShowing(visible);
+    if (!visible) return;
 
     let dismissTimer: ReturnType<typeof setTimeout> | undefined;
     // Hide after duration, then wait for the fade-out animation before dismissing
