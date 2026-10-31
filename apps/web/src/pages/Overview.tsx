@@ -57,6 +57,8 @@ export const Overview = () => {
   // ponytail: View Transitions where supported, instant elsewhere (Firefox).
   const commitOrder = (update: () => void) => {
     if (document.startViewTransition) {
+      // The transition must capture the DOM after React commits, so the update has to be synchronous.
+      // eslint-disable-next-line @eslint-react/dom-no-flush-sync
       document.startViewTransition(() => flushSync(update));
     } else {
       update();
