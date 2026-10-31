@@ -15,7 +15,8 @@ overrides:
   # GHSA-3g3m-2fjr-6pw4 / GHSA-g3hv-75wg-m249 (#292): fixed only in new majors that
   # @fastify/static (glob@^13), eslint and the sort-imports plugin don't allow yet.
   # Their call sites only use glob() and minimatch()/Minimatch#match(), unchanged in
-  # these majors. Remove once those parents allow glob>=14.0.2 and minimatch>=11.0.1.
+  # these majors. Remove once those parents' ranges exclude the vulnerable versions
+  # (e.g. glob@^14.0.2): pnpm matches declared ranges, so ^14.0.0 still triggers it.
   "glob@<14.0.2": ^14.0.3
   "minimatch@<11.0.1": ^11.0.3
 
