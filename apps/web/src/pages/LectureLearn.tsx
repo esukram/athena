@@ -43,7 +43,7 @@ export const LectureLearn = () => {
   const pendingAutoStartRef = useRef(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const chapterButtonsRef = useRef<Map<number, HTMLButtonElement>>(new Map());
-  const questionRefs = useRef<Map<number, HTMLDivElement>>(new Map());
+  const questionElementsRef = useRef<Map<number, HTMLDivElement>>(new Map());
 
   const lectureQuery = trpc.lectures.getLecture.useQuery(
     { id: id! },
@@ -193,7 +193,7 @@ export const LectureLearn = () => {
   const voiceIndex = voice.currentQuestionIndex;
   useEffect(() => {
     if (voiceIndex === null) return;
-    questionRefs.current
+    questionElementsRef.current
       .get(voiceIndex)
       ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }, [voiceIndex]);
@@ -389,8 +389,8 @@ export const LectureLearn = () => {
                         <div
                           key={question.id}
                           ref={(el) => {
-                            if (el) questionRefs.current.set(index, el);
-                            else questionRefs.current.delete(index);
+                            if (el) questionElementsRef.current.set(index, el);
+                            else questionElementsRef.current.delete(index);
                           }}
                           aria-current={
                             voice.currentQuestionIndex === index

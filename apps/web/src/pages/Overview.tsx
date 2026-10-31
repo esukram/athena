@@ -20,8 +20,8 @@ export const Overview = () => {
   // `order` is the optimistic overlay held while a reorder is in flight.
   const [order, setOrder] = useState<string[] | null>(null);
   const [draggingId, setDraggingId] = useState<string | null>(null);
-  const dragId = useRef<string | null>(null);
-  const dropped = useRef(false);
+  const dragIdRef = useRef<string | null>(null);
+  const droppedRef = useRef(false);
   const [showErrorToast, setShowErrorToast] = useState(false);
   const [announcement, setAnnouncement] = useState('');
 
@@ -92,7 +92,7 @@ export const Overview = () => {
   };
 
   const handleDragOver = (overId: string) => {
-    const from = dragId.current;
+    const from = dragIdRef.current;
     if (!from || from === overId) return;
     const cur = sorted.map((l) => l.id);
     const ids = [...cur];
@@ -104,8 +104,8 @@ export const Overview = () => {
   // Only a real drop commits. dragend also fires on cancel (Esc, drop outside
   // the grid) — that path must throw the optimistic order away.
   const handleDrop = () => {
-    dropped.current = true;
-    const from = dragId.current;
+    droppedRef.current = true;
+    const from = dragIdRef.current;
     if (!from || !order) return;
     const newOrder = sorted.findIndex((l) => l.id === from);
     const serverOrder = lectures.findIndex((l) => l.id === from);
@@ -136,9 +136,9 @@ export const Overview = () => {
             key={lecture.id}
             style={{ viewTransitionName: `lecture-${lecture.id}` }}
             onDragEnd={() => {
-              dragId.current = null;
+              dragIdRef.current = null;
               setDraggingId(null);
-              if (!dropped.current) commitOrder(() => setOrder(null));
+              if (!droppedRef.current) commitOrder(() => setOrder(null));
             }}
             onDragOver={(e) => {
               e.preventDefault();
@@ -161,8 +161,8 @@ export const Overview = () => {
                   e.preventDefault();
                   return;
                 }
-                dragId.current = lecture.id;
-                dropped.current = false;
+                dragIdRef.current = lecture.id;
+                droppedRef.current = false;
                 setDraggingId(lecture.id);
                 e.dataTransfer.effectAllowed = 'move';
               }}

@@ -48,14 +48,6 @@ export const config = [
       "@eslint-react/static-components": "off",
       "@eslint-react/unsupported-syntax": "off",
       "@eslint-react/use-memo": "off",
-      // ponytail: preset rules that flag existing code, off until adopted (#293).
-      "@eslint-react/naming-convention-ref-name": "off",
-      "@eslint-react/no-array-index-key": "off",
-      "@eslint-react/no-context-provider": "off",
-      "@eslint-react/no-forward-ref": "off",
-      "@eslint-react/no-use-context": "off",
-      "@eslint-react/use-state": "off",
-      "@eslint-react/web-api-no-leaked-timeout": "off",
       "react-refresh/only-export-components": [
         "warn",
         { allowConstantExport: true },

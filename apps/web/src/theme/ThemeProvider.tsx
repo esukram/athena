@@ -29,15 +29,15 @@ const getInitialTheme = (): Theme => {
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const [theme, setThemeState] = useState<Theme>(getInitialTheme);
+  const [activeTheme, setActiveTheme] = useState<Theme>(getInitialTheme);
 
   // Reflect the active theme onto <html> whenever it changes.
   useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme);
-  }, [theme]);
+    document.documentElement.setAttribute('data-theme', activeTheme);
+  }, [activeTheme]);
 
   const setTheme = useCallback((next: Theme) => {
-    setThemeState(next);
+    setActiveTheme(next);
     // Storage access is guarded — private mode / disabled storage must not
     // crash; the preference simply falls back to session-only in that case.
     try {
@@ -48,7 +48,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({
   }, []);
 
   const toggle = useCallback(() => {
-    setThemeState((prev) => {
+    setActiveTheme((prev) => {
       const next = prev === 'dark' ? 'light' : 'dark';
       try {
         localStorage.setItem(STORAGE_KEY, next);
@@ -74,15 +74,15 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({
       if (stored === 'light' || stored === 'dark') {
         return;
       }
-      setThemeState(event.matches ? 'dark' : 'light');
+      setActiveTheme(event.matches ? 'dark' : 'light');
     };
     media.addEventListener('change', handleChange);
     return () => media.removeEventListener('change', handleChange);
   }, []);
 
   return (
-    <ThemeContext.Provider value={{ theme, setTheme, toggle }}>
+    <ThemeContext value={{ theme: activeTheme, setTheme, toggle }}>
       {children}
-    </ThemeContext.Provider>
+    </ThemeContext>
   );
 };

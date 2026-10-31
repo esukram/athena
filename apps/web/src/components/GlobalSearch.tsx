@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
+import { highlightText } from '../utils/highlightText';
 import { trpc } from '../utils/trpc';
 
 export const GlobalSearch = () => {
@@ -109,34 +110,6 @@ export const GlobalSearch = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Highlight matching tokens in text
-  const highlightMatches = (text: string, searchQuery: string) => {
-    if (!searchQuery.trim()) return text;
-    const tokens = searchQuery.toLowerCase().split(/\s+/).filter(Boolean);
-    if (tokens.length === 0) return text;
-
-    const escapedTokens = tokens.map((t) =>
-      t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
-    );
-    const regex = new RegExp(`(${escapedTokens.join('|')})`, 'gi');
-
-    const parts = text.split(regex);
-    return parts.map((part, index) => {
-      const isMatch = tokens.some((token) => part.toLowerCase() === token);
-      if (isMatch) {
-        return (
-          <mark
-            key={index}
-            className="bg-yellow-200 text-inherit rounded px-0.5"
-          >
-            {part}
-          </mark>
-        );
-      }
-      return part;
-    });
-  };
-
   // Scroll selected item into view
   const itemsRef = useRef<(HTMLButtonElement | null)[]>([]);
 
@@ -220,7 +193,7 @@ export const GlobalSearch = () => {
                     }`}
                   >
                     <div className="font-medium text-on-surface mb-1">
-                      {highlightMatches(
+                      {highlightText(
                         chapter.firstQuestion?.question || t('common.untitled'),
                         debouncedQuery,
                       )}
@@ -234,10 +207,7 @@ export const GlobalSearch = () => {
                         <>
                           <span>•</span>
                           <span className="px-2 py-0.5 bg-accent-soft text-accent-soft-ink rounded-full">
-                            {highlightMatches(
-                              chapter.association,
-                              debouncedQuery,
-                            )}
+                            {highlightText(chapter.association, debouncedQuery)}
                           </span>
                         </>
                       )}
