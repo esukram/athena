@@ -23,6 +23,7 @@ updates:
         patterns:
           - "eslint"
           - "@eslint/*"
+          - "@eslint-react/*"
           - "typescript-eslint"
           - "@typescript-eslint/*"
           - "eslint-plugin-*"
