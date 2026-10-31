@@ -36,4 +36,24 @@ describe('Toast', () => {
     vi.advanceTimersByTime(300);
     expect(onDismiss).not.toHaveBeenCalled();
   });
+
+  it('stops rendering when visible turns false before the auto-hide fires', () => {
+    const onDismiss = vi.fn();
+    const { rerender, queryByText } = render(
+      <Toast message="Saved" visible duration={1000} onDismiss={onDismiss} />,
+    );
+
+    rerender(
+      <Toast
+        message="Saved"
+        visible={false}
+        duration={1000}
+        onDismiss={onDismiss}
+      />,
+    );
+    vi.advanceTimersByTime(5000);
+
+    expect(queryByText('Saved')).toBeNull();
+    expect(onDismiss).not.toHaveBeenCalled();
+  });
 });
