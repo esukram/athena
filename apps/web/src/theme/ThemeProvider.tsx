@@ -47,17 +47,11 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   }, []);
 
+  // Single persistence path: toggle derives `next` from the committed theme
+  // and delegates to setTheme, keeping side effects out of state updaters.
   const toggle = useCallback(() => {
-    setActiveTheme((prev) => {
-      const next = prev === 'dark' ? 'light' : 'dark';
-      try {
-        localStorage.setItem(STORAGE_KEY, next);
-      } catch {
-        // ignore
-      }
-      return next;
-    });
-  }, []);
+    setTheme(activeTheme === 'dark' ? 'light' : 'dark');
+  }, [activeTheme, setTheme]);
 
   // Follow the OS preference, but only while the user has not made an explicit
   // stored choice. The stored value is read inside the handler so a later
