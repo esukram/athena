@@ -18,6 +18,23 @@ const Probe = () => {
       <span data-testid="theme">{theme}</span>
       <button onClick={toggle}>toggle</button>
       <button onClick={() => setTheme('dark')}>dark</button>
+      {/* Several calls in one handler are batched into a single render. */}
+      <button
+        onClick={() => {
+          toggle();
+          toggle();
+        }}
+      >
+        double toggle
+      </button>
+      <button
+        onClick={() => {
+          setTheme('dark');
+          toggle();
+        }}
+      >
+        dark then toggle
+      </button>
     </>
   );
 };
@@ -72,6 +89,17 @@ describe('ThemeProvider', () => {
     fireEvent.click(screen.getByText('dark'));
     expect(screen.getByTestId('theme')).toHaveTextContent('dark');
     expect(localStorage.getItem(STORAGE_KEY)).toBe('dark');
+  });
+
+  it('applies batched calls sequentially', () => {
+    renderProvider();
+    fireEvent.click(screen.getByText('double toggle'));
+    expect(screen.getByTestId('theme')).toHaveTextContent('light');
+    expect(localStorage.getItem(STORAGE_KEY)).toBe('light');
+
+    fireEvent.click(screen.getByText('dark then toggle'));
+    expect(screen.getByTestId('theme')).toHaveTextContent('light');
+    expect(localStorage.getItem(STORAGE_KEY)).toBe('light');
   });
 
   it('follows the OS preference until the user makes a choice', () => {
