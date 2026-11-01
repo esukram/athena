@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 
 import type { Chapter } from '@athena/api';
 
+import { newClientKey } from '../utils/clientKey';
 import { trpc } from '../utils/trpc';
 import { EditChapterModal, type EditingQuestion } from './EditChapterModal';
 import { IconButtonEdit } from './buttons/IconButtonEdit';
@@ -49,6 +50,7 @@ export const ChapterMenu = ({ chapter, lectureId }: ChapterMenuProps) => {
       if (questions.length > 0) {
         const mappedQuestions = questions.map((q, index) => ({
           id: q.id,
+          clientKey: newClientKey(),
           question: q.question,
           answer: q.answer,
           order: q.order,
@@ -61,6 +63,7 @@ export const ChapterMenu = ({ chapter, lectureId }: ChapterMenuProps) => {
       } else {
         const emptyQuestion: EditingQuestion = {
           id: null,
+          clientKey: newClientKey(),
           question: '',
           answer: '',
           order: 0,
@@ -160,6 +163,7 @@ export const ChapterMenu = ({ chapter, lectureId }: ChapterMenuProps) => {
       ...editingQuestions.map((q) => ({ ...q, isExpanded: false })),
       {
         id: null,
+        clientKey: newClientKey(),
         question: '',
         answer: '',
         order: maxOrder + 1,
