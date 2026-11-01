@@ -229,4 +229,56 @@ test.describe('Lecture Train', () => {
     // Verify edit button is NOT visible in training mode
     await expect(page.getByTestId('chapter-edit-button')).not.toBeVisible();
   });
+
+  test('stale question link shows not found and leads to the chapter', async ({
+    page,
+  }) => {
+    const lectureId = 'lecture-train-3';
+    const lecture = { id: lectureId, title: 'Stale', description: 'Links' };
+    const chapters = [{ id: 'c1', lectureId, order: 0 }];
+    const c1Questions = [
+      {
+        id: 'q1',
+        chapterId: 'c1',
+        question: 'Only question',
+        answer: 'Only answer',
+        order: 0,
+        isAnnotated: false,
+      },
+    ];
+    const data: Record<string, unknown> = {
+      'lectures.getLecture': lecture,
+      'chapters.getChapters': chapters,
+      'questions.getFirstQuestionsByLecture': { c1: c1Questions[0] },
+      'questions.getAnnotatedChapterIdsByLecture': [],
+      'questions.getQuestions': c1Questions,
+      'questions.getQuestionCountsByLecture': 1,
+      'questions.getQuestionCountsPerChapter': { c1: 1 },
+    };
+    await page.route('**/api/trpc/*', async (route) => {
+      const procedure = new URL(route.request().url()).pathname
+        .split('/')
+        .pop()!;
+      await route.fulfill({ json: { result: { data: data[procedure] } } });
+    });
+
+    // A pasted link is the first history entry: there is nothing to go back to.
+    await page.goto(`/#/train/${lectureId}/c1/deleted-question`);
+
+    await expect(
+      page.getByText("This question doesn't exist in this chapter."),
+    ).toBeVisible();
+    await expect(
+      page.getByRole('button', { name: 'Back', exact: true }),
+    ).toHaveCount(0);
+
+    await page
+      .getByRole('button', { name: 'Go to the start of the chapter' })
+      .click();
+
+    await expect(page).toHaveURL(new RegExp(`/train/${lectureId}/c1$`));
+    await expect(
+      page.getByText('Only question', { exact: true }),
+    ).toBeVisible();
+  });
 });

@@ -1,6 +1,6 @@
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import type { Chapter, Question } from '@athena/api';
 import {
@@ -28,6 +28,9 @@ const LAST_QUESTION = '__last__';
 
 const EMPTY: never[] = [];
 
+export type TrainingSessionStatus =
+  'loading' | 'empty' | 'ready' | 'error' | 'not-found';
+
 /**
  * One Training session over a Lecture: loads and orders its Chapters once,
  * resolves the route into the active Chapter and Question, and offers the
@@ -41,6 +44,7 @@ export function useTrainingSession({
   questionId,
 }: TrainingSessionParams) {
   const navigate = useNavigate();
+  const location = useLocation();
   const basePath = mode === 'randomized' ? 'train-random' : 'train';
   const lectureInput = { lectureId };
   const byLecture = { enabled: !!lectureId };
@@ -64,8 +68,6 @@ export function useTrainingSession({
       byLecture,
     );
 
-  const loadedChapters = chaptersQuery.data ?? EMPTY;
-
   const annotatedChapterIds = useMemo(
     () => new Set(annotatedChapterIdsQuery.data ?? EMPTY),
     [annotatedChapterIdsQuery.data],
@@ -79,32 +81,34 @@ export function useTrainingSession({
 
   // Ordered once per Lecture: annotating mid-session or a refetch must not
   // reshuffle the Chapters under the learner.
-  const orderedLectureIdRef = useRef<string | null>(null);
-  const [chapters, setChapters] = useState<Chapter[]>([]);
+  const [ordering, setOrdering] = useState<{
+    lectureId: string;
+    chapters: Chapter[];
+  } | null>(null);
+  const isOrdered = ordering?.lectureId === lectureId;
+  const chapters = isOrdered ? ordering.chapters : EMPTY;
 
-  useEffect(() => {
-    if (
-      loadedChapters.length > 0 &&
-      annotatedChapterIdsQuery.data !== undefined &&
-      orderedLectureIdRef.current !== lectureId
-    ) {
-      setChapters(
-        orderChaptersForTraining(
-          loadedChapters,
-          mode,
-          annotatedChapterIdsQuery.data,
-        ),
-      );
-      orderedLectureIdRef.current = lectureId;
-    }
-  }, [lectureId, loadedChapters, annotatedChapterIdsQuery.data, mode]);
+  // Set during render rather than in an effect (React's pattern for state
+  // derived from other values); `chapters` stays empty until then.
+  if (
+    !isOrdered &&
+    chaptersQuery.data !== undefined &&
+    annotatedChapterIdsQuery.data !== undefined
+  ) {
+    setOrdering({
+      lectureId,
+      chapters: orderChaptersForTraining(
+        chaptersQuery.data,
+        mode,
+        annotatedChapterIdsQuery.data,
+      ),
+    });
+  }
 
-  const chapterIndex = useMemo(() => {
-    const index = chapterId
-      ? chapters.findIndex((c) => c.id === chapterId)
-      : -1;
-    return index === -1 ? 0 : index;
-  }, [chapterId, chapters]);
+  // A missing id means "the start"; an unknown one resolves to -1.
+  const chapterIndex = chapterId
+    ? chapters.findIndex((c) => c.id === chapterId)
+    : 0;
   const chapter: Chapter | undefined = chapters[chapterIndex];
 
   const questionsQuery = trpc.questions.getQuestions.useQuery(
@@ -113,22 +117,52 @@ export function useTrainingSession({
   );
   const questions = questionsQuery.data ?? EMPTY;
 
-  const questionIndex = useMemo(() => {
-    const index = questionId
-      ? questions.findIndex((q) => q.id === questionId)
-      : -1;
-    return index === -1 ? 0 : index;
-  }, [questionId, questions]);
+  // The placeholder resolves below; until then no Question is active.
+  const questionIndex =
+    questionId === LAST_QUESTION
+      ? -1
+      : questionId
+        ? questions.findIndex((q) => q.id === questionId)
+        : 0;
   const question: Question | undefined = questions[questionIndex];
 
+  let status: TrainingSessionStatus;
+  let notFound: 'chapter' | 'question' | undefined;
+  if (!isOrdered) {
+    status =
+      chaptersQuery.isError || annotatedChapterIdsQuery.isError
+        ? 'error'
+        : 'loading';
+  } else if (chapters.length === 0) {
+    status = 'empty';
+  } else if (!chapter) {
+    status = 'not-found';
+    notFound = 'chapter';
+  } else if (questionsQuery.data === undefined) {
+    status = questionsQuery.isError ? 'error' : 'loading';
+  } else if (questionId === LAST_QUESTION) {
+    // Resolving: the effect below replaces the URL.
+    status = 'loading';
+  } else if (question) {
+    status = 'ready';
+  } else if (questionId) {
+    status = 'not-found';
+    notFound = 'question';
+  } else {
+    status = 'empty';
+  }
+
+  // Next/previous only move from a settled position: while loading (which
+  // includes resolving the placeholder) a second press is ignored.
+  const canStep = status === 'ready' || status === 'empty';
   const cursor = {
     selectedChapterIndex: chapterIndex,
-    selectedQuestionIndex: questionIndex,
+    selectedQuestionIndex: Math.max(questionIndex, 0),
     currentChapterQuestionCount: questions.length,
     chapterCount: chapters.length,
   };
-  const isFirst = computeIsFirstQuestion(cursor);
-  const isLast = computeIsLastQuestion(cursor);
+  const isFirst = !canStep || computeIsFirstQuestion(cursor);
+  const isLast = !canStep || computeIsLastQuestion(cursor);
 
   const goTo = useCallback(
     (toChapterId: string, toQuestionId?: string, replace = false) =>
@@ -140,6 +174,7 @@ export function useTrainingSession({
   );
 
   const next = () => {
+    if (!canStep) return;
     const step = nextTrainingStep(cursor);
     if (step?.kind === 'question') {
       goTo(chapters[step.chapterIndex].id, questions[step.questionIndex].id);
@@ -149,6 +184,7 @@ export function useTrainingSession({
   };
 
   const previous = () => {
+    if (!canStep) return;
     const step = prevTrainingStep(cursor);
     if (step?.kind === 'question') {
       goTo(chapters[step.chapterIndex].id, questions[step.questionIndex].id);
@@ -159,12 +195,39 @@ export function useTrainingSession({
 
   const selectChapter = (target: Chapter) => goTo(target.id);
 
-  // Resolve the placeholder once the Chapter's Questions are known.
+  // Resolve the placeholder once the Chapter's Questions are known. The
+  // destination lives in the URL, so once the learner moves on there is
+  // nothing left to redirect. An empty Chapter lands on its Chapter-only URL.
   useEffect(() => {
-    if (questionId === LAST_QUESTION && chapter && questions.length > 0) {
-      goTo(chapter.id, questions[questions.length - 1].id, true);
+    if (questionId !== LAST_QUESTION || !chapter || !questionsQuery.data) {
+      return;
     }
-  }, [questionId, chapter, questions, goTo]);
+    const lastQuestion = questionsQuery.data[questionsQuery.data.length - 1];
+    goTo(chapter.id, lastQuestion?.id, true);
+  }, [questionId, chapter, questionsQuery.data, goTo]);
+
+  /** Re-runs the lookups that failed; the URL is left as it is. */
+  const retry = () => {
+    for (const query of [
+      chaptersQuery,
+      annotatedChapterIdsQuery,
+      questionsQuery,
+    ]) {
+      if (query.isError) void query.refetch();
+    }
+  };
+
+  // ponytail: React Router keys only the first entry of a history 'default';
+  // a replace on that entry gets a fresh key. Read `history.state.idx` if
+  // that edge ever matters.
+  const canGoBack = location.key !== 'default';
+  const goBack = () => navigate(-1);
+
+  /** Unknown Chapter: the Lecture's first. Unknown Question: its Chapter. */
+  const goToCanonical = () => {
+    const target = notFound === 'chapter' ? chapters[0] : chapter;
+    if (target) goTo(target.id, undefined, true);
+  };
 
   const utils = trpc.useUtils();
   const updateQuestion = trpc.questions.updateQuestion.useMutation({
@@ -197,8 +260,13 @@ export function useTrainingSession({
   };
 
   return {
-    isLoadingChapters: chaptersQuery.isLoading,
-    hasChapters: loadedChapters.length > 0,
+    status,
+    /** Which route id is unknown while `status` is `not-found`. */
+    notFound,
+    retry,
+    canGoBack,
+    goBack,
+    goToCanonical,
     /** Chapters in session order. */
     chapters,
     chapterIndex,
@@ -215,7 +283,7 @@ export function useTrainingSession({
       position: trainingProgressPosition({
         sortedChapters: chapters,
         selectedChapterIndex: chapterIndex,
-        selectedQuestionIndex: questionIndex,
+        selectedQuestionIndex: cursor.selectedQuestionIndex,
         questionCountsPerChapter: questionCountsPerChapterQuery.data ?? {},
       }),
       total: totalQuestionsQuery.data,

@@ -12,7 +12,8 @@
     "next": "Next",
     "search": "Search",
     "untitled": "Untitled",
-    "saving": "Saving..."
+    "saving": "Saving...",
+    "retry": "Try again"
   },
   "header": {
     "addLecture": "Add Lecture",
@@ -100,7 +101,12 @@
     "sideAnswer": "Answer",
     "tapToReveal": "or tap to reveal the answer",
     "reviewAgain": "Review again",
-    "gotIt": "Got it"
+    "gotIt": "Got it",
+    "loadFailed": "The training content couldn't be loaded.",
+    "chapterNotFound": "This chapter doesn't exist in this lecture.",
+    "questionNotFound": "This question doesn't exist in this chapter.",
+    "goToFirstChapter": "Go to the first chapter",
+    "goToChapterStart": "Go to the start of the chapter"
   },
   "globalSearch": {
     "searchChapters": "Search chapters...",

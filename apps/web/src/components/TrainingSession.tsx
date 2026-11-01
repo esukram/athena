@@ -1,3 +1,4 @@
+import { type TFunction } from 'i18next';
 import { Check, ChevronLeft, ChevronRight, RotateCw } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
@@ -9,7 +10,10 @@ import {
   filterChaptersByQuestionText,
 } from '@athena/domain/training';
 
-import { useTrainingSession } from '../hooks/useTrainingSession';
+import {
+  type TrainingSession as Session,
+  useTrainingSession,
+} from '../hooks/useTrainingSession';
 import { highlightText } from '../utils/highlightText';
 import { trpc } from '../utils/trpc';
 import { Accordion } from './Accordion';
@@ -197,9 +201,11 @@ const TrainingSessionContent = ({
     flip,
   ]);
 
-  if (session.isLoadingChapters) {
+  if (session.status === 'loading' && sortedChapters.length === 0) {
     return <LoadingState />;
   }
+
+  const notice = sessionNotice(session, t);
 
   return (
     <div className="min-h-screen bg-background">
@@ -213,7 +219,9 @@ const TrainingSessionContent = ({
           />
         </div>
 
-        {!session.hasChapters ? (
+        {sortedChapters.length === 0 && session.status !== 'empty' ? (
+          notice
+        ) : sortedChapters.length === 0 ? (
           <div className="bg-surface border border-border rounded-xl shadow-sm p-8 text-center">
             <p className="text-on-surface-variant mb-4">
               {t('lectureTrain.noChaptersYet')}
@@ -248,154 +256,142 @@ const TrainingSessionContent = ({
             />
 
             <div className="min-w-0">
-              {currentChapter ? (
-                currentChapterQuestions.length > 0 ? (
-                  (() => {
-                    const question =
-                      currentChapterQuestions[selectedQuestionIndex];
-                    if (!question) return null;
-                    return (
-                      <div>
-                        <div className="flex items-center justify-between gap-4 mb-3">
-                          <div className="text-sm font-medium text-ink-soft">
-                            {mode === 'randomized'
-                              ? t('lectureTrain.questionProgressRandomized', {
-                                  current: selectedQuestionIndex + 1,
-                                  total: currentChapterQuestions.length,
-                                  chapterIndex: selectedChapterIndex + 1,
-                                  chapterTotal: sortedChapters.length,
-                                })
-                              : t('lectureTrain.questionProgress', {
-                                  current: selectedQuestionIndex + 1,
-                                  total: currentChapterQuestions.length,
-                                })}
-                          </div>
-                          <ShuffleToggle
-                            checked={mode === 'randomized'}
-                            onChange={(checked) =>
-                              navigate(
-                                `/${checked ? 'train-random' : 'train'}/${lectureId}`,
-                              )
-                            }
-                          />
+              {notice ??
+                (() => {
+                  const question = session.question;
+                  if (!question || !currentChapter) return null;
+                  return (
+                    <div>
+                      <div className="flex items-center justify-between gap-4 mb-3">
+                        <div className="text-sm font-medium text-ink-soft">
+                          {mode === 'randomized'
+                            ? t('lectureTrain.questionProgressRandomized', {
+                                current: selectedQuestionIndex + 1,
+                                total: currentChapterQuestions.length,
+                                chapterIndex: selectedChapterIndex + 1,
+                                chapterTotal: sortedChapters.length,
+                              })
+                            : t('lectureTrain.questionProgress', {
+                                current: selectedQuestionIndex + 1,
+                                total: currentChapterQuestions.length,
+                              })}
                         </div>
-
-                        {!!progress.total && (
-                          <ProgressBar
-                            current={progress.position}
-                            total={progress.total}
-                          />
-                        )}
-
-                        <div className="mt-5">
-                          <FlashCard
-                            question={question.question}
-                            answer={question.answer || null}
-                            association={currentChapter.association}
-                            flipped={flipped}
-                            onFlip={flip}
-                            flipping={flipping}
-                            annotateButton={
-                              <button
-                                onClick={session.toggleAnnotated}
-                                className={`p-1 rounded-full transition-all hover:scale-110 ${
-                                  question.isAnnotated
-                                    ? ''
-                                    : 'opacity-50 hover:opacity-100'
-                                }`}
-                                title={
-                                  question.isAnnotated
-                                    ? t('lectureTrain.annotated')
-                                    : t('lectureTrain.annotate')
-                                }
-                              >
-                                <span
-                                  className={`text-xl ${
-                                    question.isAnnotated ? '' : 'grayscale'
-                                  }`}
-                                >
-                                  🦉
-                                </span>
-                              </button>
-                            }
-                            voice={
-                              <SpeechPlayButton
-                                text={question.question}
-                                language={
-                                  (
-                                    i18n.resolvedLanguage ?? i18n.language
-                                  ).startsWith('de')
-                                    ? 'de'
-                                    : 'en'
-                                }
-                              />
-                            }
-                          />
-                        </div>
-
-                        {!flipped ? (
-                          <div className="flex items-center justify-between gap-3 mt-6">
-                            <button
-                              type="button"
-                              className="nav-round"
-                              disabled={isFirstQuestion}
-                              onClick={handlePrevQuestion}
-                              aria-label={t('common.previous')}
-                            >
-                              <ChevronLeft size={20} />
-                            </button>
-                            <Button
-                              variant="secondary"
-                              size="lg"
-                              className="flex-1 max-w-[320px] inline-flex items-center justify-center gap-2"
-                              onClick={flip}
-                            >
-                              <RotateCw size={18} />
-                              {t('lectureTrain.flipCard')}
-                            </Button>
-                            <button
-                              type="button"
-                              className="nav-round"
-                              disabled={isLastQuestion}
-                              onClick={handleNextQuestion}
-                              aria-label={t('common.next')}
-                            >
-                              <ChevronRight size={20} />
-                            </button>
-                          </div>
-                        ) : (
-                          <div className="flex gap-3 mt-6 justify-center">
-                            <button
-                              type="button"
-                              className="flex-1 max-w-[220px] py-3.5 rounded-lg font-semibold inline-flex items-center justify-center gap-2 bg-surface border border-border text-ink-soft hover:border-accent hover:text-ink transition-colors"
-                              onClick={session.reviewAgain}
-                            >
-                              <RotateCw size={18} />
-                              {t('lectureTrain.reviewAgain')}
-                            </button>
-                            <button
-                              type="button"
-                              className="flex-1 max-w-[220px] py-3.5 rounded-lg font-semibold inline-flex items-center justify-center gap-2 bg-success text-accent-ink transition-colors hover:opacity-90 active:translate-y-px"
-                              onClick={handleNextQuestion}
-                            >
-                              <Check size={18} />
-                              {t('lectureTrain.gotIt')}
-                            </button>
-                          </div>
-                        )}
+                        <ShuffleToggle
+                          checked={mode === 'randomized'}
+                          onChange={(checked) =>
+                            navigate(
+                              `/${checked ? 'train-random' : 'train'}/${lectureId}`,
+                            )
+                          }
+                        />
                       </div>
-                    );
-                  })()
-                ) : (
-                  <p className="text-on-surface-variant italic">
-                    {t('lectureTrain.noContentYet')}
-                  </p>
-                )
-              ) : (
-                <p className="text-on-surface-variant">
-                  {t('lectureTrain.selectAChapter')}
-                </p>
-              )}
+
+                      {!!progress.total && (
+                        <ProgressBar
+                          current={progress.position}
+                          total={progress.total}
+                        />
+                      )}
+
+                      <div className="mt-5">
+                        <FlashCard
+                          question={question.question}
+                          answer={question.answer || null}
+                          association={currentChapter.association}
+                          flipped={flipped}
+                          onFlip={flip}
+                          flipping={flipping}
+                          annotateButton={
+                            <button
+                              onClick={session.toggleAnnotated}
+                              className={`p-1 rounded-full transition-all hover:scale-110 ${
+                                question.isAnnotated
+                                  ? ''
+                                  : 'opacity-50 hover:opacity-100'
+                              }`}
+                              title={
+                                question.isAnnotated
+                                  ? t('lectureTrain.annotated')
+                                  : t('lectureTrain.annotate')
+                              }
+                            >
+                              <span
+                                className={`text-xl ${
+                                  question.isAnnotated ? '' : 'grayscale'
+                                }`}
+                              >
+                                🦉
+                              </span>
+                            </button>
+                          }
+                          voice={
+                            <SpeechPlayButton
+                              text={question.question}
+                              language={
+                                (
+                                  i18n.resolvedLanguage ?? i18n.language
+                                ).startsWith('de')
+                                  ? 'de'
+                                  : 'en'
+                              }
+                            />
+                          }
+                        />
+                      </div>
+
+                      {!flipped ? (
+                        <div className="flex items-center justify-between gap-3 mt-6">
+                          <button
+                            type="button"
+                            className="nav-round"
+                            disabled={isFirstQuestion}
+                            onClick={handlePrevQuestion}
+                            aria-label={t('common.previous')}
+                          >
+                            <ChevronLeft size={20} />
+                          </button>
+                          <Button
+                            variant="secondary"
+                            size="lg"
+                            className="flex-1 max-w-[320px] inline-flex items-center justify-center gap-2"
+                            onClick={flip}
+                          >
+                            <RotateCw size={18} />
+                            {t('lectureTrain.flipCard')}
+                          </Button>
+                          <button
+                            type="button"
+                            className="nav-round"
+                            disabled={isLastQuestion}
+                            onClick={handleNextQuestion}
+                            aria-label={t('common.next')}
+                          >
+                            <ChevronRight size={20} />
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="flex gap-3 mt-6 justify-center">
+                          <button
+                            type="button"
+                            className="flex-1 max-w-[220px] py-3.5 rounded-lg font-semibold inline-flex items-center justify-center gap-2 bg-surface border border-border text-ink-soft hover:border-accent hover:text-ink transition-colors"
+                            onClick={session.reviewAgain}
+                          >
+                            <RotateCw size={18} />
+                            {t('lectureTrain.reviewAgain')}
+                          </button>
+                          <button
+                            type="button"
+                            className="flex-1 max-w-[220px] py-3.5 rounded-lg font-semibold inline-flex items-center justify-center gap-2 bg-success text-accent-ink transition-colors hover:opacity-90 active:translate-y-px"
+                            onClick={handleNextQuestion}
+                          >
+                            <Check size={18} />
+                            {t('lectureTrain.gotIt')}
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
             </div>
           </div>
         )}
@@ -403,6 +399,80 @@ const TrainingSessionContent = ({
     </div>
   );
 };
+
+interface NoticeAction {
+  label: string;
+  onClick: () => void;
+}
+
+const Notice = ({
+  message,
+  actions = [],
+  italic = false,
+}: {
+  message: string;
+  actions?: NoticeAction[];
+  italic?: boolean;
+}) => (
+  <div role="status">
+    <p className={`text-on-surface-variant${italic ? ' italic' : ''}`}>
+      {message}
+    </p>
+    {actions.length > 0 && (
+      <div className="flex flex-wrap gap-3 mt-4">
+        {actions.map(({ label, onClick }) => (
+          <Button key={label} variant="secondary" onClick={onClick}>
+            {label}
+          </Button>
+        ))}
+      </div>
+    )}
+  </div>
+);
+
+/** What the main pane shows instead of a card, or `null` when ready. */
+function sessionNotice(session: Session, t: TFunction) {
+  switch (session.status) {
+    case 'ready':
+      return null;
+    case 'loading':
+      return <Notice message={t('common.loading')} />;
+    case 'empty':
+      return <Notice message={t('lectureTrain.noContentYet')} italic />;
+    case 'error':
+      return (
+        <Notice
+          message={t('lectureTrain.loadFailed')}
+          actions={[{ label: t('common.retry'), onClick: session.retry }]}
+        />
+      );
+    case 'not-found': {
+      const chapterMissing = session.notFound === 'chapter';
+      return (
+        <Notice
+          message={t(
+            chapterMissing
+              ? 'lectureTrain.chapterNotFound'
+              : 'lectureTrain.questionNotFound',
+          )}
+          actions={[
+            ...(session.canGoBack
+              ? [{ label: t('common.back'), onClick: session.goBack }]
+              : []),
+            {
+              label: t(
+                chapterMissing
+                  ? 'lectureTrain.goToFirstChapter'
+                  : 'lectureTrain.goToChapterStart',
+              ),
+              onClick: session.goToCanonical,
+            },
+          ]}
+        />
+      );
+    }
+  }
+}
 
 export const TrainingSession = ({
   lectureId,

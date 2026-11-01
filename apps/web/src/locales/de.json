@@ -12,7 +12,8 @@
     "next": "Weiter",
     "search": "Suchen",
     "untitled": "Ohne Titel",
-    "saving": "Wird gespeichert..."
+    "saving": "Wird gespeichert...",
+    "retry": "Erneut versuchen"
   },
   "header": {
     "addLecture": "Fach hinzufügen",
@@ -100,7 +101,12 @@
     "sideAnswer": "Antwort",
     "tapToReveal": "oder tippen, um die Antwort anzuzeigen",
     "reviewAgain": "Nochmal üben",
-    "gotIt": "Verstanden"
+    "gotIt": "Verstanden",
+    "loadFailed": "Die Trainingsinhalte konnten nicht geladen werden.",
+    "chapterNotFound": "Dieses Kapitel gibt es in diesem Fach nicht.",
+    "questionNotFound": "Diese Frage gibt es in diesem Kapitel nicht.",
+    "goToFirstChapter": "Zum ersten Kapitel",
+    "goToChapterStart": "Zum Anfang des Kapitels"
   },
   "globalSearch": {
     "searchChapters": "Kapitel suchen...",
