@@ -1,6 +1,7 @@
 export type { TrainableChapter, TrainingMode } from './types.js';
 export {
   orderChaptersForTraining,
+  seededRandom,
   shuffle,
   sortChaptersByAnnotation,
 } from './chapter-sequence.js';

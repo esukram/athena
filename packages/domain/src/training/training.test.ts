@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   orderChaptersForTraining,
+  seededRandom,
   shuffle,
   sortChaptersByAnnotation,
 } from './chapter-sequence.js';
@@ -39,6 +40,26 @@ describe('shuffle', () => {
     const result = shuffle(input, () => 0);
     expect([...result].sort()).toEqual([1, 2, 3, 4, 5]);
     expect(input).toEqual([1, 2, 3, 4, 5]);
+  });
+});
+
+describe('seededRandom', () => {
+  it('repeats the same sequence for the same seed', () => {
+    const draw = (seed: number) => {
+      const random = seededRandom(seed);
+      return Array.from({ length: 5 }, () => random());
+    };
+    expect(draw(42)).toEqual(draw(42));
+    expect(draw(42)).not.toEqual(draw(43));
+  });
+
+  it('stays within [0, 1)', () => {
+    const random = seededRandom(0xffffffff);
+    for (let i = 0; i < 1000; i++) {
+      const value = random();
+      expect(value).toBeGreaterThanOrEqual(0);
+      expect(value).toBeLessThan(1);
+    }
   });
 });
 
