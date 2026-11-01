@@ -687,6 +687,48 @@ describe('useTrainingSession', () => {
       await waitForQuestion(result, 'q3a');
     });
 
+    it('reports an unknown Chapter in a Lecture without Chapters', async () => {
+      const { result } = renderSession('/train/l4/deleted/__last__');
+
+      await waitFor(() =>
+        expect(result.current.session.status).toBe('not-found'),
+      );
+      expect(result.current.session.notFound).toBe('chapter');
+
+      act(() => result.current.session.goToCanonical());
+
+      expect(result.current.path).toBe('/train/l4');
+      await waitFor(() => expect(result.current.session.status).toBe('empty'));
+    });
+
+    it('offers no Back after the first entry was replaced', async () => {
+      const { result, backend, queryClient } = renderSession(
+        '/train/l1/c3/__last__',
+      );
+      await waitFor(() => expect(result.current.path).toBe('/train/l1/c3/q3b'));
+
+      // The Question disappears on a later refetch.
+      backend.questions.getQuestions.mockImplementation(({ chapterId }) =>
+        backend.questionsOf(chapterId).filter((q) => q.id !== 'q3b'),
+      );
+      await act(() => queryClient.invalidateQueries());
+
+      await waitFor(() =>
+        expect(result.current.session.status).toBe('not-found'),
+      );
+      expect(result.current.session.canGoBack).toBe(false);
+    });
+
+    it('still offers Back after an in-app entry was replaced', async () => {
+      const { result } = renderSession('/train/l1/c3/q3a');
+      await waitForQuestion(result, 'q3a');
+
+      act(() => result.current.session.previous());
+
+      await waitFor(() => expect(result.current.path).toBe('/train/l1/c2/q2a'));
+      expect(result.current.session.canGoBack).toBe(true);
+    });
+
     it('reports an unknown Question in an empty Chapter', async () => {
       const { result } = renderSession('/train/l3/c7/stale');
 

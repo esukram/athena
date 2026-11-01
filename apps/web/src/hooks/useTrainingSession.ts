@@ -133,11 +133,15 @@ export function useTrainingSession({
       chaptersQuery.isError || annotatedChapterIdsQuery.isError
         ? 'error'
         : 'loading';
-  } else if (chapters.length === 0) {
-    status = 'empty';
   } else if (!chapter) {
-    status = 'not-found';
-    notFound = 'chapter';
+    // An explicit unknown id is not found, even in a Lecture without
+    // Chapters; no id there means there is nothing to train yet.
+    if (chapterId) {
+      status = 'not-found';
+      notFound = 'chapter';
+    } else {
+      status = 'empty';
+    }
   } else if (questionsQuery.data === undefined) {
     status = questionsQuery.isError ? 'error' : 'loading';
   } else if (questionId === LAST_QUESTION) {
@@ -164,13 +168,23 @@ export function useTrainingSession({
   const isFirst = !canStep || computeIsFirstQuestion(cursor);
   const isLast = !canStep || computeIsLastQuestion(cursor);
 
+  // React Router keys the first history entry 'default', but a replace gives
+  // it a fresh key. The session's own replaces carry the marker forward, so
+  // "Go back" never leaves the app (only this hook replaces on this page).
+  const isFirstEntry =
+    location.key === 'default' ||
+    (location.state as { firstEntry?: boolean } | null)?.firstEntry === true;
+
   const goTo = useCallback(
-    (toChapterId: string, toQuestionId?: string, replace = false) =>
+    (toChapterId?: string, toQuestionId?: string, replace = false) =>
       navigate(
-        `/${basePath}/${lectureId}/${toChapterId}${toQuestionId ? `/${toQuestionId}` : ''}`,
-        { replace },
+        `/${[basePath, lectureId, toChapterId, toQuestionId].filter(Boolean).join('/')}`,
+        {
+          replace,
+          state: replace && isFirstEntry ? { firstEntry: true } : null,
+        },
       ),
-    [navigate, basePath, lectureId],
+    [navigate, basePath, lectureId, isFirstEntry],
   );
 
   const next = () => {
@@ -217,16 +231,16 @@ export function useTrainingSession({
     }
   };
 
-  // ponytail: React Router keys only the first entry of a history 'default';
-  // a replace on that entry gets a fresh key. Read `history.state.idx` if
-  // that edge ever matters.
-  const canGoBack = location.key !== 'default';
+  const canGoBack = !isFirstEntry;
   const goBack = () => navigate(-1);
 
-  /** Unknown Chapter: the Lecture's first. Unknown Question: its Chapter. */
+  /**
+   * Unknown Chapter: the Lecture's first (or the Lecture itself when it has
+   * none). Unknown Question: its Chapter.
+   */
   const goToCanonical = () => {
     const target = notFound === 'chapter' ? chapters[0] : chapter;
-    if (target) goTo(target.id, undefined, true);
+    goTo(target?.id, undefined, true);
   };
 
   const utils = trpc.useUtils();
