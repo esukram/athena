@@ -41,7 +41,27 @@ export function inMemoryLink(handlers: TrpcTestHandlers): TRPCLink<AppRouter> {
   return () =>
     ({ op }) =>
       observable((observer) => {
-        let unsubscribed = false;
+        // Settled by a response, a failure, an abort or an unsubscribe;
+        // whichever comes first wins, like a real request.
+        let settled = false;
+        const fail = (cause: unknown) => {
+          if (settled) return;
+          settled = true;
+          observer.error(
+            TRPCClientError.from(
+              cause instanceof Error ? cause : new Error(String(cause)),
+            ),
+          );
+        };
+        // Like `httpLink`, a cancelled request fails and never delivers.
+        const { signal } = op;
+        const onAbort = () => fail(signal?.reason ?? new Error('Aborted'));
+        if (signal?.aborted) {
+          onAbort();
+          return () => {};
+        }
+        signal?.addEventListener('abort', onAbort);
+
         const [routerKey, procedureKey] = op.path.split('.');
         const handler = byPath[routerKey]?.[procedureKey];
 
@@ -50,35 +70,27 @@ export function inMemoryLink(handlers: TrpcTestHandlers): TRPCLink<AppRouter> {
             if (!handler) throw new Error(`No test handler for ${op.path}`);
             return handler(op.input);
           })
-          .then(
-            (data) => {
-              if (unsubscribed) return;
-              // Mirror the JSON wire format (no transformer), so tests get
-              // the same shapes as production and never share fixture objects
-              // with the query cache.
-              observer.next({
-                result: {
-                  type: 'data',
-                  data:
-                    data === undefined
-                      ? undefined
-                      : JSON.parse(JSON.stringify(data)),
-                },
-              });
-              observer.complete();
-            },
-            (cause: unknown) => {
-              if (unsubscribed) return;
-              observer.error(
-                TRPCClientError.from(
-                  cause instanceof Error ? cause : new Error(String(cause)),
-                ),
-              );
-            },
-          );
+          .then((data) => {
+            if (settled) return;
+            settled = true;
+            // Mirror the JSON wire format (no transformer), so tests get the
+            // same shapes as production and never share fixture objects with
+            // the query cache.
+            observer.next({
+              result: {
+                type: 'data',
+                data:
+                  data === undefined
+                    ? undefined
+                    : JSON.parse(JSON.stringify(data)),
+              },
+            });
+            observer.complete();
+          }, fail);
 
         return () => {
-          unsubscribed = true;
+          settled = true;
+          signal?.removeEventListener('abort', onAbort);
         };
       });
 }

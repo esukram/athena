@@ -1,11 +1,12 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import { act, renderHook, waitFor } from '@testing-library/react';
+import { TRPCClientError, createTRPCClient } from '@trpc/client';
 
-import type { Lecture } from '@athena/api';
+import type { AppRouter, Lecture } from '@athena/api';
 
 import { trpc } from '../utils/trpc';
-import { createTrpcTestWrapper, deferred } from './trpcTestLink';
+import { createTrpcTestWrapper, deferred, inMemoryLink } from './trpcTestLink';
 
 const lecture: Lecture = {
   id: 'l1',
@@ -108,5 +109,33 @@ describe('in-memory tRPC test link', () => {
 
     await waitFor(() => expect(result.current.query.data?.title).toBe('Beta'));
     expect(getLecture).toHaveBeenCalledTimes(2);
+  });
+
+  it('fails an aborted request and never delivers its response', async () => {
+    const pending = deferred<Lecture>();
+    const getLecture = vi.fn(() => pending.promise);
+    const client = createTRPCClient<AppRouter>({
+      links: [inMemoryLink({ lectures: { getLecture } })],
+    });
+
+    const controller = new AbortController();
+    const request = client.lectures.getLecture.query(
+      { id: 'l1' },
+      { signal: controller.signal },
+    );
+    controller.abort();
+    pending.resolve(lecture);
+
+    await expect(request).rejects.toBeInstanceOf(TRPCClientError);
+
+    // Already aborted: the handler is never asked.
+    getLecture.mockClear();
+    await expect(
+      client.lectures.getLecture.query(
+        { id: 'l1' },
+        { signal: controller.signal },
+      ),
+    ).rejects.toBeInstanceOf(TRPCClientError);
+    expect(getLecture).not.toHaveBeenCalled();
   });
 });
