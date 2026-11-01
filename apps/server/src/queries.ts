@@ -36,6 +36,17 @@ const MAX_SEARCH_TOKENS = 8;
 const MAX_SEARCH_RESULTS = 50;
 
 export function createChapterSearchQuery(db: Database): ChapterSearchQuery {
+  // SQLite's LOWER() only folds ASCII, so `Äpfel` would never match `äpfel`.
+  // Fold in JS instead, the same way the search tokens are folded below.
+  // ponytail: toLowerCase only, no accent/ß folding (`strasse` ≠ `straße`);
+  // switch to an FTS5 table with a unicode61 tokenizer if that is needed.
+  db.function(
+    'unicode_lower',
+    { deterministic: true },
+    // NULL in, NULL out (like LOWER) — the LEFT JOIN yields NULL questions.
+    (value: string | null) => value?.toLowerCase() ?? null,
+  );
+
   return {
     getDistinctAssociations: (): string[] => {
       const rows = db
@@ -56,14 +67,14 @@ export function createChapterSearchQuery(db: Database): ChapterSearchQuery {
       if (tokens.length === 0) return [];
 
       const questionConditions = tokens
-        .map(() => 'LOWER(q.question) LIKE ?')
+        .map(() => "unicode_lower(q.question || ' ' || q.answer) LIKE ?")
         .join(' AND ');
       const associationConditions = tokens
-        .map(() => 'LOWER(c.association) LIKE ?')
+        .map(() => 'unicode_lower(c.association) LIKE ?')
         .join(' AND ');
       const tokenParams = tokens.map((token) => `%${token}%`);
 
-      // Chapters that match via ANY question or the association.
+      // Chapters that match via ANY question (text or answer) or the association.
       const chapters = db
         .prepare(
           `SELECT DISTINCT c.* FROM chapters c
@@ -84,7 +95,7 @@ export function createChapterSearchQuery(db: Database): ChapterSearchQuery {
       // replacing the previous per-chapter (N+1) lookups. Ordered by `order`
       // so the first row seen per chapter is the one we want.
       const matchConditions = tokens
-        .map(() => 'LOWER(question) LIKE ?')
+        .map(() => "unicode_lower(question || ' ' || answer) LIKE ?")
         .join(' AND ');
       const matchingQuestions = db
         .prepare(
