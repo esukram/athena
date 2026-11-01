@@ -19,24 +19,24 @@ test.describe('Lecture Train', () => {
       c2: { question: 'Q1 Chapter 2' },
     };
 
-    const c1Questions = [
-      {
-        id: 'q1',
-        chapterId: 'c1',
-        question: 'Q1 Chapter 1',
-        answer: 'A1',
-        order: 0,
-        isAnnotated: false,
-      },
-      {
-        id: 'q2',
-        chapterId: 'c1',
-        question: 'Q2 Chapter 1',
-        answer: 'A2',
-        order: 1,
-        isAnnotated: false,
-      },
-    ];
+    const question = (id: string, chapterId: string, text: string) => ({
+      id,
+      chapterId,
+      question: text,
+      answer: `Answer to ${text}`,
+      order: 0,
+      isAnnotated: false,
+    });
+    const questionsByChapter: Record<string, unknown[]> = {
+      c1: [
+        { ...question('q1', 'c1', 'Q1 Chapter 1'), answer: 'A1' },
+        { ...question('q2', 'c1', 'Q2 Chapter 1'), answer: 'A2', order: 1 },
+      ],
+      c2: [
+        question('q3', 'c2', 'Q1 Chapter 2'),
+        { ...question('q4', 'c2', 'Q2 Chapter 2'), order: 1 },
+      ],
+    };
 
     // Mock API
     await page.route('**/api/trpc/lectures.getLecture?*', async (route) => {
@@ -57,10 +57,14 @@ test.describe('Lecture Train', () => {
         await route.fulfill({ json: { result: { data: [] } } }); // No annotations initially
       },
     );
-    // Mock getQuestions
+    // Each Chapter answers with its own Questions.
     await page.route('**/api/trpc/questions.getQuestions?*', async (route) => {
-      // Assume c1 is fetched
-      await route.fulfill({ json: { result: { data: c1Questions } } });
+      const input = JSON.parse(
+        new URL(route.request().url()).searchParams.get('input') || '{}',
+      );
+      await route.fulfill({
+        json: { result: { data: questionsByChapter[input.chapterId] ?? [] } },
+      });
     });
 
     // Mock total questions count for progress bar
@@ -132,6 +136,16 @@ test.describe('Lecture Train', () => {
     await page.getByRole('button', { name: 'Flip card' }).click();
     await page.getByRole('button', { name: 'Review again' }).click();
     await expect(page).toHaveURL(new RegExp(`/train/${lectureId}/c1/q2`));
+
+    // Next from the last Question crosses into Chapter 2 at its start...
+    await page.getByRole('button', { name: 'Next' }).click();
+    await expect(page).toHaveURL(new RegExp(`/train/${lectureId}/c2$`));
+    await expect(page.getByText('Q1 Chapter 2', { exact: true })).toBeVisible();
+
+    // ...and Previous returns to Chapter 1's last Question.
+    await page.getByRole('button', { name: 'Previous' }).click();
+    await expect(page).toHaveURL(new RegExp(`/train/${lectureId}/c1/q2$`));
+    await expect(page.getByText('Q2 Chapter 1')).toBeVisible();
   });
 
   test('edit button should not be visible in training mode', async ({

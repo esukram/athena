@@ -4,18 +4,12 @@ import { useNavigate } from 'react-router-dom';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import type { Chapter, Question } from '@athena/api';
 import {
   type TrainingMode,
-  isFirstQuestion as computeIsFirstQuestion,
-  isLastQuestion as computeIsLastQuestion,
   filterChaptersByQuestionText,
-  nextTrainingStep,
-  orderChaptersForTraining,
-  prevTrainingStep,
-  trainingProgressPosition,
 } from '@athena/domain/training';
 
+import { useTrainingSession } from '../hooks/useTrainingSession';
 import { highlightText } from '../utils/highlightText';
 import { trpc } from '../utils/trpc';
 import { Accordion } from './Accordion';
@@ -36,7 +30,6 @@ export interface TrainingSessionProps {
   chapterId?: string;
   questionId?: string;
   mode: TrainingMode;
-  chapters: Chapter[];
 }
 
 interface TrainingSessionContentProps extends TrainingSessionProps {
@@ -48,7 +41,6 @@ const TrainingSessionContent = ({
   chapterId,
   questionId,
   mode,
-  chapters,
   lecture,
 }: TrainingSessionContentProps) => {
   const { t, i18n } = useTranslation();
@@ -77,122 +69,34 @@ const TrainingSessionContent = ({
     );
   }, [flipping]);
 
-  const basePath = mode === 'randomized' ? 'train-random' : 'train';
-
-  const firstQuestionsQuery =
-    trpc.questions.getFirstQuestionsByLecture.useQuery(
-      { lectureId },
-      { enabled: !!lectureId },
-    );
-
-  const annotatedChapterIdsQuery =
-    trpc.questions.getAnnotatedChapterIdsByLecture.useQuery(
-      { lectureId },
-      { enabled: !!lectureId },
-    );
-
-  // Query for total question count (for progress bar)
-  const totalQuestionsQuery =
-    trpc.questions.getQuestionCountsByLecture.useQuery(
-      { lectureId },
-      { enabled: !!lectureId },
-    );
-
-  // Query for per-chapter question counts (for accurate progress calculation)
-  const questionCountsPerChapterQuery =
-    trpc.questions.getQuestionCountsPerChapter.useQuery(
-      { lectureId },
-      { enabled: !!lectureId },
-    );
-
-  const annotatedChapterIds = useMemo(() => {
-    return new Set(annotatedChapterIdsQuery.data || []);
-  }, [annotatedChapterIdsQuery.data]);
-
-  const firstQuestionMap = useMemo(() => {
-    const map = new Map<string, Question | undefined>();
-    if (firstQuestionsQuery.data) {
-      for (const [chId, question] of Object.entries(firstQuestionsQuery.data)) {
-        map.set(chId, question);
-      }
-    }
-    return map;
-  }, [firstQuestionsQuery.data]);
-
-  const sortedLectureIdRef = useRef<string | null>(null);
-  const [sortedChapters, setSortedChapters] = useState<Chapter[]>([]);
-
-  useEffect(() => {
-    if (
-      chapters.length > 0 &&
-      annotatedChapterIdsQuery.data !== undefined &&
-      sortedLectureIdRef.current !== lectureId
-    ) {
-      const sorted = orderChaptersForTraining(
-        chapters,
-        mode,
-        annotatedChapterIdsQuery.data,
-      );
-
-      setSortedChapters(sorted);
-      sortedLectureIdRef.current = lectureId;
-    }
-  }, [lectureId, chapters, annotatedChapterIdsQuery.data, mode]);
-
-  const selectedChapterIndex = useMemo(() => {
-    if (sortedChapters.length > 0 && chapterId) {
-      const index = sortedChapters.findIndex((c) => c.id === chapterId);
-      if (index !== -1) return index;
-    }
-    return 0;
-  }, [chapterId, sortedChapters]);
-
-  const currentChapter = sortedChapters[selectedChapterIndex];
-  const currentChapterQuestionsQuery = trpc.questions.getQuestions.useQuery(
-    { chapterId: currentChapter?.id || '' },
-    { enabled: !!currentChapter?.id },
-  );
-  const currentChapterQuestions = useMemo(
-    () => currentChapterQuestionsQuery.data || [],
-    [currentChapterQuestionsQuery.data],
-  );
-
-  const selectedQuestionIndex = useMemo(() => {
-    if (currentChapterQuestions.length > 0 && questionId) {
-      const index = currentChapterQuestions.findIndex(
-        (q) => q.id === questionId,
-      );
-      if (index !== -1) return index;
-    }
-    return 0;
-  }, [questionId, currentChapterQuestions]);
+  const session = useTrainingSession({
+    lectureId,
+    mode,
+    chapterId,
+    questionId,
+  });
+  const {
+    chapters: sortedChapters,
+    chapterIndex: selectedChapterIndex,
+    chapter: currentChapter,
+    questions: currentChapterQuestions,
+    questionIndex: selectedQuestionIndex,
+    isFirst: isFirstQuestion,
+    isLast: isLastQuestion,
+    next: handleNextQuestion,
+    previous: handlePrevQuestion,
+    progress,
+    firstQuestionText,
+  } = session;
 
   const filteredChapters = useMemo(
     () =>
       filterChaptersByQuestionText(
         sortedChapters,
         searchQuery,
-        (chapter) => firstQuestionMap.get(chapter.id)?.question || '',
+        (chapter) => firstQuestionText(chapter.id) || '',
       ),
-    [sortedChapters, searchQuery, firstQuestionMap],
-  );
-
-  // Calculate current progress position across all chapters
-  // Sum questions from all previous chapters + current question index + 1
-  const currentProgressPosition = useMemo(
-    () =>
-      trainingProgressPosition({
-        sortedChapters,
-        selectedChapterIndex,
-        selectedQuestionIndex,
-        questionCountsPerChapter: questionCountsPerChapterQuery.data || {},
-      }),
-    [
-      selectedChapterIndex,
-      selectedQuestionIndex,
-      sortedChapters,
-      questionCountsPerChapterQuery.data,
-    ],
+    [sortedChapters, searchQuery, firstQuestionText],
   );
 
   useEffect(() => {
@@ -222,98 +126,7 @@ const TrainingSessionContent = ({
     }
   }, [selectedChapterIndex]);
 
-  const navigateToQuestion = useCallback(
-    (
-      chapterIndex: number,
-      qIndex: number,
-      questions?: typeof currentChapterQuestions,
-    ) => {
-      const chapter = sortedChapters[chapterIndex];
-      if (chapter && questions && questions[qIndex]) {
-        navigate(
-          `/${basePath}/${lectureId}/${chapter.id}/${questions[qIndex].id}`,
-        );
-      } else if (chapter) {
-        navigate(`/${basePath}/${lectureId}/${chapter.id}`);
-      }
-    },
-    [sortedChapters, navigate, lectureId, basePath],
-  );
-
-  const cursor = useMemo(
-    () => ({
-      selectedChapterIndex,
-      selectedQuestionIndex,
-      currentChapterQuestionCount: currentChapterQuestions.length,
-      chapterCount: sortedChapters.length,
-    }),
-    [
-      selectedChapterIndex,
-      selectedQuestionIndex,
-      currentChapterQuestions.length,
-      sortedChapters.length,
-    ],
-  );
-
-  const handleNextQuestion = useCallback(() => {
-    const step = nextTrainingStep(cursor);
-    if (step?.kind === 'question') {
-      navigateToQuestion(
-        step.chapterIndex,
-        step.questionIndex,
-        currentChapterQuestions,
-      );
-    } else if (step?.kind === 'chapter-start') {
-      navigateToQuestion(step.chapterIndex, 0);
-    }
-  }, [cursor, currentChapterQuestions, navigateToQuestion]);
-
-  const handlePrevQuestion = useCallback(() => {
-    const step = prevTrainingStep(cursor);
-    if (step?.kind === 'question') {
-      navigateToQuestion(
-        step.chapterIndex,
-        step.questionIndex,
-        currentChapterQuestions,
-      );
-    } else if (step?.kind === 'chapter-end') {
-      const prevChapter = sortedChapters[step.chapterIndex];
-      navigate(`/${basePath}/${lectureId}/${prevChapter.id}/__last__`);
-    }
-  }, [
-    cursor,
-    navigateToQuestion,
-    currentChapterQuestions,
-    sortedChapters,
-    navigate,
-    lectureId,
-    basePath,
-  ]);
-
-  useEffect(() => {
-    if (questionId === '__last__' && currentChapterQuestions.length > 0) {
-      const lastQuestion =
-        currentChapterQuestions[currentChapterQuestions.length - 1];
-      navigate(
-        `/${basePath}/${lectureId}/${currentChapter?.id}/${lastQuestion.id}`,
-        {
-          replace: true,
-        },
-      );
-    }
-  }, [
-    questionId,
-    currentChapterQuestions,
-    lectureId,
-    currentChapter?.id,
-    navigate,
-    basePath,
-  ]);
-
-  const isFirstQuestion = computeIsFirstQuestion(cursor);
-  const isLastQuestion = computeIsLastQuestion(cursor);
-
-  const currentQuestionId = currentChapterQuestions[selectedQuestionIndex]?.id;
+  const currentQuestionId = session.question?.id;
 
   // Reset the flip state whenever the active question changes. Sidebar clicks,
   // arrow navigation and the __last__ replace-redirect can all switch questions
@@ -374,12 +187,6 @@ const TrainingSessionContent = ({
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [
-    sortedChapters,
-    selectedChapterIndex,
-    selectedQuestionIndex,
-    currentChapterQuestions,
-    lectureId,
-    navigate,
     isFirstQuestion,
     isLastQuestion,
     handleNextQuestion,
@@ -387,21 +194,9 @@ const TrainingSessionContent = ({
     flip,
   ]);
 
-  const utils = trpc.useUtils();
-  const updateQuestion = trpc.questions.updateQuestion.useMutation({
-    // Invalidate by the chapter the mutated question belongs to (captured from
-    // the variables) so a navigation away from the current chapter during the
-    // request still refreshes the right list.
-    onSuccess: (_data, variables) => {
-      const chapterId =
-        currentChapterQuestions.find((q) => q.id === variables.id)?.chapterId ??
-        currentChapter?.id;
-      utils.questions.getQuestions.invalidate({ chapterId });
-      utils.questions.getAnnotatedChapterIdsByLecture.invalidate({
-        lectureId,
-      });
-    },
-  });
+  if (session.isLoadingChapters) {
+    return <LoadingState />;
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -415,7 +210,7 @@ const TrainingSessionContent = ({
           />
         </div>
 
-        {chapters.length === 0 ? (
+        {!session.hasChapters ? (
           <div className="bg-surface border border-border rounded-xl shadow-sm p-8 text-center">
             <p className="text-on-surface-variant mb-4">
               {t('lectureTrain.noChaptersYet')}
@@ -434,19 +229,17 @@ const TrainingSessionContent = ({
               chapters={sortedChapters}
               filteredChapters={filteredChapters}
               selectedIndex={selectedChapterIndex}
-              onSelect={(chapter) =>
-                navigate(`/${basePath}/${lectureId}/${chapter.id}`)
-              }
+              onSelect={session.selectChapter}
               isSearchOpen={isSearchOpen}
               onSearchToggle={() => setIsSearchOpen(!isSearchOpen)}
               searchQuery={searchQuery}
               onSearchChange={setSearchQuery}
               getDisplayText={(chapter) => {
-                const firstQ = firstQuestionMap.get(chapter.id);
-                const displayText = firstQ?.question || t('common.untitled');
+                const displayText =
+                  firstQuestionText(chapter.id) || t('common.untitled');
                 return highlightText(displayText, searchQuery);
               }}
-              highlightedChapterIds={annotatedChapterIds}
+              highlightedChapterIds={session.annotatedChapterIds}
               searchInputRef={searchInputRef}
               chapterButtonsRef={chapterButtonsRef}
             />
@@ -484,13 +277,12 @@ const TrainingSessionContent = ({
                           />
                         </div>
 
-                        {totalQuestionsQuery.data &&
-                          totalQuestionsQuery.data > 0 && (
-                            <ProgressBar
-                              current={currentProgressPosition}
-                              total={totalQuestionsQuery.data}
-                            />
-                          )}
+                        {!!progress.total && (
+                          <ProgressBar
+                            current={progress.position}
+                            total={progress.total}
+                          />
+                        )}
 
                         <div className="mt-5">
                           <FlashCard
@@ -502,12 +294,7 @@ const TrainingSessionContent = ({
                             flipping={flipping}
                             annotateButton={
                               <button
-                                onClick={() => {
-                                  updateQuestion.mutate({
-                                    id: question.id,
-                                    isAnnotated: !question.isAnnotated,
-                                  });
-                                }}
+                                onClick={session.toggleAnnotated}
                                 className={`p-1 rounded-full transition-all hover:scale-110 ${
                                   question.isAnnotated
                                     ? ''
@@ -578,13 +365,7 @@ const TrainingSessionContent = ({
                             <button
                               type="button"
                               className="flex-1 max-w-[220px] py-3.5 rounded-lg font-semibold inline-flex items-center justify-center gap-2 bg-surface border border-border text-ink-soft hover:border-accent hover:text-ink transition-colors"
-                              onClick={() => {
-                                updateQuestion.mutate({
-                                  id: question.id,
-                                  isAnnotated: true,
-                                });
-                                handleNextQuestion();
-                              }}
+                              onClick={session.reviewAgain}
                             >
                               <RotateCw size={18} />
                               {t('lectureTrain.reviewAgain')}
@@ -625,7 +406,7 @@ export const TrainingSession = ({
   chapterId,
   questionId,
   mode,
-}: Omit<TrainingSessionProps, 'chapters'>) => {
+}: TrainingSessionProps) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
 
@@ -634,17 +415,7 @@ export const TrainingSession = ({
     { enabled: !!lectureId },
   );
 
-  const chaptersQuery = trpc.chapters.getChapters.useQuery(
-    { lectureId },
-    { enabled: !!lectureId },
-  );
-
-  const chapters = useMemo(
-    () => chaptersQuery.data || [],
-    [chaptersQuery.data],
-  );
-
-  if (lectureQuery.isLoading || chaptersQuery.isLoading) {
+  if (lectureQuery.isLoading) {
     return <LoadingState />;
   }
 
@@ -664,7 +435,6 @@ export const TrainingSession = ({
       chapterId={chapterId}
       questionId={questionId}
       mode={mode}
-      chapters={chapters}
       lecture={lectureQuery.data}
     />
   );
