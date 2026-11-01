@@ -25,7 +25,7 @@ const existingChapter: Chapter = {
 function createBackend() {
   let lastId = 0;
   const chapters: Chapter[] = [
-    existingChapter,
+    { ...existingChapter },
     { id: 'c2', lectureId: 'l1', association: '', order: 1 },
   ];
   const questions: Question[] = [
@@ -36,6 +36,7 @@ function createBackend() {
 
   return {
     chapters: {
+      getChapters: vi.fn(() => chapters),
       createChapter: vi.fn(
         (
           input: In['chapters']['createChapter'],
@@ -85,7 +86,9 @@ function createBackend() {
         ({
           id,
           ...data
-        }: In['questions']['updateQuestion']): Out['questions']['updateQuestion'] => {
+        }: In['questions']['updateQuestion']):
+          | Out['questions']['updateQuestion']
+          | Promise<Out['questions']['updateQuestion']> => {
           const question = questions.find((q) => q.id === id)!;
           Object.assign(question, data);
           return question;
@@ -413,6 +416,39 @@ describe('useChapterEditor', () => {
   });
 
   describe('closing and reopening', () => {
+    it('waits for the previous opening to finish writing before reloading the same Chapter', async () => {
+      const { edit, result, backend } = renderEditor();
+      const updated = deferred<void>();
+      const persist = backend.questions.updateQuestion.getMockImplementation()!;
+      backend.questions.updateQuestion.mockImplementationOnce((input) =>
+        updated.promise.then(() => persist(input)),
+      );
+      act(() => result.current.openExisting(existingChapter));
+      await waitFor(() => expect(result.current.edit).not.toBeNull());
+      act(() => edit().setTag('Saved tag'));
+      act(() =>
+        edit().updateQuestion(edit().draft.questions[0].key, {
+          answer: 'Saved after close',
+        }),
+      );
+      act(() => void edit().addQuestion());
+      await waitFor(() =>
+        expect(backend.questions.updateQuestion).toHaveBeenCalledTimes(1),
+      );
+      act(() => edit().close());
+      act(() => result.current.openExisting(existingChapter));
+      await settle();
+      expect(result.current.edit).toBeNull();
+      expect(backend.questions.getQuestions).toHaveBeenCalledTimes(1);
+
+      await act(async () => updated.resolve());
+      await waitFor(() => expect(result.current.edit).not.toBeNull());
+      expect(edit().draft.questions[0].answer).toBe('Saved after close');
+      expect(edit().draft.tag).toBe('Saved tag');
+      await act(() => edit().save());
+      expect(backend.questions.updateQuestion).toHaveBeenCalledTimes(1);
+    });
+
     it('ignores a late load for a Chapter that is no longer open', async () => {
       const backend = createBackend();
       const c1Loaded = deferred<Question[]>();

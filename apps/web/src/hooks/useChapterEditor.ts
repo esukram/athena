@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 
-import type { Chapter, Question } from '@athena/api';
+import type { Chapter } from '@athena/api';
 
 import { newClientKey } from '../utils/clientKey';
 import { trpc } from '../utils/trpc';
@@ -40,8 +40,6 @@ interface Session {
   persistedTag: string;
   /** Persisted Questions, by draft key. */
   persisted: Map<string, QuestionContent & { id: string }>;
-  /** Writes run one at a time, in the order they were asked for. */
-  queue: Promise<unknown>;
   /** Null while the Chapter's Questions load. */
   view: EditorView | null;
 }
@@ -74,7 +72,6 @@ const newSession = (
   order,
   persistedTag,
   persisted: new Map(),
-  queue: Promise.resolve(),
   view,
 });
 
@@ -103,6 +100,8 @@ export function useChapterEditor({
 }) {
   const utils = trpc.useUtils();
   const sessionRef = useRef<Session | null>(null);
+  // Keep the queue across openings, including writes finishing after close.
+  const queueRef = useRef<Promise<unknown>>(Promise.resolve());
   const [view, setView] = useState<EditorView | null>(null);
 
   // A closed (or replaced) session keeps writing, but no longer renders.
@@ -116,9 +115,9 @@ export function useChapterEditor({
     setView(s.view);
   };
 
-  const enqueue = <T>(s: Session, job: () => Promise<T>): Promise<T> => {
-    const run = s.queue.then(job);
-    s.queue = run.catch(() => {});
+  const enqueue = <T>(job: () => Promise<T>): Promise<T> => {
+    const run = queueRef.current.then(job);
+    queueRef.current = run.catch(() => {});
     return run;
   };
 
@@ -213,14 +212,19 @@ export function useChapterEditor({
     const s = newSession(chapter.id, chapter.order, chapter.association, null);
     begin(s);
     void (async () => {
-      let loaded: Question[] = [];
-      try {
-        loaded = await utils.questions.getQuestions.fetch({
-          chapterId: chapter.id,
-        });
-      } catch {
-        // Open with one blank Question, so the Chapter can still be edited.
-      }
+      // A reopened Chapter must observe writes from its previous opening.
+      await queueRef.current;
+      // Reload the Tag too: the caller's Chapter may predate that write.
+      // Keep the existing load-failure fallback (the supplied Tag / blank Question).
+      const [chapters, loaded] = await Promise.all([
+        utils.chapters.getChapters.fetch({ lectureId }).catch(() => [chapter]),
+        utils.questions.getQuestions
+          .fetch({ chapterId: chapter.id })
+          .catch(() => []),
+      ]);
+      s.persistedTag =
+        chapters.find((c) => c.id === chapter.id)?.association ??
+        chapter.association;
       const questions = loaded.map(({ id, question, answer, order }) => {
         const draft = { ...blankQuestion(order, question), answer };
         s.persisted.set(draft.key, { id, question, answer, order });
@@ -229,7 +233,7 @@ export function useChapterEditor({
       commit(
         s,
         freshView({
-          tag: chapter.association,
+          tag: s.persistedTag,
           questions: questions.length > 0 ? questions : [blankQuestion(0)],
         }),
       );
@@ -271,7 +275,7 @@ export function useChapterEditor({
       ...s.view,
       draft: { ...draft, questions: [...draft.questions, added] },
     });
-    enqueue(s, () => write(s)).then(
+    enqueue(() => write(s)).then(
       (written) => {
         if (!written || !s.view) return;
         commit(s, { ...s.view, baseline: written });
@@ -292,7 +296,7 @@ export function useChapterEditor({
       ...d,
       questions: d.questions.filter((q) => q.key !== key),
     }));
-    enqueue(s, async () => {
+    enqueue(async () => {
       const saved = s.persisted.get(key);
       if (!saved || s.chapterId === null) return;
       await utils.client.questions.deleteQuestion.mutate({ id: saved.id });
@@ -311,7 +315,7 @@ export function useChapterEditor({
       return;
     commit(s, { ...s.view, isSaving: true, saveFailed: false });
     try {
-      await enqueue(s, () => write(s));
+      await enqueue(() => write(s));
       if (sessionRef.current === s) close();
     } catch {
       if (s.view) commit(s, { ...s.view, isSaving: false, saveFailed: true });
