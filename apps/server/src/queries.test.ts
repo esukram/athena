@@ -38,12 +38,13 @@ const insertQuestion = (
   chapterId: string,
   question: string,
   order: number,
+  answer = '',
 ) =>
   db
     .prepare(
       'INSERT INTO questions (id, chapterId, question, answer, "order", isAnnotated) VALUES (?, ?, ?, ?, ?, ?)',
     )
-    .run(id, chapterId, question, '', order, 0);
+    .run(id, chapterId, question, answer, order, 0);
 
 describe('createLectureOverviewQuery', () => {
   it('returns chapter and question counts per lecture', () => {
@@ -131,6 +132,21 @@ describe('createChapterSearchQuery', () => {
     insertQuestion(db, 'q1a', 'c1', 'What is a matrix', 0);
     insertQuestion(db, 'q1b', 'c1', 'Define eigenvalue', 1);
     insertQuestion(db, 'q2a', 'c2', 'What is a triangle', 0);
+    insertQuestion(db, 'q2b', 'c2', 'Name a polygon', 1, 'A hexagon');
+  });
+
+  it('matches question answers, even with tokens split across both', () => {
+    const results = createChapterSearchQuery(db).search('polygon hexagon');
+    expect(results.map((chapter) => chapter.id)).toEqual(['c2']);
+    expect(results[0].firstQuestion?.id).toBe('q2b');
+  });
+
+  it('matches an answer-only token but not tokens spread over questions', () => {
+    const search = createChapterSearchQuery(db);
+    expect(search.search('hexagon').map((chapter) => chapter.id)).toEqual([
+      'c2',
+    ]);
+    expect(search.search('triangle hexagon')).toEqual([]);
   });
 
   it('attaches the first matching question for a question-text match', () => {
@@ -145,6 +161,13 @@ describe('createChapterSearchQuery', () => {
     expect(results).toHaveLength(1);
     expect(results[0].id).toBe('c2');
     expect(results[0].firstQuestion?.id).toBe('q2a');
+  });
+
+  it('ignores case for non-ASCII letters', () => {
+    insertQuestion(db, 'q2c', 'c2', 'Wie viele Äpfel?', 2, 'ÜBER drei');
+    const search = createChapterSearchQuery(db);
+    expect(search.search('äpfel').map((chapter) => chapter.id)).toEqual(['c2']);
+    expect(search.search('über').map((chapter) => chapter.id)).toEqual(['c2']);
   });
 
   it('returns nothing for a blank query', () => {
