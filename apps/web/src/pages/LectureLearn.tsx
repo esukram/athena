@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next';
 import ReactMarkdown from 'react-markdown';
 import { useNavigate, useParams } from 'react-router-dom';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import type { Chapter, Question } from '@athena/api';
 
@@ -15,7 +15,7 @@ import { ErrorState } from '../components/ErrorState';
 import { LectureNavigation } from '../components/LectureNavigation';
 import { LoadingState } from '../components/LoadingState';
 import { VoicePlaybackButton } from '../components/VoicePlaybackButton';
-import { useChapterVoicePlayback } from '../hooks/useChapterVoicePlayback';
+import { useLectureVoicePlayback } from '../hooks/useLectureVoicePlayback';
 import { highlightText } from '../utils/highlightText';
 import { trpc } from '../utils/trpc';
 
@@ -25,22 +25,6 @@ export const LectureLearn = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  // Hands-free preference: continue voice playback into the next chapter.
-  // Defaults to on; an explicit stored value overrides the default.
-  // Storage access is guarded — private mode / disabled storage must not crash
-  // the page; the preference simply falls back to session-only in that case.
-  const [autoAdvance, setAutoAdvance] = useState(() => {
-    try {
-      const stored = localStorage.getItem('learnAutoAdvance');
-      return stored === null ? true : stored === 'true';
-    } catch {
-      return true;
-    }
-  });
-  // Set when an auto-advance navigation happens so the next chapter resumes
-  // playback once its questions have loaded. A ref avoids setState-in-effect
-  // while still coordinating between renders triggered by other deps.
-  const pendingAutoStartRef = useRef(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const chapterButtonsRef = useRef<Map<number, HTMLButtonElement>>(new Map());
   const questionElementsRef = useRef<Map<number, HTMLDivElement>>(new Map());
@@ -60,25 +44,22 @@ export const LectureLearn = () => {
     [chaptersQuery.data],
   );
 
-  const handleAutoAdvanceChange = (checked: boolean) => {
-    setAutoAdvance(checked);
-    try {
-      localStorage.setItem('learnAutoAdvance', String(checked));
-    } catch {
-      // Storage unavailable — the preference stays in memory for this session.
-    }
-  };
-
-  // Navigate to a chapter on explicit user intent. Clears any pending
-  // auto-start so a manual jump never triggers a surprise resume.
-  const goToChapter = useCallback(
-    (index: number) => {
-      if (index < 0 || index >= chapters.length) return;
-      pendingAutoStartRef.current = false;
-      navigate(`/learn/${id}/${chapters[index].id}`);
-    },
-    [chapters, id, navigate],
-  );
+  // Chapter selection, its Questions and voice playback across Chapters.
+  const voice = useLectureVoicePlayback({
+    lectureId: id!,
+    chapters,
+    chapterId,
+    language: (i18n.resolvedLanguage ?? i18n.language).startsWith('de')
+      ? 'de'
+      : 'en',
+  });
+  const {
+    chapter: currentChapter,
+    chapterIndex: selectedChapterIndex,
+    questions: currentChapterQuestions,
+    available: speechConfigured,
+    selectChapter: goToChapter,
+  } = voice;
 
   // Fetch all first questions for this lecture in a single call
   const firstQuestionsQuery =
@@ -99,15 +80,6 @@ export const LectureLearn = () => {
     }
     return map;
   }, [firstQuestionsQuery.data]);
-
-  // Derive selected chapter index from URL chapterId parameter
-  const selectedChapterIndex = useMemo(() => {
-    if (chapters.length > 0 && chapterId) {
-      const index = chapters.findIndex((c) => c.id === chapterId);
-      if (index !== -1) return index;
-    }
-    return 0;
-  }, [chapterId, chapters]);
 
   // Tokenized search filter
   const filteredChapters = useMemo(() => {
@@ -167,28 +139,6 @@ export const LectureLearn = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [selectedChapterIndex, goToChapter]);
 
-  // Fetch all questions for the current chapter
-  const currentChapter = chapters[selectedChapterIndex];
-  const currentChapterQuestionsQuery = trpc.questions.getQuestions.useQuery(
-    { chapterId: currentChapter?.id || '' },
-    { enabled: !!currentChapter?.id },
-  );
-  const currentChapterQuestions = useMemo(
-    () => currentChapterQuestionsQuery.data || [],
-    [currentChapterQuestionsQuery.data],
-  );
-
-  // Hands-free auto-play of the current chapter.
-  const speechConfigured = trpc.speech.isConfigured.useQuery().data ?? false;
-  const voice = useChapterVoicePlayback({
-    questions: currentChapterQuestions,
-    language: (i18n.resolvedLanguage ?? i18n.language).startsWith('de')
-      ? 'de'
-      : 'en',
-    enabled: speechConfigured,
-    chapterId: currentChapter?.id,
-  });
-
   // Keep the question being spoken in view.
   const voiceIndex = voice.currentQuestionIndex;
   useEffect(() => {
@@ -197,66 +147,6 @@ export const LectureLearn = () => {
       .get(voiceIndex)
       ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }, [voiceIndex]);
-
-  // Auto-advance: detect chapter-finished transitions and resume playback on
-  // the next chapter. Uses a ref for the pending-auto-start flag so no
-  // setState call is needed inside the effect.
-  //
-  // Edge-detection via `prevVoiceStatusRef` prevents re-firing when unrelated
-  // deps change while `voiceStatus` is already `'finished'`.
-  const voiceStatus = voice.status;
-  const prevVoiceStatusRef = useRef(voiceStatus);
-  const voiceToggle = voice.toggle;
-  const voiceIsActive = voice.isActive;
-  const questionsLoading = currentChapterQuestionsQuery.isLoading;
-  useEffect(() => {
-    const prevVoiceStatus = prevVoiceStatusRef.current;
-    prevVoiceStatusRef.current = voiceStatus;
-
-    // Phase 1: finished transition → navigate to next chapter.
-    if (voiceStatus === 'finished' && prevVoiceStatus !== 'finished') {
-      if (!autoAdvance || pendingAutoStartRef.current) return;
-      const nextIndex = selectedChapterIndex + 1;
-      if (nextIndex >= chapters.length) return;
-      pendingAutoStartRef.current = true;
-      navigate(`/learn/${id}/${chapters[nextIndex].id}`);
-      return;
-    }
-
-    // Phase 2: resume playback on the freshly-navigated chapter.
-    if (!pendingAutoStartRef.current) return;
-    // Preference off mid-flight, or playback already active/errored — cancel.
-    if (!autoAdvance || voiceIsActive || voiceStatus === 'error') {
-      pendingAutoStartRef.current = false;
-      return;
-    }
-    if (voiceStatus !== 'idle' || questionsLoading) return;
-    if (currentChapterQuestions.length > 0) {
-      pendingAutoStartRef.current = false;
-      voiceToggle();
-      return;
-    }
-    // Empty chapter — keep advancing until one has content or we run out.
-    const nextIndex = selectedChapterIndex + 1;
-    if (nextIndex < chapters.length) {
-      navigate(`/learn/${id}/${chapters[nextIndex].id}`);
-    } else {
-      pendingAutoStartRef.current = false;
-    }
-    // `voiceToggle` now has a stable identity (memoized in the voice hook), so
-    // it can be a real dependency without re-running this effect every render.
-  }, [
-    voiceStatus,
-    autoAdvance,
-    voiceIsActive,
-    questionsLoading,
-    currentChapterQuestions,
-    selectedChapterIndex,
-    chapters,
-    id,
-    navigate,
-    voiceToggle,
-  ]);
 
   if (lectureQuery.isLoading || chaptersQuery.isLoading) {
     return <LoadingState />;
@@ -365,8 +255,8 @@ export const LectureLearn = () => {
                     {speechConfigured && currentChapterQuestions.length > 0 && (
                       <div className="mt-4">
                         <AutoAdvanceToggle
-                          checked={autoAdvance}
-                          onChange={handleAutoAdvanceChange}
+                          checked={voice.autoAdvance}
+                          onChange={voice.setAutoAdvance}
                         />
                       </div>
                     )}

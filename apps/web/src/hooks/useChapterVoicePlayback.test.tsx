@@ -135,6 +135,49 @@ describe('useChapterVoicePlayback', () => {
     expect(result.current.isActive).toBe(false);
   });
 
+  it('reports a finished chapter once through onFinished', async () => {
+    const onFinished = vi.fn();
+    const { result } = renderHook(() =>
+      useChapterVoicePlayback({
+        questions: makeQuestions(1),
+        language: 'en',
+        enabled: true,
+        chapterId: 'c1',
+        onFinished,
+      }),
+    );
+
+    act(() => result.current.toggle());
+    await flush();
+    await act(async () => lastAudio().end()); // question
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(400);
+    });
+    expect(onFinished).not.toHaveBeenCalled();
+    await act(async () => lastAudio().end()); // answer
+
+    expect(onFinished).toHaveBeenCalledTimes(1);
+  });
+
+  it('play never pauses a running chapter', async () => {
+    const { result } = renderHook(() =>
+      useChapterVoicePlayback({
+        questions: makeQuestions(2),
+        language: 'en',
+        enabled: true,
+        chapterId: 'c1',
+      }),
+    );
+
+    act(() => result.current.play());
+    await flush();
+    act(() => result.current.play());
+
+    expect(result.current.isPaused).toBe(false);
+    expect(result.current.status).toBe('speaking-question');
+    expect(mutateAsync).toHaveBeenCalledTimes(1);
+  });
+
   it('pauses and resumes playback', async () => {
     const { result } = renderHook(() =>
       useChapterVoicePlayback({
