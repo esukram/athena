@@ -137,6 +137,9 @@ test.describe('Lecture Train', () => {
     await page.getByRole('button', { name: 'Review again' }).click();
     await expect(page).toHaveURL(new RegExp(`/train/${lectureId}/c1/q2`));
 
+    // A new card always starts on its question side.
+    await expect(page.getByRole('button', { name: 'Flip card' })).toBeVisible();
+
     // Next from the last Question crosses into Chapter 2 at its start...
     await page.getByRole('button', { name: 'Next' }).click();
     await expect(page).toHaveURL(new RegExp(`/train/${lectureId}/c2$`));

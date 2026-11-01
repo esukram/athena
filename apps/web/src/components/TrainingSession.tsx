@@ -51,7 +51,6 @@ const TrainingSessionContent = ({
   const [flipped, setFlipped] = useState(false);
   const [flipping, setFlipping] = useState(false);
   const flipTimersRef = useRef<number[]>([]);
-  const lastQuestionIdRef = useRef<string | undefined>(undefined);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const chapterButtonsRef = useRef<Map<number, HTMLButtonElement>>(new Map());
 
@@ -132,11 +131,15 @@ const TrainingSessionContent = ({
   // arrow navigation and the __last__ replace-redirect can all switch questions
   // outside the flip-button path, so this guards every transition. We adjust
   // state during render (React's recommended pattern) instead of in an effect
-  // so the reset is applied before paint and avoids cascading effect renders.
-  if (lastQuestionIdRef.current !== currentQuestionId) {
-    lastQuestionIdRef.current = currentQuestionId;
-    if (flipped) setFlipped(false);
-    if (flipping) setFlipping(false);
+  // so the reset is applied before paint. The previous id lives in state, not
+  // a ref: navigations render as transitions, and an interrupted render that
+  // had already written a ref would skip the reset when it restarts, leaving
+  // the next card on its answer side.
+  const [flipQuestionId, setFlipQuestionId] = useState(currentQuestionId);
+  if (flipQuestionId !== currentQuestionId) {
+    setFlipQuestionId(currentQuestionId);
+    setFlipped(false);
+    setFlipping(false);
   }
 
   // Clearing the pending flip timers is an external-system side effect, so it
