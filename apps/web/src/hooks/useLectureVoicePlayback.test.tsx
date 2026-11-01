@@ -8,7 +8,7 @@ import {
 } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { ReactNode } from 'react';
+import { type ReactNode, useLayoutEffect } from 'react';
 
 import { act, renderHook } from '@testing-library/react';
 
@@ -79,7 +79,11 @@ function createBackend() {
   };
 }
 
-function renderPlayback(url: string, backend = createBackend()) {
+function renderPlayback(
+  url: string,
+  backend = createBackend(),
+  onCommit?: (playback: ReturnType<typeof useLectureVoicePlayback>) => void,
+) {
   const { Wrapper } = createTrpcTestWrapper(backend);
   const wrapper = ({ children }: { children: ReactNode }) => (
     <Wrapper>
@@ -93,13 +97,15 @@ function renderPlayback(url: string, backend = createBackend()) {
   const rendered = renderHook(
     () => {
       const params = useParams();
+      const playback = useLectureVoicePlayback({
+        lectureId: params.id!,
+        chapters,
+        chapterId: params.chapterId,
+        language: 'en',
+      });
+      useLayoutEffect(() => onCommit?.(playback));
       return {
-        playback: useLectureVoicePlayback({
-          lectureId: params.id!,
-          chapters,
-          chapterId: params.chapterId,
-          language: 'en',
-        }),
+        playback,
         path: useLocation().pathname,
         navigate: useNavigate(),
       };
@@ -260,7 +266,37 @@ describe('useLectureVoicePlayback', () => {
     expect(synthesizedChapters(backend)).toEqual(['c1']);
   });
 
-  it('keeps auto-advancing after leaving a Chapter that was about to start (regression 95251e4)', async () => {
+  it('keeps auto-advancing after manual Play during the resume window (regression 95251e4)', async () => {
+    let manuallyStarted = false;
+    const { result, backend } = renderPlayback(
+      '/learn/l1/c1',
+      createBackend(),
+      (playback) => {
+        // Simulate Play after c2's Questions commit, before the passive
+        // continuation effect can start it automatically.
+        if (
+          playback.chapter?.id === 'c2' &&
+          playback.questions.length > 0 &&
+          !manuallyStarted
+        ) {
+          manuallyStarted = true;
+          playback.toggle();
+        }
+      },
+    );
+    await advance(50);
+
+    act(() => result.current.playback.toggle());
+    await advance(5000);
+
+    expect(manuallyStarted).toBe(true);
+    expect(synthesizedChapters(backend)).toEqual(['c1', 'c2', 'c4']);
+    expect(backend.speech.synthesize).toHaveBeenCalledTimes(6);
+    expect(result.current.path).toBe('/learn/l1/c4');
+    expect(result.current.playback.status).toBe('finished');
+  });
+
+  it('keeps auto-advancing after leaving a Chapter that was about to start', async () => {
     const backend = createBackend();
     const c2Questions = deferred<Question[]>();
     backend.questions.getQuestions.mockImplementation(({ chapterId }) =>

@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+
 import { expect, test } from '@playwright/test';
 
 test.describe('Lecture Learn', () => {
@@ -217,6 +219,32 @@ test.describe('Lecture Learn', () => {
   test('auto-advance resumes voice playback in the next chapter', async ({
     page,
   }) => {
+    const audioData = readFileSync(
+      new URL('./fixtures/silence.wav', import.meta.url),
+    ).toString('base64');
+    await page.addInitScript(() => {
+      // Observe real browser media completion, keeping the native Audio
+      // implementation and scrolling behavior intact.
+      const NativeAudio = window.Audio;
+      window.Audio = class extends NativeAudio {
+        constructor(src?: string) {
+          super(src);
+          this.addEventListener('ended', () => {
+            const root = document.documentElement;
+            root.dataset.audioEnded = String(
+              Number(root.dataset.audioEnded ?? 0) + 1,
+            );
+          });
+        }
+      };
+      const scrollIntoView = Element.prototype.scrollIntoView;
+      Element.prototype.scrollIntoView = function (options) {
+        if (typeof options === 'object' && options.block === 'center') {
+          this.setAttribute('data-playback-scrolled', 'true');
+        }
+        scrollIntoView.call(this, options);
+      };
+    });
     const lectureId = 'lecture-1';
     const lecture = { id: lectureId, title: 'Auto Lecture', description: 'D' };
     const chapters = [
@@ -277,7 +305,7 @@ test.describe('Lecture Learn', () => {
         await new Promise((resolve) => setTimeout(resolve, 10000));
       }
       await route.fulfill({
-        json: { result: { data: { audioData: '', duration: 0 } } },
+        json: { result: { data: { audioData, duration: 100 } } },
       });
     });
 
@@ -293,6 +321,12 @@ test.describe('Lecture Learn', () => {
     await expect(
       page.getByRole('button', { name: 'Auto-play chapter' }),
     ).toHaveCount(0);
+    await expect(page.locator('html')).toHaveAttribute('data-audio-ended', '2');
+    const spokenQuestion = page.locator(
+      '[aria-current="true"][data-playback-scrolled="true"]',
+    );
+    await expect(spokenQuestion).toBeVisible();
+    await expect(spokenQuestion).toBeInViewport();
   });
 
   test('auto-advance preference persists across reloads', async ({ page }) => {
