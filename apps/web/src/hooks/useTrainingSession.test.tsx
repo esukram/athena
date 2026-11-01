@@ -16,9 +16,12 @@ import { getQueryKey } from '@trpc/react-query';
 import type { Chapter, Question } from '@athena/api';
 import type { TrainingMode } from '@athena/domain/training';
 
-import { createTrpcTestWrapper } from '../test/trpcTestLink';
+import { createTrpcTestWrapper, deferred } from '../test/trpcTestLink';
 import { trpc } from '../utils/trpc';
-import { useTrainingSession } from './useTrainingSession';
+import {
+  type TrainingSessionStatus,
+  useTrainingSession,
+} from './useTrainingSession';
 
 const chapter = (id: string, lectureId: string, order: number): Chapter => ({
   id,
@@ -38,8 +41,9 @@ const question = (id: string, chapterId: string, order: number): Question => ({
 
 /**
  * An in-memory backend: Lecture l1 has Chapters c1 (2 Questions), c2 (1) and
- * c3 (2); Lecture l2 has c4 (1). Annotating a Question updates the data the
- * Annotated read models derive from.
+ * c3 (2); l2 has c4 (1); l3 has c6 (1), an empty c7 and c8 (1); l4 has no
+ * Chapters. Annotating a Question updates the data the Annotated read models
+ * derive from.
  */
 function createBackend(annotated: string[] = []) {
   const chapters = [
@@ -47,6 +51,9 @@ function createBackend(annotated: string[] = []) {
     chapter('c2', 'l1', 1),
     chapter('c3', 'l1', 2),
     chapter('c4', 'l2', 0),
+    chapter('c6', 'l3', 0),
+    chapter('c7', 'l3', 1),
+    chapter('c8', 'l3', 2),
   ];
   const questions = [
     question('q1a', 'c1', 0),
@@ -55,6 +62,8 @@ function createBackend(annotated: string[] = []) {
     question('q3a', 'c3', 0),
     question('q3b', 'c3', 1),
     question('q4a', 'c4', 0),
+    question('q6a', 'c6', 0),
+    question('q8a', 'c8', 0),
   ].map((q) => ({ ...q, isAnnotated: annotated.includes(q.id) }));
 
   const chaptersOf = (lectureId: string) =>
@@ -64,13 +73,21 @@ function createBackend(annotated: string[] = []) {
 
   const handlers = {
     chapters: {
-      getChapters: vi.fn(({ lectureId }: { lectureId: string }) =>
-        chaptersOf(lectureId),
+      getChapters: vi.fn(
+        ({
+          lectureId,
+        }: {
+          lectureId: string;
+        }): Chapter[] | Promise<Chapter[]> => chaptersOf(lectureId),
       ),
     },
     questions: {
-      getQuestions: vi.fn(({ chapterId }: { chapterId: string }) =>
-        questionsOf(chapterId),
+      getQuestions: vi.fn(
+        ({
+          chapterId,
+        }: {
+          chapterId: string;
+        }): Question[] | Promise<Question[]> => questionsOf(chapterId),
       ),
       getFirstQuestionsByLecture: ({ lectureId }: { lectureId: string }) =>
         Object.fromEntries(
@@ -98,7 +115,7 @@ function createBackend(annotated: string[] = []) {
       }),
     },
   };
-  return handlers;
+  return { ...handlers, questionsOf };
 }
 
 function renderSession(
@@ -126,23 +143,27 @@ function renderSession(
     </Wrapper>
   );
 
+  // Every rendered status, so a single-frame flash is visible to a test.
+  const statuses: TrainingSessionStatus[] = [];
   const rendered = renderHook(
     () => {
       const params = useParams();
+      const session = useTrainingSession({
+        lectureId: params.id!,
+        mode,
+        chapterId: params.chapterId,
+        questionId: params.questionId,
+      });
+      statuses.push(session.status);
       return {
-        session: useTrainingSession({
-          lectureId: params.id!,
-          mode,
-          chapterId: params.chapterId,
-          questionId: params.questionId,
-        }),
+        session,
         path: useLocation().pathname,
         navigate: useNavigate(),
       };
     },
     { wrapper },
   );
-  return { ...rendered, backend, queryClient };
+  return { ...rendered, backend, queryClient, statuses };
 }
 
 type Rendered = ReturnType<typeof renderSession>['result'];
@@ -396,6 +417,370 @@ describe('useTrainingSession', () => {
           new Set(['c1']),
         ),
       );
+    });
+  });
+
+  describe('status', () => {
+    it('is loading, not empty, while a Chapter loads', async () => {
+      const questions = deferred<Question[]>();
+      const backend = createBackend();
+      backend.questions.getQuestions.mockReturnValue(questions.promise);
+      const { result, statuses } = renderSession('/train/l1', { backend });
+
+      await waitFor(() =>
+        expect(result.current.session.chapters).toHaveLength(3),
+      );
+      expect(result.current.session.status).toBe('loading');
+
+      questions.resolve(backend.questionsOf('c1'));
+      await waitFor(() => expect(result.current.session.status).toBe('ready'));
+      expect(new Set(statuses)).toEqual(new Set(['loading', 'ready']));
+    });
+
+    it('is empty for a Chapter without Questions', async () => {
+      const { result } = renderSession('/train/l3/c7');
+
+      await waitFor(() => expect(result.current.session.status).toBe('empty'));
+      expect(result.current.session.chapter?.id).toBe('c7');
+      expect(result.current.session.question).toBeUndefined();
+    });
+
+    it('is empty for a Lecture without Chapters', async () => {
+      const { result } = renderSession('/train/l4');
+
+      await waitFor(() => expect(result.current.session.status).toBe('empty'));
+      expect(result.current.session.chapters).toEqual([]);
+    });
+
+    it('steps over an empty Chapter in both directions', async () => {
+      const { result } = renderSession('/train/l3/c7');
+      await waitFor(() => expect(result.current.session.status).toBe('empty'));
+
+      act(() => result.current.session.next());
+      expect(result.current.path).toBe('/train/l3/c8');
+
+      act(() => result.current.navigate('/train/l3/c7'));
+      await waitFor(() => expect(result.current.session.status).toBe('empty'));
+      act(() => result.current.session.previous());
+      await waitFor(() => expect(result.current.path).toBe('/train/l3/c6/q6a'));
+    });
+
+    it('reports a failed Chapter list as error and retries', async () => {
+      const backend = createBackend();
+      backend.chapters.getChapters.mockImplementationOnce(() => {
+        throw new Error('offline');
+      });
+      const { result } = renderSession('/train/l1/c1/q1b', { backend });
+
+      await waitFor(() => expect(result.current.session.status).toBe('error'));
+
+      act(() => result.current.session.retry());
+
+      await waitForQuestion(result, 'q1b');
+      expect(result.current.session.status).toBe('ready');
+      expect(result.current.path).toBe('/train/l1/c1/q1b');
+    });
+
+    it('reports failed Questions as error and retries', async () => {
+      const backend = createBackend();
+      backend.questions.getQuestions.mockImplementationOnce(() => {
+        throw new Error('offline');
+      });
+      const { result } = renderSession('/train/l1/c2/q2a', { backend });
+
+      await waitFor(() => expect(result.current.session.status).toBe('error'));
+
+      act(() => result.current.session.retry());
+
+      await waitForQuestion(result, 'q2a');
+      expect(result.current.session.status).toBe('ready');
+    });
+  });
+
+  describe('moving back onto the last Question (__last__)', () => {
+    /** Holds c2's Questions until the test releases them. */
+    function holdChapterTwo() {
+      const backend = createBackend();
+      const c2 = deferred<Question[]>();
+      backend.questions.getQuestions.mockImplementation(({ chapterId }) =>
+        chapterId === 'c2' ? c2.promise : backend.questionsOf(chapterId),
+      );
+      return { backend, c2 };
+    }
+
+    it('stays loading while the Chapter loads, then replaces the URL', async () => {
+      const { backend, c2 } = holdChapterTwo();
+      const { result, statuses } = renderSession('/train/l1/c3/q3a', {
+        backend,
+      });
+      await waitForQuestion(result, 'q3a');
+
+      act(() => result.current.session.previous());
+
+      expect(result.current.path).toBe('/train/l1/c2/__last__');
+      await waitFor(() =>
+        expect(result.current.session.status).toBe('loading'),
+      );
+      expect(result.current.session.chapter?.id).toBe('c2');
+
+      c2.resolve(backend.questionsOf('c2'));
+
+      await waitFor(() => expect(result.current.path).toBe('/train/l1/c2/q2a'));
+      expect(result.current.session.status).toBe('ready');
+      // The placeholder is never mistaken for an unknown Question.
+      expect(statuses).not.toContain('not-found');
+    });
+
+    it('ignores further next/previous presses while it resolves', async () => {
+      const { backend, c2 } = holdChapterTwo();
+      const { result } = renderSession('/train/l1/c3/q3a', { backend });
+      await waitForQuestion(result, 'q3a');
+
+      act(() => result.current.session.previous());
+      act(() => result.current.session.previous());
+      act(() => result.current.session.next());
+
+      expect(result.current.path).toBe('/train/l1/c2/__last__');
+      expect(result.current.session.isFirst).toBe(true);
+      expect(result.current.session.isLast).toBe(true);
+
+      c2.resolve(backend.questionsOf('c2'));
+      await waitFor(() => expect(result.current.path).toBe('/train/l1/c2/q2a'));
+
+      // One history entry was added, so Back returns to the start.
+      act(() => result.current.navigate(-1));
+      await waitFor(() => expect(result.current.path).toBe('/train/l1/c3/q3a'));
+    });
+
+    it('lands on the Chapter-only URL when that Chapter is empty', async () => {
+      const { result } = renderSession('/train/l3/c8/q8a');
+      await waitForQuestion(result, 'q8a');
+
+      act(() => result.current.session.previous());
+
+      await waitFor(() => expect(result.current.path).toBe('/train/l3/c7'));
+      expect(result.current.session.status).toBe('empty');
+    });
+
+    it('keeps the URL on failure and resolves after a retry', async () => {
+      const backend = createBackend();
+      backend.questions.getQuestions.mockImplementation(({ chapterId }) => {
+        if (chapterId === 'c2') throw new Error('offline');
+        return backend.questionsOf(chapterId);
+      });
+      const { result } = renderSession('/train/l1/c3/q3a', { backend });
+      await waitForQuestion(result, 'q3a');
+
+      act(() => result.current.session.previous());
+
+      await waitFor(() => expect(result.current.session.status).toBe('error'));
+      expect(result.current.path).toBe('/train/l1/c2/__last__');
+
+      backend.questions.getQuestions.mockImplementation(({ chapterId }) =>
+        backend.questionsOf(chapterId),
+      );
+      act(() => result.current.session.retry());
+
+      await waitFor(() => expect(result.current.path).toBe('/train/l1/c2/q2a'));
+      expect(result.current.session.status).toBe('ready');
+    });
+
+    it('never redirects once the learner has moved on', async () => {
+      const { backend, c2 } = holdChapterTwo();
+      const { result } = renderSession('/train/l1/c3/q3a', { backend });
+      await waitForQuestion(result, 'q3a');
+
+      act(() => result.current.session.previous());
+      await waitFor(() =>
+        expect(result.current.session.status).toBe('loading'),
+      );
+
+      // Sidebar selection still works while it resolves.
+      act(() =>
+        result.current.session.selectChapter(
+          result.current.session.chapters[0],
+        ),
+      );
+      await waitForQuestion(result, 'q1a');
+
+      c2.resolve(backend.questionsOf('c2'));
+      await act(() => new Promise((resolve) => setTimeout(resolve, 20)));
+
+      expect(result.current.path).toBe('/train/l1/c1');
+      expect(result.current.session.question?.id).toBe('q1a');
+    });
+
+    it('resolves again when Back returns to an unresolved entry', async () => {
+      const { backend, c2 } = holdChapterTwo();
+      const { result } = renderSession('/train/l1/c3/q3a', { backend });
+      await waitForQuestion(result, 'q3a');
+
+      act(() => result.current.session.previous());
+      act(() =>
+        result.current.session.selectChapter(
+          result.current.session.chapters[0],
+        ),
+      );
+      await waitForQuestion(result, 'q1a');
+      c2.resolve(backend.questionsOf('c2'));
+
+      act(() => result.current.navigate(-1));
+
+      await waitFor(() => expect(result.current.path).toBe('/train/l1/c2/q2a'));
+
+      // Forward still reaches the Chapter the learner had moved to.
+      act(() => result.current.navigate(1));
+      await waitFor(() => expect(result.current.path).toBe('/train/l1/c1'));
+    });
+
+    it('resolves an old __last__ URL opened directly', async () => {
+      const { result, statuses } = renderSession('/train/l1/c3/__last__');
+
+      await waitFor(() => expect(result.current.path).toBe('/train/l1/c3/q3b'));
+      expect(result.current.session.status).toBe('ready');
+      expect(statuses).not.toContain('not-found');
+    });
+
+    it('treats __last__ in an unknown Chapter as not found', async () => {
+      const { result } = renderSession('/train/l1/nope/__last__');
+
+      await waitFor(() =>
+        expect(result.current.session.status).toBe('not-found'),
+      );
+      expect(result.current.session.notFound).toBe('chapter');
+    });
+  });
+
+  describe('unknown ids', () => {
+    it('reports an unknown Chapter and goes to the first Chapter', async () => {
+      const { result } = renderSession('/train/l1/nope', {
+        backend: createBackend(['q3a']),
+      });
+
+      await waitFor(() =>
+        expect(result.current.session.status).toBe('not-found'),
+      );
+      expect(result.current.session.notFound).toBe('chapter');
+      expect(result.current.session.chapterIndex).toBe(-1);
+      // A first entry (new tab, pasted link) has nothing in-app to go back to.
+      expect(result.current.session.canGoBack).toBe(false);
+
+      act(() => result.current.session.goToCanonical());
+
+      // The first Chapter in session order: Annotated c3 comes first.
+      expect(result.current.path).toBe('/train/l1/c3');
+      await waitForQuestion(result, 'q3a');
+    });
+
+    it('reports an unknown Question and goes to its Chapter', async () => {
+      const { result } = renderSession('/train/l1/c3/stale');
+
+      await waitFor(() =>
+        expect(result.current.session.status).toBe('not-found'),
+      );
+      expect(result.current.session.notFound).toBe('question');
+      expect(result.current.session.chapter?.id).toBe('c3');
+
+      act(() => result.current.session.goToCanonical());
+
+      expect(result.current.path).toBe('/train/l1/c3');
+      await waitForQuestion(result, 'q3a');
+    });
+
+    it('reports an unknown Chapter in a Lecture without Chapters', async () => {
+      const { result } = renderSession('/train/l4/deleted/__last__');
+
+      await waitFor(() =>
+        expect(result.current.session.status).toBe('not-found'),
+      );
+      expect(result.current.session.notFound).toBe('chapter');
+
+      act(() => result.current.session.goToCanonical());
+
+      expect(result.current.path).toBe('/train/l4');
+      await waitFor(() => expect(result.current.session.status).toBe('empty'));
+    });
+
+    it('offers no Back after the first entry was replaced', async () => {
+      const { result, backend, queryClient } = renderSession(
+        '/train/l1/c3/__last__',
+      );
+      await waitFor(() => expect(result.current.path).toBe('/train/l1/c3/q3b'));
+
+      // The Question disappears on a later refetch.
+      backend.questions.getQuestions.mockImplementation(({ chapterId }) =>
+        backend.questionsOf(chapterId).filter((q) => q.id !== 'q3b'),
+      );
+      await act(() => queryClient.invalidateQueries());
+
+      await waitFor(() =>
+        expect(result.current.session.status).toBe('not-found'),
+      );
+      expect(result.current.session.canGoBack).toBe(false);
+    });
+
+    it('still offers Back after an in-app entry was replaced', async () => {
+      const { result } = renderSession('/train/l1/c3/q3a');
+      await waitForQuestion(result, 'q3a');
+
+      act(() => result.current.session.previous());
+
+      await waitFor(() => expect(result.current.path).toBe('/train/l1/c2/q2a'));
+      expect(result.current.session.canGoBack).toBe(true);
+    });
+
+    it('reports an unknown Question in an empty Chapter', async () => {
+      const { result } = renderSession('/train/l3/c7/stale');
+
+      await waitFor(() =>
+        expect(result.current.session.status).toBe('not-found'),
+      );
+      expect(result.current.session.notFound).toBe('question');
+    });
+
+    it('offers Back after an in-app navigation', async () => {
+      const { result } = renderSession('/train/l1/c1/q1a');
+      await waitForQuestion(result, 'q1a');
+
+      act(() => result.current.navigate('/train/l1/c1/stale'));
+
+      await waitFor(() =>
+        expect(result.current.session.status).toBe('not-found'),
+      );
+      expect(result.current.session.canGoBack).toBe(true);
+
+      act(() => result.current.session.goBack());
+
+      await waitFor(() => expect(result.current.path).toBe('/train/l1/c1/q1a'));
+      expect(result.current.session.status).toBe('ready');
+    });
+
+    it('keeps the sidebar usable', async () => {
+      const { result } = renderSession('/train/l1/nope');
+      await waitFor(() =>
+        expect(result.current.session.status).toBe('not-found'),
+      );
+
+      act(() =>
+        result.current.session.selectChapter(
+          result.current.session.chapters[1],
+        ),
+      );
+
+      expect(result.current.path).toBe('/train/l1/c2');
+      await waitForQuestion(result, 'q2a');
+    });
+
+    it('ignores next and previous', async () => {
+      const { result } = renderSession('/train/l1/c1/stale');
+      await waitFor(() =>
+        expect(result.current.session.status).toBe('not-found'),
+      );
+
+      act(() => result.current.session.next());
+      act(() => result.current.session.previous());
+
+      expect(result.current.path).toBe('/train/l1/c1/stale');
     });
   });
 });
