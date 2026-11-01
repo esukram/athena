@@ -91,6 +91,7 @@ concept enters the code, give it its glossary name rather than an improvised one
 | **Order**    | The 0-based contiguous position of a chapter in its lecture, or a question in its chapter. | Modelled by the `OrderIndex` value object. |
 | **Annotated**| A question the learner flagged to revisit; surfaces its chapter first in regular training. | |
 | **Training session** | One pass through a Lecture's Chapters in the Training context, in regular (Annotated-first) or randomized order. Its position (Chapter, Question) lives in the URL; order is fixed for the session's lifetime. | Code: `useTrainingSession`. Randomized order is not persisted across reloads (#305). |
+| **Chapter editor** | Editing one Chapter's Tag and Questions. Adding a Question auto-saves; Save writes the rest and closes. Writes run one at a time, and a Question keeps its identity before and after it is first saved. | Code: `useChapterEditor`. |
 
 ## **3. UI Design Guidelines**
 

@@ -62,7 +62,6 @@
     "savedSuccessfully": "Fach erfolgreich aktualisiert!",
     "chapters": "Kapitel",
     "newChapterQuestion": "Neue Kapitelfrage",
-    "adding": "Wird hinzugefügt...",
     "loadingChapters": "Kapitel werden geladen...",
     "noChaptersYet": "Noch keine Kapitel. Fügen Sie oben Ihr erstes Kapitel hinzu.",
     "confirmDeleteChapter": "Möchten Sie dieses Kapitel wirklich löschen?",
@@ -138,7 +137,8 @@
     "deleteQuestion": "Frage löschen",
     "answerPlaceholder": "Schreiben Sie Ihre Antwort in Markdown...",
     "confirmDiscardChanges": "Sie haben ungespeicherte Änderungen. Verwerfen?",
-    "autoSaved": "Änderungen gespeichert"
+    "autoSaved": "Änderungen gespeichert",
+    "saveFailed": "Speichern fehlgeschlagen. Bitte erneut versuchen."
   },
   "speech": {
     "playQuestion": "Frage vorlesen",

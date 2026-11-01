@@ -4,65 +4,42 @@ import ReactMarkdown from 'react-markdown';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-export interface EditingQuestion {
-  id: string | null;
-  question: string;
-  answer: string;
-  order: number;
-  isExpanded: boolean;
-  showPreview: boolean;
-}
+import type { ChapterEdit } from '../hooks/useChapterEditor';
 
 interface EditChapterModalProps {
-  association: string;
-  questions: EditingQuestion[];
-  isSaving: boolean;
+  edit: ChapterEdit;
   existingAssociations?: string[];
-  initialAssociation: string;
-  initialQuestions: EditingQuestion[];
-  onAssociationChange: (association: string) => void;
-  onAddQuestion: () => void;
-  onUpdateQuestion: (index: number, updates: Partial<EditingQuestion>) => void;
-  onToggleQuestionExpanded: (index: number) => void;
-  onDeleteQuestion: (index: number) => void;
-  onSave: () => void;
-  onCancel: () => void;
 }
 
 export const EditChapterModal = ({
-  association,
-  questions,
-  isSaving,
+  edit,
   existingAssociations = [],
-  initialAssociation,
-  initialQuestions,
-  onAssociationChange,
-  onAddQuestion,
-  onUpdateQuestion,
-  onToggleQuestionExpanded,
-  onDeleteQuestion,
-  onSave,
-  onCancel,
 }: EditChapterModalProps) => {
   const { t } = useTranslation();
-  const canSave = questions.some((q) => q.question.trim());
+  const { draft, canSave, isDirty, isSaving, saveFailed } = edit;
+  const association = draft.tag;
+  const questions = draft.questions;
+  const onAssociationChange = edit.setTag;
+  const onCancel = edit.close;
 
-  // Compute dirty state by comparing current values against initial values
-  const isDirty = (() => {
-    // Check if association changed
-    if (association !== initialAssociation) return true;
-    // Check if questions count changed
-    if (questions.length !== initialQuestions.length) return true;
-    // Check if any question content changed
-    for (let i = 0; i < questions.length; i++) {
-      const current = questions[i];
-      const initial = initialQuestions[i];
-      if (!initial) return true;
-      if (current.question !== initial.question) return true;
-      if (current.answer !== initial.answer) return true;
-    }
-    return false;
-  })();
+  // Accordion: at most one Question expanded, the first one on open.
+  const [expandedKey, setExpandedKey] = useState<string | null>(
+    questions[0]?.key ?? null,
+  );
+  const [previewKeys, setPreviewKeys] = useState<ReadonlySet<string>>(
+    () => new Set(),
+  );
+  const togglePreview = (key: string) =>
+    setPreviewKeys((prev) => {
+      const next = new Set(prev);
+      if (!next.delete(key)) next.add(key);
+      return next;
+    });
+  const handleAddQuestion = () => {
+    const key = edit.addQuestion();
+    if (key) setExpandedKey(key);
+  };
+
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
   const [lastUsedAssociation, setLastUsedAssociation] = useState<string | null>(
@@ -149,12 +126,12 @@ export const EditChapterModal = ({
       localStorage.setItem('lastUsedAssociation', association.trim());
       setLastUsedAssociation(association.trim());
     }
-    onSave();
-  }, [association, onSave]);
+    void edit.save();
+  }, [association, edit]);
 
   const handleAnswerKeyDown = (
     e: React.KeyboardEvent<HTMLTextAreaElement>,
-    index: number,
+    key: string,
     currentAnswer: string,
   ) => {
     if (e.key === 'Enter' && !e.shiftKey && !e.ctrlKey && !e.metaKey) {
@@ -166,7 +143,7 @@ export const EditChapterModal = ({
       const newValue =
         value.substring(0, start) + '\n\n' + value.substring(end);
 
-      onUpdateQuestion(index, { answer: newValue });
+      edit.updateQuestion(key, { answer: newValue });
 
       setTimeout(() => {
         textarea.selectionStart = textarea.selectionEnd = start + 2;
@@ -260,7 +237,7 @@ export const EditChapterModal = ({
               </label>
               <button
                 type="button"
-                onClick={onAddQuestion}
+                onClick={handleAddQuestion}
                 className="flex items-center gap-1 px-3 py-1.5 text-sm text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
               >
                 <Plus size={16} />
@@ -269,128 +246,133 @@ export const EditChapterModal = ({
             </div>
 
             <div className="space-y-3">
-              {questions.map((eq, index) => (
-                <div
-                  key={eq.id ?? `new-${eq.order}`}
-                  className="border border-border rounded-lg overflow-hidden"
-                >
-                  {/* Accordion Header */}
-                  <button
-                    type="button"
-                    onClick={() => onToggleQuestionExpanded(index)}
-                    className="w-full flex items-center justify-between p-4 bg-bg-tint hover:bg-surface-2 transition-colors text-left"
+              {questions.map((eq, index) => {
+                const isExpanded = eq.key === expandedKey;
+                const showPreview = previewKeys.has(eq.key);
+                return (
+                  <div
+                    key={eq.key}
+                    className="border border-border rounded-lg overflow-hidden"
                   >
-                    <div className="flex items-center gap-3 flex-1 min-w-0">
-                      <span className="shrink-0 w-6 h-6 flex items-center justify-center bg-primary-100 text-primary-700 font-semibold rounded-full text-xs">
-                        {index + 1}
-                      </span>
-                      <span className="text-on-surface font-medium truncate">
-                        {eq.question || t('editChapterModal.newQuestion')}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2 ml-2">
-                      {questions.length > 1 && (
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onDeleteQuestion(index);
-                          }}
-                          className="p-1 text-red-500 hover:bg-red-50 rounded transition-colors"
-                          title={t('editChapterModal.deleteQuestion')}
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      )}
-                      {eq.isExpanded ? (
-                        <ChevronUp size={20} className="text-ink-faint" />
-                      ) : (
-                        <ChevronDown size={20} className="text-ink-faint" />
-                      )}
-                    </div>
-                  </button>
-
-                  {/* Accordion Content */}
-                  {eq.isExpanded && (
-                    <div className="p-4 space-y-4 border-t border-border">
-                      <div>
-                        <label className="block text-sm font-medium text-on-surface mb-2">
-                          {t('editChapterModal.question')}
-                        </label>
-                        <input
-                          type="text"
-                          value={eq.question}
-                          onChange={(e) =>
-                            onUpdateQuestion(index, {
-                              question: e.target.value,
-                            })
-                          }
-                          className="w-full px-4 py-2 rounded-lg bg-surface border border-border focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
-                          placeholder={t(
-                            'editChapterModal.questionPlaceholder',
-                          )}
-                        />
+                    {/* Accordion Header */}
+                    <button
+                      type="button"
+                      onClick={() => setExpandedKey(isExpanded ? null : eq.key)}
+                      className="w-full flex items-center justify-between p-4 bg-bg-tint hover:bg-surface-2 transition-colors text-left"
+                    >
+                      <div className="flex items-center gap-3 flex-1 min-w-0">
+                        <span className="shrink-0 w-6 h-6 flex items-center justify-center bg-primary-100 text-primary-700 font-semibold rounded-full text-xs">
+                          {index + 1}
+                        </span>
+                        <span className="text-on-surface font-medium truncate">
+                          {eq.question || t('editChapterModal.newQuestion')}
+                        </span>
                       </div>
-
-                      <div>
-                        <div className="flex items-center justify-between mb-2">
-                          <label className="block text-sm font-medium text-on-surface">
-                            {t('editChapterModal.answerMarkdown')}
-                          </label>
+                      <div className="flex items-center gap-2 ml-2">
+                        {questions.length > 1 && (
                           <button
                             type="button"
-                            tabIndex={-1}
-                            onClick={() =>
-                              onUpdateQuestion(index, {
-                                showPreview: !eq.showPreview,
-                              })
-                            }
-                            className="text-sm text-primary-600 hover:text-primary-700"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              edit.deleteQuestion(eq.key);
+                            }}
+                            className="p-1 text-red-500 hover:bg-red-50 rounded transition-colors"
+                            title={t('editChapterModal.deleteQuestion')}
                           >
-                            {eq.showPreview
-                              ? t('common.edit')
-                              : t('editChapterModal.preview')}
+                            <Trash2 size={16} />
                           </button>
-                        </div>
-
-                        {eq.showPreview ? (
-                          <div className="w-full min-h-[200px] px-4 py-3 rounded-lg border border-border bg-surface prose prose-sm dark:prose-invert max-w-none overflow-y-auto">
-                            {eq.answer ? (
-                              <ReactMarkdown>{eq.answer}</ReactMarkdown>
-                            ) : (
-                              <p className="text-ink-faint italic">
-                                {t('editChapterModal.noContentYet')}
-                              </p>
-                            )}
-                          </div>
+                        )}
+                        {isExpanded ? (
+                          <ChevronUp size={20} className="text-ink-faint" />
                         ) : (
-                          <textarea
-                            value={eq.answer}
-                            onChange={(e) =>
-                              onUpdateQuestion(index, {
-                                answer: e.target.value,
-                              })
-                            }
-                            onKeyDown={(e) =>
-                              handleAnswerKeyDown(e, index, eq.answer)
-                            }
-                            rows={8}
-                            className="w-full px-4 py-3 rounded-lg bg-surface border border-border focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none font-mono text-sm resize-none"
-                            placeholder={t(
-                              'editChapterModal.answerPlaceholder',
-                            )}
-                          />
+                          <ChevronDown size={20} className="text-ink-faint" />
                         )}
                       </div>
-                    </div>
-                  )}
-                </div>
-              ))}
+                    </button>
+
+                    {/* Accordion Content */}
+                    {isExpanded && (
+                      <div className="p-4 space-y-4 border-t border-border">
+                        <div>
+                          <label className="block text-sm font-medium text-on-surface mb-2">
+                            {t('editChapterModal.question')}
+                          </label>
+                          <input
+                            type="text"
+                            value={eq.question}
+                            onChange={(e) =>
+                              edit.updateQuestion(eq.key, {
+                                question: e.target.value,
+                              })
+                            }
+                            className="w-full px-4 py-2 rounded-lg bg-surface border border-border focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+                            placeholder={t(
+                              'editChapterModal.questionPlaceholder',
+                            )}
+                          />
+                        </div>
+
+                        <div>
+                          <div className="flex items-center justify-between mb-2">
+                            <label className="block text-sm font-medium text-on-surface">
+                              {t('editChapterModal.answerMarkdown')}
+                            </label>
+                            <button
+                              type="button"
+                              tabIndex={-1}
+                              onClick={() => togglePreview(eq.key)}
+                              className="text-sm text-primary-600 hover:text-primary-700"
+                            >
+                              {showPreview
+                                ? t('common.edit')
+                                : t('editChapterModal.preview')}
+                            </button>
+                          </div>
+
+                          {showPreview ? (
+                            <div className="w-full min-h-[200px] px-4 py-3 rounded-lg border border-border bg-surface prose prose-sm dark:prose-invert max-w-none overflow-y-auto">
+                              {eq.answer ? (
+                                <ReactMarkdown>{eq.answer}</ReactMarkdown>
+                              ) : (
+                                <p className="text-ink-faint italic">
+                                  {t('editChapterModal.noContentYet')}
+                                </p>
+                              )}
+                            </div>
+                          ) : (
+                            <textarea
+                              value={eq.answer}
+                              onChange={(e) =>
+                                edit.updateQuestion(eq.key, {
+                                  answer: e.target.value,
+                                })
+                              }
+                              onKeyDown={(e) =>
+                                handleAnswerKeyDown(e, eq.key, eq.answer)
+                              }
+                              rows={8}
+                              className="w-full px-4 py-3 rounded-lg bg-surface border border-border focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none font-mono text-sm resize-none"
+                              placeholder={t(
+                                'editChapterModal.answerPlaceholder',
+                              )}
+                            />
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
 
-        <div className="p-6 border-t border-border flex gap-3 justify-end">
+        <div className="p-6 border-t border-border flex flex-wrap items-center gap-3 justify-end">
+          {saveFailed && (
+            <p role="alert" className="mr-auto text-sm text-error">
+              {t('editChapterModal.saveFailed')}
+            </p>
+          )}
           <button
             onClick={onCancel}
             title={`${t('common.cancel')} (Esc)`}
