@@ -17,8 +17,9 @@ import { trpc } from '../utils/trpc';
  *
  * For each question the runner speaks the question, pauses briefly, speaks the
  * answer (Markdown converted to SSML), pauses a little longer, then advances.
- * Playback stays within a single chapter — it stops at the last question and
- * the user advances chapters manually.
+ * Playback stays within a single chapter: it stops at the last question and
+ * reports it through `onFinished`. Continuing into the next chapter is the job
+ * of `useLectureVoicePlayback`, the only caller.
  *
  * The runner is an `async` loop guarded by an epoch ref: bumping the epoch
  * abandons any in-flight iteration, which makes aborting on pause-stop,
@@ -45,6 +46,8 @@ interface UseChapterVoicePlaybackArgs {
   language: 'de' | 'en';
   enabled: boolean;
   chapterId: string | undefined;
+  /** Called once when a run plays the chapter's last question to its end. */
+  onFinished?: () => void;
 }
 
 export interface UseChapterVoicePlaybackResult {
@@ -53,6 +56,9 @@ export interface UseChapterVoicePlaybackResult {
   isPaused: boolean;
   currentQuestionIndex: number | null;
   currentPart: VoicePlaybackPart | null;
+  /** Play from the first question; does nothing while a run is active. */
+  play: () => void;
+  /** Play, or pause/resume a running chapter. */
   toggle: () => void;
 }
 
@@ -68,6 +74,7 @@ export function useChapterVoicePlayback({
   language,
   enabled,
   chapterId,
+  onFinished,
 }: UseChapterVoicePlaybackArgs): UseChapterVoicePlaybackResult {
   const [status, setStatus] = useState<VoicePlaybackStatus>('idle');
   const [isPaused, setIsPaused] = useState(false);
@@ -87,6 +94,7 @@ export function useChapterVoicePlayback({
   const statusRef = useRef(status);
   const enabledRef = useRef(enabled);
   const synthesizeRef = useRef(synthesize);
+  const onFinishedRef = useRef(onFinished);
   // Holds the latest `run` so the memoized `toggle` never calls a stale runner.
   const runRef = useRef<(startEpoch: number) => void>(() => {});
   useLayoutEffect(() => {
@@ -95,6 +103,7 @@ export function useChapterVoicePlayback({
     statusRef.current = status;
     enabledRef.current = enabled;
     synthesizeRef.current = synthesize;
+    onFinishedRef.current = onFinished;
   });
 
   const epochRef = useRef(0);
@@ -250,6 +259,7 @@ export function useChapterVoicePlayback({
       setStatus('finished');
       setCurrentQuestionIndex(null);
       setCurrentPart(null);
+      onFinishedRef.current?.();
     } catch (error) {
       // A synthesis/playback failure ends this run. Surface it on the control
       // (status `error`) instead of silently resetting, and log it so the
@@ -266,20 +276,25 @@ export function useChapterVoicePlayback({
     runRef.current = run;
   });
 
+  const play = useCallback((): void => {
+    if (!enabledRef.current) return;
+    // Guard against a duplicate runner from a second call before the
+    // `status` state has re-rendered to a non-idle value.
+    if (runningRef.current) return;
+    if (questionsRef.current.length === 0) return;
+    runningRef.current = true;
+    pausedRef.current = false;
+    setIsPaused(false);
+    const startEpoch = ++epochRef.current;
+    void runRef.current(startEpoch);
+  }, []);
+
   const toggle = useCallback((): void => {
     if (!enabledRef.current) return;
     const current = statusRef.current;
 
     if (current === 'idle' || current === 'finished' || current === 'error') {
-      // Guard against a duplicate runner from a second click before the
-      // `status` state has re-rendered to a non-idle value.
-      if (runningRef.current) return;
-      if (questionsRef.current.length === 0) return;
-      runningRef.current = true;
-      pausedRef.current = false;
-      setIsPaused(false);
-      const startEpoch = ++epochRef.current;
-      void runRef.current(startEpoch);
+      play();
       return;
     }
 
@@ -311,7 +326,7 @@ export function useChapterVoicePlayback({
       }
       audioRef.current?.pause();
     }
-  }, []);
+  }, [play]);
 
   // Abort on chapter change and on unmount (single effect covers both).
   useEffect(() => {
@@ -328,6 +343,7 @@ export function useChapterVoicePlayback({
     isPaused,
     currentQuestionIndex,
     currentPart,
+    play,
     toggle,
   };
 }
