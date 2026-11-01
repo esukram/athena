@@ -1,48 +1,70 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import { render, screen } from '@testing-library/react';
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from '@testing-library/react';
 
-import { EditChapterModal, type EditingQuestion } from './EditChapterModal';
+import type { Question } from '@athena/api';
+
+import { useChapterEditor } from '../hooks/useChapterEditor';
+import { createTrpcTestWrapper, deferred } from '../test/trpcTestLink';
+import { EditChapterModal } from './EditChapterModal';
 
 vi.mock('react-i18next', () => ({
-  useTranslation: () => ({
-    t: (key: string) => key,
-  }),
+  useTranslation: () => ({ t: (key: string) => key }),
 }));
 
 describe('EditChapterModal', () => {
-  it('keeps the question row mounted when saving assigns its id', () => {
-    const unsaved: EditingQuestion = {
-      id: null,
-      clientKey: 'client-1',
-      question: 'What is 2 + 2?',
-      answer: '',
-      order: 0,
-      isExpanded: true,
-      showPreview: false,
-    };
-    const renderModal = (questions: EditingQuestion[]) => (
-      <EditChapterModal
-        association=""
-        questions={questions}
-        isSaving={false}
-        initialAssociation=""
-        initialQuestions={questions}
-        onAssociationChange={vi.fn()}
-        onAddQuestion={vi.fn()}
-        onUpdateQuestion={vi.fn()}
-        onToggleQuestionExpanded={vi.fn()}
-        onDeleteQuestion={vi.fn()}
-        onSave={vi.fn()}
-        onCancel={vi.fn()}
-      />
-    );
-
-    const { rerender } = render(renderModal([unsaved]));
+  it('keeps the question row and focus when auto-save assigns its id', async () => {
+    const created = deferred<Question>();
+    const onAutoSaved = vi.fn();
+    const createQuestion = vi.fn(() => created.promise);
+    const { Wrapper } = createTrpcTestWrapper({
+      chapters: {
+        createChapter: () => ({
+          id: 'chapter-1',
+          lectureId: 'lecture-1',
+          association: '',
+          order: 0,
+        }),
+      },
+      questions: { createQuestion },
+    });
+    function Editor() {
+      const { edit, openNew } = useChapterEditor({
+        lectureId: 'lecture-1',
+        onAutoSaved,
+      });
+      return (
+        <>
+          <button onClick={() => openNew(0, 'What is 2 + 2?')}>Open</button>
+          {edit && <EditChapterModal edit={edit} />}
+        </>
+      );
+    }
+    render(<Editor />, { wrapper: Wrapper });
+    fireEvent.click(screen.getByText('Open'));
+    fireEvent.click(screen.getByText('editChapterModal.addQuestion'));
+    await waitFor(() => expect(createQuestion).toHaveBeenCalledTimes(1));
+    fireEvent.click(screen.getByText('What is 2 + 2?'));
     const input = screen.getByDisplayValue('What is 2 + 2?');
     input.focus();
 
-    rerender(renderModal([{ ...unsaved, id: 'question-1' }]));
+    await act(async () =>
+      created.resolve({
+        id: 'question-1',
+        chapterId: 'chapter-1',
+        question: 'What is 2 + 2?',
+        answer: '',
+        order: 0,
+        isAnnotated: false,
+      }),
+    );
+    await waitFor(() => expect(onAutoSaved).toHaveBeenCalledTimes(1));
 
     expect(screen.getByDisplayValue('What is 2 + 2?')).toBe(input);
     expect(input).toHaveFocus();

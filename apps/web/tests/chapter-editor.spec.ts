@@ -1,9 +1,12 @@
 import { expect, test } from '@playwright/test';
 
-test.describe('New Chapter Save Bug', () => {
-  const lectureId = 'lecture-new-chapter-bug-1';
+// Browser journey proving the Chapter editor modal is wired up. The save and
+// auto-save races are covered at the module's interface in
+// src/hooks/useChapterEditor.test.tsx.
+test.describe('Chapter editor', () => {
+  const lectureId = 'lecture-chapter-editor-1';
 
-  test('does not duplicate new chapter when adding a second question and saving', async ({
+  test('auto-saves a new chapter on Add Question and saves the rest', async ({
     page,
   }) => {
     // Setup: Mock lecture data
@@ -167,12 +170,9 @@ test.describe('New Chapter Save Bug', () => {
       page.getByRole('heading', { name: 'Edit Chapter' }),
     ).not.toBeVisible();
 
-    // 5. Verify chapter was only created ONCE
+    // 5. The chapter was created once, with one question from the auto-save
+    // and one from the save.
     expect(createChapterCallCount).toBe(1);
-
-    // We should have created exactly 2 questions:
-    // 1 during auto-save, 1 during manual save. Poll until network settles.
-    await expect.poll(() => createQuestionCallCount).toBe(2);
-    expect(createChapterCallCount).toBe(1);
+    expect(createQuestionCallCount).toBe(2);
   });
 });

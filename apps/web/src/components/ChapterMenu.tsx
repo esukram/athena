@@ -1,12 +1,12 @@
 import { useTranslation } from 'react-i18next';
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 
 import type { Chapter } from '@athena/api';
 
-import { newClientKey } from '../utils/clientKey';
+import { useChapterEditor } from '../hooks/useChapterEditor';
 import { trpc } from '../utils/trpc';
-import { EditChapterModal, type EditingQuestion } from './EditChapterModal';
+import { EditChapterModal } from './EditChapterModal';
 import { IconButtonEdit } from './buttons/IconButtonEdit';
 
 interface ChapterMenuProps {
@@ -16,192 +16,16 @@ interface ChapterMenuProps {
 
 export const ChapterMenu = ({ chapter, lectureId }: ChapterMenuProps) => {
   const { t } = useTranslation();
-  const utils = trpc.useUtils();
-  const [editModalOpen, setEditModalOpen] = useState(false);
-
-  // Edit form state
-  const [editingAssociation, setEditingAssociation] = useState(
-    chapter.association,
-  );
-  const [editingQuestions, setEditingQuestions] = useState<EditingQuestion[]>(
-    [],
-  );
-  const [initialAssociation, setInitialAssociation] = useState(
-    chapter.association,
-  );
-  const [initialQuestions, setInitialQuestions] = useState<EditingQuestion[]>(
-    [],
-  );
-
-  // Fetch all questions for this chapter
-  const chapterQuestionsQuery = trpc.questions.getQuestions.useQuery(
-    { chapterId: chapter.id },
-    { enabled: editModalOpen },
-  );
+  const { edit, openExisting } = useChapterEditor({ lectureId });
+  const isEditing = edit !== null;
 
   // Fetch distinct associations for autocomplete
   const associationsQuery = trpc.chapters.getDistinctAssociations.useQuery();
   const existingAssociations = associationsQuery.data || [];
 
-  // Sync fetched questions to editing state when modal opens
-  useEffect(() => {
-    if (editModalOpen && chapterQuestionsQuery.data !== undefined) {
-      const questions = chapterQuestionsQuery.data;
-      if (questions.length > 0) {
-        const mappedQuestions = questions.map((q, index) => ({
-          id: q.id,
-          clientKey: newClientKey(),
-          question: q.question,
-          answer: q.answer,
-          order: q.order,
-          isExpanded: index === 0,
-          showPreview: false,
-        }));
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setEditingQuestions(mappedQuestions);
-        setInitialQuestions(mappedQuestions.map((q) => ({ ...q })));
-      } else {
-        const emptyQuestion: EditingQuestion = {
-          id: null,
-          clientKey: newClientKey(),
-          question: '',
-          answer: '',
-          order: 0,
-          isExpanded: true,
-          showPreview: false,
-        };
-        setEditingQuestions([emptyQuestion]);
-        setInitialQuestions([{ ...emptyQuestion }]);
-      }
-    }
-  }, [editModalOpen, chapterQuestionsQuery.data]);
-
-  const updateChapter = trpc.chapters.updateChapter.useMutation({
-    onSuccess: () => {
-      utils.chapters.getChapters.invalidate({ lectureId });
-      utils.chapters.getDistinctAssociations.invalidate();
-    },
-  });
-
-  const updateQuestion = trpc.questions.updateQuestion.useMutation({
-    onSuccess: () => {
-      utils.questions.getFirstQuestion.invalidate({ chapterId: chapter.id });
-      utils.questions.getQuestions.invalidate({ chapterId: chapter.id });
-    },
-  });
-
-  const createQuestion = trpc.questions.createQuestion.useMutation({
-    onSuccess: () => {
-      utils.questions.getFirstQuestion.invalidate({ chapterId: chapter.id });
-      utils.questions.getQuestions.invalidate({ chapterId: chapter.id });
-    },
-  });
-
-  const deleteQuestion = trpc.questions.deleteQuestion.useMutation({
-    onSuccess: () => {
-      utils.questions.getFirstQuestion.invalidate({ chapterId: chapter.id });
-      utils.questions.getQuestions.invalidate({ chapterId: chapter.id });
-    },
-  });
-
-  const handleSaveEdit = async () => {
-    const hasValidQuestion = editingQuestions.some((q) => q.question.trim());
-    if (!hasValidQuestion) return;
-
-    // Update chapter association if changed
-    if (editingAssociation !== chapter.association) {
-      updateChapter.mutate({
-        id: chapter.id,
-        association: editingAssociation,
-      });
-    }
-
-    // Save all questions
-    for (const eq of editingQuestions) {
-      if (!eq.question.trim()) continue;
-
-      if (eq.id) {
-        updateQuestion.mutate({
-          id: eq.id,
-          question: eq.question.trim(),
-          answer: eq.answer,
-          order: eq.order,
-        });
-      } else {
-        createQuestion.mutate({
-          chapterId: chapter.id,
-          question: eq.question.trim(),
-          answer: eq.answer,
-          order: eq.order,
-        });
-      }
-    }
-
-    handleCancelEdit();
-  };
-
-  const handleOpenEdit = () => {
-    setEditingAssociation(chapter.association);
-    setInitialAssociation(chapter.association);
-    setEditingQuestions([]);
-    setInitialQuestions([]);
-    setEditModalOpen(true);
-  };
-
-  const handleCancelEdit = () => {
-    setEditModalOpen(false);
-    setEditingAssociation(chapter.association);
-    setEditingQuestions([]);
-  };
-
-  const handleAddQuestion = () => {
-    const maxOrder =
-      editingQuestions.length > 0
-        ? Math.max(...editingQuestions.map((q) => q.order))
-        : -1;
-    setEditingQuestions([
-      ...editingQuestions.map((q) => ({ ...q, isExpanded: false })),
-      {
-        id: null,
-        clientKey: newClientKey(),
-        question: '',
-        answer: '',
-        order: maxOrder + 1,
-        isExpanded: true,
-        showPreview: false,
-      },
-    ]);
-  };
-
-  const handleUpdateEditingQuestion = (
-    index: number,
-    updates: Partial<EditingQuestion>,
-  ) => {
-    setEditingQuestions((prev) =>
-      prev.map((q, i) => (i === index ? { ...q, ...updates } : q)),
-    );
-  };
-
-  const handleToggleQuestionExpanded = (index: number) => {
-    setEditingQuestions((prev) =>
-      prev.map((q, i) => ({
-        ...q,
-        isExpanded: i === index ? !q.isExpanded : false,
-      })),
-    );
-  };
-
-  const handleDeleteEditingQuestion = (index: number) => {
-    const question = editingQuestions[index];
-    if (question.id) {
-      deleteQuestion.mutate({ id: question.id });
-    }
-    setEditingQuestions((prev) => prev.filter((_, i) => i !== index));
-  };
-
   // Prevent keyboard navigation when modal is open
   useEffect(() => {
-    if (editModalOpen) {
+    if (isEditing) {
       const handleKeyDown = (event: KeyboardEvent) => {
         if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
           event.stopPropagation();
@@ -210,35 +34,24 @@ export const ChapterMenu = ({ chapter, lectureId }: ChapterMenuProps) => {
       window.addEventListener('keydown', handleKeyDown, true);
       return () => window.removeEventListener('keydown', handleKeyDown, true);
     }
-  }, [editModalOpen]);
+  }, [isEditing]);
 
   return (
     <>
       <IconButtonEdit
         onClick={(e) => {
           e.stopPropagation();
-          handleOpenEdit();
+          openExisting(chapter);
         }}
         aria-label={t('chapterMenu.editChapter')}
         data-testid="chapter-edit-button"
       />
 
       {/* Chapter Edit Modal */}
-      {editModalOpen && (
+      {edit && (
         <EditChapterModal
-          association={editingAssociation}
-          questions={editingQuestions}
-          isSaving={updateQuestion.isPending || createQuestion.isPending}
+          edit={edit}
           existingAssociations={existingAssociations}
-          initialAssociation={initialAssociation}
-          initialQuestions={initialQuestions}
-          onAssociationChange={setEditingAssociation}
-          onAddQuestion={handleAddQuestion}
-          onUpdateQuestion={handleUpdateEditingQuestion}
-          onToggleQuestionExpanded={handleToggleQuestionExpanded}
-          onDeleteQuestion={handleDeleteEditingQuestion}
-          onSave={handleSaveEdit}
-          onCancel={handleCancelEdit}
         />
       )}
     </>
