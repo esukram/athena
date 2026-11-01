@@ -2,6 +2,7 @@ import { useRef, useState } from 'react';
 
 import type { Chapter, Question } from '@athena/api';
 
+import { newClientKey } from '../utils/clientKey';
 import { trpc } from '../utils/trpc';
 
 /**
@@ -45,9 +46,8 @@ interface Session {
   view: EditorView | null;
 }
 
-let lastKey = 0;
 const blankQuestion = (order: number, question = ''): DraftQuestion => ({
-  key: `q${++lastKey}`,
+  key: newClientKey(),
   question,
   answer: '',
   order,

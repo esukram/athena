@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 import { type Theme, ThemeContext } from './themeContext';
 
@@ -30,34 +30,38 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const [activeTheme, setActiveTheme] = useState<Theme>(getInitialTheme);
+  // Latest requested theme, updated synchronously so batched calls (e.g. two
+  // toggles before a re-render) build on each other instead of stale state.
+  const latestThemeRef = useRef(activeTheme);
+  const applyTheme = useCallback((next: Theme) => {
+    latestThemeRef.current = next;
+    setActiveTheme(next);
+  }, []);
 
   // Reflect the active theme onto <html> whenever it changes.
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', activeTheme);
   }, [activeTheme]);
 
-  const setTheme = useCallback((next: Theme) => {
-    setActiveTheme(next);
-    // Storage access is guarded — private mode / disabled storage must not
-    // crash; the preference simply falls back to session-only in that case.
-    try {
-      localStorage.setItem(STORAGE_KEY, next);
-    } catch {
-      // ignore
-    }
-  }, []);
-
-  const toggle = useCallback(() => {
-    setActiveTheme((prev) => {
-      const next = prev === 'dark' ? 'light' : 'dark';
+  const setTheme = useCallback(
+    (next: Theme) => {
+      applyTheme(next);
+      // Storage access is guarded — private mode / disabled storage must not
+      // crash; the preference simply falls back to session-only in that case.
       try {
         localStorage.setItem(STORAGE_KEY, next);
       } catch {
         // ignore
       }
-      return next;
-    });
-  }, []);
+    },
+    [applyTheme],
+  );
+
+  // Single persistence path: toggle derives `next` from the latest theme and
+  // delegates to setTheme, keeping side effects out of state updaters.
+  const toggle = useCallback(() => {
+    setTheme(latestThemeRef.current === 'dark' ? 'light' : 'dark');
+  }, [setTheme]);
 
   // Follow the OS preference, but only while the user has not made an explicit
   // stored choice. The stored value is read inside the handler so a later
@@ -74,11 +78,11 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({
       if (stored === 'light' || stored === 'dark') {
         return;
       }
-      setActiveTheme(event.matches ? 'dark' : 'light');
+      applyTheme(event.matches ? 'dark' : 'light');
     };
     media.addEventListener('change', handleChange);
     return () => media.removeEventListener('change', handleChange);
-  }, []);
+  }, [applyTheme]);
 
   return (
     <ThemeContext value={{ theme: activeTheme, setTheme, toggle }}>
