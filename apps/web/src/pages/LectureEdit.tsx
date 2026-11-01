@@ -18,6 +18,7 @@ import { Toast } from '../components/Toast';
 import { IconButtonDelete } from '../components/buttons/IconButtonDelete';
 import { IconButtonEdit } from '../components/buttons/IconButtonEdit';
 import { IconButtonMove } from '../components/buttons/IconButtonMove';
+import { newClientKey } from '../utils/clientKey';
 import { trpc } from '../utils/trpc';
 
 export const EditLecture = () => {
@@ -53,9 +54,9 @@ export const EditLecture = () => {
   const autoSaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isAutoSavingRef = useRef(false);
   // In-flight auto-save promise, resolving to the IDs of questions it created
-  // (keyed by question order). A manual save awaits this to avoid duplicates.
+  // (keyed by clientKey). A manual save awaits this to avoid duplicates.
   const autoSavePromiseRef = useRef<Promise<
-    Map<number, string> | undefined
+    Map<string, string> | undefined
   > | null>(null);
 
   const lectureQuery = trpc.lectures.getLecture.useQuery(
@@ -198,9 +199,9 @@ export const EditLecture = () => {
         savedAssociationRef.current = editingAssociation;
       }
 
-      // IDs of questions created here, keyed by question order, so a manual
-      // save running afterwards can skip recreating them.
-      const createdQuestionIds = new Map<number, string>();
+      // IDs of questions created here, keyed by clientKey, so a manual save
+      // running afterwards can skip recreating them.
+      const createdQuestionIds = new Map<string, string>();
 
       // Collect all mutation promises
       const mutationPromises: Promise<unknown>[] = [];
@@ -239,11 +240,11 @@ export const EditLecture = () => {
                 order: eq.order,
               })
               .then((newQuestion) => {
-                createdQuestionIds.set(eq.order, newQuestion.id);
+                createdQuestionIds.set(eq.clientKey, newQuestion.id);
                 // Update the local question with its new ID
                 setEditingQuestions((prev) =>
                   prev.map((q) =>
-                    q.order === eq.order && !q.id
+                    q.clientKey === eq.clientKey
                       ? { ...q, id: newQuestion.id }
                       : q,
                   ),
@@ -251,7 +252,7 @@ export const EditLecture = () => {
                 // Also update initial questions to prevent isDirty issues
                 setInitialQuestions((prev) =>
                   prev.map((q) =>
-                    q.order === eq.order && !q.id
+                    q.clientKey === eq.clientKey
                       ? { ...q, id: newQuestion.id }
                       : q,
                   ),
@@ -338,6 +339,7 @@ export const EditLecture = () => {
     // Pre-populate with the entered question
     const newQuestion: EditingQuestion = {
       id: null,
+      clientKey: newClientKey(),
       question: newChapterQuestion,
       answer: '',
       order: 0,
@@ -365,6 +367,7 @@ export const EditLecture = () => {
       if (questions.length > 0) {
         const mappedQuestions = questions.map((q, index) => ({
           id: q.id,
+          clientKey: newClientKey(),
           question: q.question,
           answer: q.answer,
           order: q.order,
@@ -376,6 +379,7 @@ export const EditLecture = () => {
       } else {
         const emptyQuestion: EditingQuestion = {
           id: null,
+          clientKey: newClientKey(),
           question: '',
           answer: '',
           order: 0,
@@ -388,6 +392,7 @@ export const EditLecture = () => {
     } catch {
       const emptyQuestion: EditingQuestion = {
         id: null,
+        clientKey: newClientKey(),
         question: '',
         answer: '',
         order: 0,
@@ -416,7 +421,7 @@ export const EditLecture = () => {
 
     // Wait for any in-flight auto-save to finish so we don't recreate the
     // chapter or its questions. It reports the IDs of the questions it
-    // created (keyed by order); merge them in so we update those rather
+    // created (keyed by clientKey); merge them in so we update those rather
     // than create duplicates.
     let questionsToSave = editingQuestions;
     if (autoSavePromiseRef.current) {
@@ -424,8 +429,8 @@ export const EditLecture = () => {
         const createdIds = await autoSavePromiseRef.current;
         if (createdIds && createdIds.size > 0) {
           questionsToSave = editingQuestions.map((q) =>
-            !q.id && createdIds.has(q.order)
-              ? { ...q, id: createdIds.get(q.order)! }
+            !q.id && createdIds.has(q.clientKey)
+              ? { ...q, id: createdIds.get(q.clientKey)! }
               : q,
           );
         }
@@ -523,6 +528,7 @@ export const EditLecture = () => {
       ...editingQuestions.map((q) => ({ ...q, isExpanded: false })), // Collapse others
       {
         id: null,
+        clientKey: newClientKey(),
         question: '',
         answer: '',
         order: maxOrder + 1,

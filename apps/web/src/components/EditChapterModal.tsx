@@ -6,6 +6,8 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 export interface EditingQuestion {
   id: string | null;
+  /** Stable row identity; unlike `id`, it does not change when the question is saved. */
+  clientKey: string;
   question: string;
   answer: string;
   order: number;
@@ -271,7 +273,7 @@ export const EditChapterModal = ({
             <div className="space-y-3">
               {questions.map((eq, index) => (
                 <div
-                  key={eq.id ?? `new-${eq.order}`}
+                  key={eq.clientKey}
                   className="border border-border rounded-lg overflow-hidden"
                 >
                   {/* Accordion Header */}
