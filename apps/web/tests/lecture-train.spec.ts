@@ -281,4 +281,74 @@ test.describe('Lecture Train', () => {
       page.getByText('Only question', { exact: true }),
     ).toBeVisible();
   });
+
+  test('randomized order and progress survive a reload', async ({ page }) => {
+    const lectureId = 'lecture-train-4';
+    const chapterIds = ['c1', 'c2', 'c3'];
+    const questionsByChapter = Object.fromEntries(
+      chapterIds.map((id) => [
+        id,
+        [
+          {
+            id: `q-${id}`,
+            chapterId: id,
+            question: `Only question of ${id}`,
+            answer: `Answer of ${id}`,
+            order: 0,
+            isAnnotated: false,
+          },
+        ],
+      ]),
+    );
+    const data: Record<string, unknown> = {
+      'lectures.getLecture': { id: lectureId, title: 'Shuffled' },
+      'chapters.getChapters': chapterIds.map((id, order) => ({
+        id,
+        lectureId,
+        order,
+      })),
+      'questions.getFirstQuestionsByLecture': Object.fromEntries(
+        chapterIds.map((id) => [id, questionsByChapter[id][0]]),
+      ),
+      'questions.getAnnotatedChapterIdsByLecture': [],
+      'questions.getQuestionCountsByLecture': 3,
+      'questions.getQuestionCountsPerChapter': { c1: 1, c2: 1, c3: 1 },
+    };
+    await page.route('**/api/trpc/*', async (route) => {
+      const url = new URL(route.request().url());
+      const procedure = url.pathname.split('/').pop()!;
+      const input = JSON.parse(url.searchParams.get('input') || '{}');
+      await route.fulfill({
+        json: {
+          result: {
+            data:
+              procedure === 'questions.getQuestions'
+                ? questionsByChapter[input.chapterId]
+                : data[procedure],
+          },
+        },
+      });
+    });
+
+    // Entering without a seed settles on a canonical URL that carries one.
+    await page.goto(`/#/train-random/${lectureId}`);
+    await expect(page).toHaveURL(/\?seed=\d+$/);
+    await expect(page.getByText('Chapter 1/3 · Question 1/1')).toBeVisible();
+
+    await page.getByRole('button', { name: 'Next' }).click();
+    await expect(page.getByText('Chapter 2/3 · Question 1/1')).toBeVisible();
+    const url = page.url();
+    const question = await page
+      .getByText(/^Only question of c\d$/)
+      .first()
+      .textContent();
+
+    await page.reload();
+
+    expect(page.url()).toBe(url);
+    await expect(page.getByText('Chapter 2/3 · Question 1/1')).toBeVisible();
+    await expect(
+      page.getByText(question!, { exact: true }).first(),
+    ).toBeVisible();
+  });
 });

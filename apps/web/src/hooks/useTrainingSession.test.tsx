@@ -155,9 +155,11 @@ function renderSession(
         questionId: params.questionId,
       });
       statuses.push(session.status);
+      const location = useLocation();
       return {
         session,
-        path: useLocation().pathname,
+        path: location.pathname,
+        search: location.search,
         navigate: useNavigate(),
       };
     },
@@ -190,9 +192,8 @@ describe('useTrainingSession', () => {
       );
     });
 
-    it('shuffles the Chapters in randomized mode', async () => {
-      vi.spyOn(Math, 'random').mockReturnValue(0);
-      const { result } = renderSession('/train-random/l1', {
+    it('shuffles the Chapters by the seed in randomized mode', async () => {
+      const { result } = renderSession('/train-random/l1?seed=7', {
         mode: 'randomized',
       });
 
@@ -227,6 +228,88 @@ describe('useTrainingSession', () => {
 
       await waitFor(() => expect(chapterIds(result)).toEqual(['c4']));
       await waitForQuestion(result, 'q4a');
+    });
+  });
+
+  describe('shuffle seed', () => {
+    const randomized = { mode: 'randomized' } as const;
+
+    it('keeps the order and progress across remounts for the same seed', async () => {
+      // A reload is a fresh mount with a fresh cache on the same URL.
+      for (let mount = 0; mount < 2; mount++) {
+        const { result, unmount } = renderSession(
+          '/train-random/l1/c1/q1b?seed=42',
+          randomized,
+        );
+        await waitForQuestion(result, 'q1b');
+        expect(chapterIds(result)).toEqual(['c3', 'c1', 'c2']);
+        // c3's two Questions, then the second of c1.
+        await waitFor(() =>
+          expect(result.current.session.progress.position).toBe(4),
+        );
+        unmount();
+      }
+    });
+
+    it('orders differently for another seed', async () => {
+      const { result } = renderSession('/train-random/l1?seed=42', randomized);
+      await waitFor(() =>
+        expect(chapterIds(result)).toEqual(['c3', 'c1', 'c2']),
+      );
+
+      act(() => result.current.navigate('/train-random/l1?seed=7'));
+
+      await waitFor(() =>
+        expect(chapterIds(result)).toEqual(['c2', 'c3', 'c1']),
+      );
+    });
+
+    it('keeps the order on Back and Forward', async () => {
+      const { result } = renderSession('/train-random/l1?seed=42', randomized);
+      await waitForQuestion(result, 'q3a');
+      act(() => result.current.session.next());
+      await waitForQuestion(result, 'q3b');
+      act(() => result.current.session.next());
+      await waitForQuestion(result, 'q1a');
+
+      act(() => result.current.navigate(-1));
+      await waitForQuestion(result, 'q3b');
+      expect(result.current.search).toBe('?seed=42');
+      expect(chapterIds(result)).toEqual(['c3', 'c1', 'c2']);
+
+      act(() => result.current.navigate(1));
+      await waitForQuestion(result, 'q1a');
+      expect(chapterIds(result)).toEqual(['c3', 'c1', 'c2']);
+    });
+
+    it.each(['', '?seed=abc', '?seed=01', '?seed=4294967296'])(
+      'replaces a missing or invalid seed %j with a fresh one in place',
+      async (search) => {
+        vi.spyOn(Math, 'random').mockReturnValue(0.5);
+        const { result } = renderSession(
+          `/train-random/l1/c2${search}`,
+          randomized,
+        );
+
+        await waitFor(() =>
+          expect(result.current.search).toBe('?seed=2147483648'),
+        );
+        expect(result.current.path).toBe('/train-random/l1/c2');
+        await waitForQuestion(result, 'q2a');
+        // Replaced, not pushed: this is still the first history entry.
+        expect(result.current.session.canGoBack).toBe(false);
+      },
+    );
+
+    it('ignores the seed in regular mode', async () => {
+      const { result } = renderSession('/train/l1?seed=42');
+      await waitForQuestion(result, 'q1a');
+      expect(chapterIds(result)).toEqual(['c1', 'c2', 'c3']);
+
+      act(() => result.current.session.next());
+
+      expect(result.current.path).toBe('/train/l1/c1/q1b');
+      expect(result.current.search).toBe('');
     });
   });
 
@@ -321,9 +404,8 @@ describe('useTrainingSession', () => {
       await waitForQuestion(result, 'q3a');
     });
 
-    it('stays under the randomized route in randomized mode', async () => {
-      vi.spyOn(Math, 'random').mockReturnValue(0);
-      const { result } = renderSession('/train-random/l1', {
+    it('stays under the randomized route and keeps its seed', async () => {
+      const { result } = renderSession('/train-random/l1?seed=7', {
         mode: 'randomized',
       });
       await waitForQuestion(result, 'q2a');
@@ -331,6 +413,7 @@ describe('useTrainingSession', () => {
       act(() => result.current.session.next());
 
       expect(result.current.path).toBe('/train-random/l1/c3');
+      expect(result.current.search).toBe('?seed=7');
     });
 
     it('ignores next on the last and previous on the first Question', async () => {

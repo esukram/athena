@@ -10,6 +10,7 @@ import {
   nextTrainingStep,
   orderChaptersForTraining,
   prevTrainingStep,
+  seededRandom,
   trainingProgressPosition,
 } from '@athena/domain/training';
 
@@ -27,6 +28,15 @@ export interface TrainingSessionParams {
 const LAST_QUESTION = '__last__';
 
 const EMPTY: never[] = [];
+
+/** A `?seed=` value: an unsigned 32-bit integer in canonical decimal form. */
+function parseSeed(value: string | null): number | undefined {
+  if (value === null || !/^(0|[1-9]\d{0,9})$/.test(value)) return undefined;
+  const seed = Number(value);
+  return seed <= 0xffffffff ? seed : undefined;
+}
+
+const newSeed = () => Math.floor(Math.random() * 2 ** 32);
 
 export type TrainingSessionStatus =
   'loading' | 'empty' | 'ready' | 'error' | 'not-found';
@@ -46,6 +56,13 @@ export function useTrainingSession({
   const navigate = useNavigate();
   const location = useLocation();
   const basePath = mode === 'randomized' ? 'train-random' : 'train';
+  // Randomized order is a function of the URL's shuffle seed, so a reload,
+  // Back/Forward or a shared link reproduce it. Regular order ignores it.
+  const seed =
+    mode === 'randomized'
+      ? parseSeed(new URLSearchParams(location.search).get('seed'))
+      : undefined;
+  const needsSeed = mode === 'randomized' && seed === undefined;
   const lectureInput = { lectureId };
   const byLecture = { enabled: !!lectureId };
 
@@ -79,28 +96,32 @@ export function useTrainingSession({
     [firstQuestionsQuery.data],
   );
 
-  // Ordered once per Lecture: annotating mid-session or a refetch must not
-  // reshuffle the Chapters under the learner.
+  // Ordered once per Lecture and seed: annotating mid-session or a refetch
+  // must not reshuffle the Chapters under the learner.
   const [ordering, setOrdering] = useState<{
     lectureId: string;
+    seed: number | undefined;
     chapters: Chapter[];
   } | null>(null);
-  const isOrdered = ordering?.lectureId === lectureId;
+  const isOrdered = ordering?.lectureId === lectureId && ordering.seed === seed;
   const chapters = isOrdered ? ordering.chapters : EMPTY;
 
   // Set during render rather than in an effect (React's pattern for state
   // derived from other values); `chapters` stays empty until then.
   if (
     !isOrdered &&
+    !needsSeed &&
     chaptersQuery.data !== undefined &&
     annotatedChapterIdsQuery.data !== undefined
   ) {
     setOrdering({
       lectureId,
+      seed,
       chapters: orderChaptersForTraining(
         chaptersQuery.data,
         mode,
         annotatedChapterIdsQuery.data,
+        seed === undefined ? undefined : seededRandom(seed),
       ),
     });
   }
@@ -176,16 +197,30 @@ export function useTrainingSession({
     (location.state as { firstEntry?: boolean } | null)?.firstEntry === true;
 
   const goTo = useCallback(
-    (toChapterId?: string, toQuestionId?: string, replace = false) =>
+    (
+      toChapterId?: string,
+      toQuestionId?: string,
+      replace = false,
+      toSeed = seed,
+    ) =>
       navigate(
-        `/${[basePath, lectureId, toChapterId, toQuestionId].filter(Boolean).join('/')}`,
+        {
+          pathname: `/${[basePath, lectureId, toChapterId, toQuestionId].filter(Boolean).join('/')}`,
+          search: toSeed === undefined ? '' : `?seed=${toSeed}`,
+        },
         {
           replace,
           state: replace && isFirstEntry ? { firstEntry: true } : null,
         },
       ),
-    [navigate, basePath, lectureId, isFirstEntry],
+    [navigate, basePath, lectureId, isFirstEntry, seed],
   );
+
+  // A randomized URL without a valid seed gets a fresh one in place, so the
+  // URL becomes canonical before anything is ordered.
+  useEffect(() => {
+    if (needsSeed) goTo(chapterId, questionId, true, newSeed());
+  }, [needsSeed, goTo, chapterId, questionId]);
 
   const next = () => {
     if (!canStep) return;
