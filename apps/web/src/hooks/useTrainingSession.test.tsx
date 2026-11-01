@@ -301,6 +301,51 @@ describe('useTrainingSession', () => {
       },
     );
 
+    it.each(['0', '4294967295'])(
+      'accepts the boundary seed %s',
+      async (seed) => {
+        const { result } = renderSession(
+          `/train-random/l1?seed=${seed}`,
+          randomized,
+        );
+
+        await waitFor(() =>
+          expect(result.current.session.status).toBe('ready'),
+        );
+        expect(result.current.search).toBe(`?seed=${seed}`);
+      },
+    );
+
+    it('keeps the seed while resolving the last Question of a previous Chapter', async () => {
+      const { result } = renderSession(
+        '/train-random/l1/c1/q1a?seed=42',
+        randomized,
+      );
+      await waitForQuestion(result, 'q1a');
+
+      act(() => result.current.session.previous());
+
+      await waitFor(() =>
+        expect(result.current.path).toBe('/train-random/l1/c3/q3b'),
+      );
+      expect(result.current.search).toBe('?seed=42');
+    });
+
+    it('keeps the seed when going to the canonical URL', async () => {
+      const { result } = renderSession(
+        '/train-random/l1/c1/gone?seed=42',
+        randomized,
+      );
+      await waitFor(() =>
+        expect(result.current.session.status).toBe('not-found'),
+      );
+
+      act(() => result.current.session.goToCanonical());
+
+      expect(result.current.path).toBe('/train-random/l1/c1');
+      expect(result.current.search).toBe('?seed=42');
+    });
+
     it('ignores the seed in regular mode', async () => {
       const { result } = renderSession('/train/l1?seed=42');
       await waitForQuestion(result, 'q1a');

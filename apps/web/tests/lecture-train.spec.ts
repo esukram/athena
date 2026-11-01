@@ -333,22 +333,32 @@ test.describe('Lecture Train', () => {
     // Entering without a seed settles on a canonical URL that carries one.
     await page.goto(`/#/train-random/${lectureId}`);
     await expect(page).toHaveURL(/\?seed=\d+$/);
+
+    // Seed 42 orders the Chapters c3, c1, c2.
+    const card = (chapterId: string) =>
+      page.getByText(`Only question of ${chapterId}`, { exact: true }).first();
+    await page.goto(`/#/train-random/${lectureId}?seed=42`);
+    await expect(card('c3')).toBeVisible();
     await expect(page.getByText('Chapter 1/3 · Question 1/1')).toBeVisible();
 
     await page.getByRole('button', { name: 'Next' }).click();
+    await expect(page).toHaveURL(
+      new RegExp(`/train-random/${lectureId}/c1\\?seed=42$`),
+    );
     await expect(page.getByText('Chapter 2/3 · Question 1/1')).toBeVisible();
-    const url = page.url();
-    const question = await page
-      .getByText(/^Only question of c\d$/)
-      .first()
-      .textContent();
 
     await page.reload();
 
-    expect(page.url()).toBe(url);
+    await expect(page).toHaveURL(
+      new RegExp(`/train-random/${lectureId}/c1\\?seed=42$`),
+    );
+    await expect(card('c1')).toBeVisible();
     await expect(page.getByText('Chapter 2/3 · Question 1/1')).toBeVisible();
-    await expect(
-      page.getByText(question!, { exact: true }).first(),
-    ).toBeVisible();
+
+    // Next follows the same order after the reload.
+    await page.getByRole('button', { name: 'Next' }).click();
+    await expect(page).toHaveURL(
+      new RegExp(`/train-random/${lectureId}/c2\\?seed=42$`),
+    );
   });
 });
